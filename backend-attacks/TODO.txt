@@ -1,0 +1,16 @@
+all the Server-Side Attacks
+
+🛑 Server-Side Attacks:
+
+1. SQL Injection
+2. XML External Entity (XXE) Injection
+3. Server-Side Request Forgery (SSRF)
+4. OS Command Injection (RCE)
+5. Server-Side Template Injection
+6. Insecure Deserialization
+7. Path Traversal
+8. File Upload Vulnerabilities
+9. OAuth 2.0 Authentication Vulnerabilities
+10. JWT Attacks
+11. idor attacks
+
