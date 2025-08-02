@@ -16,7 +16,7 @@
 ### 1. SQL Injection + XXE Injection ✅
 - **المدة:** ساعتان
 - **المختبرات:** 6 مختبرات من PortSwigger
-- **الرابط:** [بدء المحاضرة](https://abode1234.github.io/lecture-server-side-attack/lecture-sql-xxe/lecture-clean.html)
+- **الرابط:** [بدء المحاضرة](lecture-sql-xxe/lecture-clean.html)
 - **المواضيع:**
   - SQL Injection (Error-Based, Union-Based, Blind)
   - XXE Injection (File Disclosure, SSRF, XML Bomb, Out-of-Band)

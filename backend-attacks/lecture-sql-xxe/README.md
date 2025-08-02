@@ -1,111 +1,82 @@
-# المحاضرة الأولى: SQL Injection + XXE Injection
+# محاضرة SQL Injection + XXE Injection
 
-## 📋 معلومات المحاضرة
+## 📚 نظرة عامة
 
-- **العنوان:** SQL Injection + XXE Injection
-- **المدة:** ساعتان
-- **التاريخ:** ديسمبر 2024
-- **المختبرات:** 6 مختبرات من PortSwigger
-- **المستوى:** متوسط إلى متقدم
+المحاضرة الأولى من سلسلة أمان تطبيقات الويب - الهجمات من جانب الخادم. تركز هذه المحاضرة على نوعين من أخطر الثغرات في تطبيقات الويب: SQL Injection و XXE Injection.
 
-## 🎯 الأهداف التعليمية
+## 🎯 أهداف التعلم
 
 بنهاية هذه المحاضرة، ستكون قادراً على:
 
-1. **فهم SQL Injection:**
-   - تحديد نقاط الضعف في التطبيقات
-   - تنفيذ هجمات Error-Based SQLi
-   - استخدام Union-Based SQLi لاستخراج البيانات
-   - تطبيق تقنيات Blind SQLi
+- فهم آليات عمل هجمات SQL Injection وأنواعها المختلفة
+- اكتشاف واستغلال ثغرات XXE Injection
+- تطبيق تقنيات تجاوز الفلاتر والحماية
+- تنفيذ هجمات متقدمة للحصول على بيانات حساسة
+- تطبيق طرق الحماية الفعالة
 
-2. **فهم XXE Injection:**
-   - التعامل مع ملفات XML بشكل آمن
-   - استغلال External Entities لقراءة الملفات
-   - تنفيذ SSRF عبر XXE
-   - فهم مخاطر XML Bomb
+## 📖 محتوى المحاضرة
 
-3. **طرق الحماية:**
-   - تطبيق Prepared Statements
-   - تعطيل External Entities
-   - استخدام مكتبات آمنة
+### 💉 SQL Injection
+- **الأساسيات:** مفهوم SQL Injection وأنواعه
+- **التقنيات:**
+  - Error-Based SQL Injection
+  - Union-Based SQL Injection
+  - Blind SQL Injection
+  - Time-Based Blind SQL Injection
+- **أدوات الاستغلال:** sqlmap, Burp Suite
 
-## 📚 المحتوى
-
-### الجزء الأول: SQL Injection (60 دقيقة)
-1. **المفاهيم الأساسية** (15 دقيقة)
-   - تعريف SQL Injection
-   - أسباب حدوث الثغرة
-   - أمثلة على الكود الضعيف
-
-2. **أنواع SQL Injection** (30 دقيقة)
-   - Error-Based SQLi
-   - Union-Based SQLi  
-   - Boolean-Based Blind SQLi
-
-3. **المختبرات العملية** (15 دقيقة)
-   - 3 مختبرات من PortSwigger
-
-### الجزء الثاني: XXE Injection (60 دقيقة)
-1. **مقدمة في XML وXXE** (15 دقيقة)
-   - أساسيات XML
-   - External Entities
-   - مخاطر معالجة XML
-
-2. **أنواع هجمات XXE** (30 دقيقة)
-   - File Disclosure
-   - SSRF via XXE
-   - XML Bomb (DoS)
-   - Out-of-Band XXE
-
-3. **المختبرات العملية** (15 دقيقة)
-   - 3 مختبرات من PortSwigger
+### 🔄 XXE Injection
+- **الأساسيات:** مفهوم XXE وآلية العمل
+- **أنواع الاستغلال:**
+  - File Disclosure
+  - SSRF via XXE
+  - XML Bomb (Billion Laughs)
+  - Out-of-Band XXE
+- **تقنيات متقدمة:** Blind XXE
 
 ## 🧪 المختبرات العملية
 
-### SQL Injection Labs:
-1. **Lab 1:** [SQL injection vulnerability in WHERE clause](https://portswigger.net/web-security/sql-injection/lab-retrieve-hidden-data)
-2. **Lab 2:** [SQL injection UNION attack](https://portswigger.net/web-security/sql-injection/union-attacks/lab-determine-number-of-columns)
-3. **Lab 3:** [Blind SQL injection with conditional responses](https://portswigger.net/web-security/sql-injection/blind/lab-conditional-responses)
+### SQL Injection Labs
+1. **SQL injection vulnerability in WHERE clause** - استغلال أساسي
+2. **SQL injection UNION attack** - استخراج البيانات
+3. **Blind SQL injection with conditional responses** - Blind techniques
 
-### XXE Injection Labs:
-4. **Lab 4:** [Exploiting XXE using external entities](https://portswigger.net/web-security/xxe/lab-exploiting-xxe-to-retrieve-files)
-5. **Lab 5:** [Exploiting XXE to perform SSRF attacks](https://portswigger.net/web-security/xxe/lab-exploiting-xxe-to-perform-ssrf)
-6. **Lab 6:** [Blind XXE with out-of-band interaction](https://portswigger.net/web-security/xxe/blind/lab-xxe-with-out-of-band-interaction)
+### XXE Labs
+1. **Exploiting XXE using external entities** - File disclosure
+2. **Exploiting XXE to perform SSRF attacks** - SSRF via XXE
+3. **Blind XXE with out-of-band interaction** - Out-of-band techniques
 
-## 🛠️ الأدوات المطلوبة
+## 🛡️ طرق الحماية
 
-- **Burp Suite Community Edition** (مجاني)
-- **متصفح ويب** (Firefox/Chrome)
-- **حساب PortSwigger Academy** (مجاني)
-- **محرر نصوص** (اختياري)
+### حماية SQL Injection
+- استخدام Prepared Statements
+- Input validation وsanitization
+- Principle of least privilege للقواعد
+- Web Application Firewalls
 
-## 📖 المراجع والمصادر
+### حماية XXE
+- تعطيل external entities
+- استخدام safe XML parsers
+- Input validation للXML
+- Network segmentation
 
-- [OWASP SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection)
-- [OWASP XXE](https://owasp.org/www-community/vulnerabilities/XML_External_Entity_(XXE)_Processing)
-- [PortSwigger Web Security Academy](https://portswigger.net/web-security)
-- [CWE-89: SQL Injection](https://cwe.mitre.org/data/definitions/89.html)
-- [CWE-611: XXE](https://cwe.mitre.org/data/definitions/611.html)
+## 🚀 كيفية الاستخدام
 
-## 🎓 التقييم
+1. افتح المحاضرة: [lecture-clean.html](lecture-clean.html)
+2. اتبع المحتوى خطوة بخطوة
+3. طبق المختبرات العملية من PortSwigger
+4. استخدم أدوات Burp Suite للتطبيق العملي
 
-- **المشاركة في المختبرات:** 60%
-- **فهم المفاهيم:** 25%
-- **تطبيق طرق الحماية:** 15%
+## ⏱️ مدة المحاضرة
 
-## 📝 ملاحظات للمحاضر
+- **النظري:** 45 دقيقة
+- **العملي:** 75 دقيقة
+- **المجموع:** ساعتان
 
-- تأكد من وجود اتصال إنترنت مستقر
-- اطلب من الطلاب تسجيل حسابات PortSwigger مسبقاً
-- احرص على التطبيق العملي أكثر من النظري
-- اترك وقت للأسئلة في نهاية كل قسم
+## 🏷️ العلامات
 
-## 🔗 الروابط المفيدة
-
-- **الصفحة الرئيسية:** [../index.html](../index.html)
-- **المحاضرة التفاعلية:** [lecture-clean.html](lecture-clean.html)
-- **GitHub Repository:** [https://github.com/abode1234/lecture-server-side-attack](https://github.com/abode1234/lecture-server-side-attack)
+`SQL Injection` `XXE` `Server-Side Attacks` `Database Security` `XML Security` `OWASP Top 10`
 
 ---
 
-*تم إعداد هذه المحاضرة بعناية لتوفير تجربة تعليمية شاملة وعملية في مجال أمان تطبيقات الويب.* 
+**تم إنشاؤها بـ ❤️ للمجتمع التقني العربي** 
