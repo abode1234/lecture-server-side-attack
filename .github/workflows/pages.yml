@@ -2,9 +2,9 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ lecture-ssrf-command-injection ]
+    branches: [ lecture-2 ]
   pull_request:
-    branches: [ lecture-ssrf-command-injection ]
+    branches: [ lecture-2 ]
 
 permissions:
   contents: read
