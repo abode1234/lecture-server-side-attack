@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاضرة SQL Injection + XXE Injection - ساعتان</title>
+    <link href="https://cdnjs.cloudflaire.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 50%, #2d2d2d 100%);
+            color: #e0e0e0;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 40px;
+            text-align: center;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .header p {
+            color: #b8d4f0;
+            font-size: 1.2em;
+        }
+
+        .content-section {
+            background: rgba(30, 30, 30, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .section-title {
+            color: #64b5f6;
+            font-size: 2em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 2px solid #64b5f6;
+            padding-bottom: 10px;
+        }
+
+        .highlight-box {
+            background: rgba(100, 181, 246, 0.1);
+            border: 1px solid rgba(100, 181, 246, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .highlight-box.danger {
+            background: rgba(244, 67, 54, 0.1);
+            border-color: rgba(244, 67, 54, 0.3);
+        }
+
+        .code-block {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            margin: 0;
+            color: #e0e0e0;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #64b5f6;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 1px solid #64b5f6;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+        }
+
+        .back-link:hover {
+            background: #64b5f6;
+            color: #1a1a1a;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-database"></i> SQL Injection + XXE Injection</h1>
+            <p>محاضرة شاملة عن حقن SQL وثغرات XXE - ساعتان</p>
+        </div>
+
+        <div class="content-section">
+            <h2 class="section-title">
+                <i class="fas fa-info-circle"></i>
+                مقدمة عن الثغرات الأساسية
+            </h2>
+            
+            <p>مرحباً بكم في المحاضرة الأولى من سلسلة أمان تطبيقات الويب. في هذه المحاضرة، سنتعلم عن نوعين من أخطر الثغرات:</p>
+            
+            <div class="highlight-box">
+                <h3><i class="fas fa-database"></i> SQL Injection</h3>
+                <p>ثغرة تسمح للمهاجم بحقن أوامر SQL خبيثة في استعلامات قاعدة البيانات.</p>
+            </div>
+
+            <div class="highlight-box">
+                <h3><i class="fas fa-code"></i> XXE Injection</h3>
+                <p>ثغرة في معالجة XML تسمح بالوصول لملفات النظام وتنفيذ هجمات SSRF.</p>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2 class="section-title">
+                <i class="fas fa-syringe"></i>
+                أساسيات SQL Injection
+            </h2>
+
+            <div class="highlight-box danger">
+                <h4><i class="fas fa-exclamation-triangle"></i> خطورة SQL Injection</h4>
+                <p>SQL Injection يمكن أن يؤدي إلى تسريب بيانات كاملة، تدمير قواعد البيانات، أو السيطرة على الخادم.</p>
+            </div>
+
+            <div class="code-block">
+                <pre><code># مثال على SQL Injection أساسي
+' OR '1'='1' --
+' UNION SELECT username, password FROM users --
+'; DROP TABLE users; --</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2 class="section-title">
+                <i class="fas fa-file-code"></i>
+                أساسيات XXE Injection
+            </h2>
+
+            <div class="highlight-box danger">
+                <h4><i class="fas fa-exclamation-triangle"></i> خطورة XXE</h4>
+                <p>XXE يمكن أن يؤدي إلى قراءة ملفات النظام، SSRF attacks، أو DoS attacks.</p>
+            </div>
+
+            <div class="code-block">
+                <pre><code>&lt;!-- مثال على XXE payload --&gt;
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE foo [ &lt;!ENTITY xxe SYSTEM "file:///etc/passwd"&gt; ]&gt;
+&lt;stockCheck&gt;&lt;productId&gt;&amp;xxe;&lt;/productId&gt;&lt;/stockCheck&gt;</code></pre>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2 class="section-title">
+                <i class="fas fa-flask"></i>
+                المختبرات العملية
+            </h2>
+
+            <div class="highlight-box">
+                <h3>مختبرات PortSwigger:</h3>
+                <ul style="margin-top: 15px; padding-right: 20px;">
+                    <li><a href="https://portswigger.net/web-security/sql-injection" style="color: #64b5f6;">SQL Injection Labs</a></li>
+                    <li><a href="https://portswigger.net/web-security/xxe" style="color: #64b5f6;">XXE Labs</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="../index.html" class="back-link">
+                <i class="fas fa-arrow-right"></i>
+                العودة للصفحة الرئيسية
+            </a>
+        </div>
+    </div>
+</body>
+</html> 
