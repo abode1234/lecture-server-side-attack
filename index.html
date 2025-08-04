@@ -376,15 +376,15 @@
                 <div class="stat-label">محاضرات مخطط لها</div>
             </div>
             <div class="stat-item">
-                <span class="stat-number">2</span>
+                <span class="stat-number">3</span>
                 <div class="stat-label">محاضرة مكتملة</div>
             </div>
             <div class="stat-item">
-                <span class="stat-number">12</span>
+                <span class="stat-number">37</span>
                 <div class="stat-label">مختبر عملي</div>
             </div>
             <div class="stat-item">
-                <span class="stat-number">4</span>
+                <span class="stat-number">6</span>
                 <div class="stat-label">ساعة تدريبية</div>
             </div>
         </div>
@@ -545,10 +545,10 @@
                 </div>
             </div>
 
-            <!-- المحاضرة الثالثة - قريباً -->
-            <div class="lecture-card coming-soon">
+            <!-- المحاضرة الثالثة - مكتملة -->
+            <div class="lecture-card">
                 <div class="progress-indicator">
-                    <div class="progress-bar" style="width: 0%;"></div>
+                    <div class="progress-bar" style="width: 100%;"></div>
                 </div>
                 
                 <div class="lecture-header">
@@ -559,17 +559,17 @@
                         <h3>File Upload + Path Traversal</h3>
                         <div class="lecture-date">
                             <i class="fas fa-calendar-alt"></i>
-                            متوقع: فبراير 2025
+                            2025-01-12
                         </div>
                     </div>
-                    <div class="lecture-status status-upcoming">
-                        <i class="fas fa-clock"></i>
-                        قريباً
+                    <div class="lecture-status status-completed">
+                        <i class="fas fa-check-circle"></i>
+                        مكتملة
                     </div>
                 </div>
 
                 <div class="lecture-description">
-                    استكشاف ثغرات رفع الملفات وكيفية استغلالها لتنفيذ أكواد ضارة، بالإضافة لثغرات Path Traversal للوصول لملفات النظام خارج المجلد المسموح.
+                    الجزء الثالث من سلسلة الهجمات من جانب الخادم. محاضرة شاملة تغطي ثغرات رفع الملفات للحصول على تحكم كامل بالخادم، وثغرات Path Traversal للوصول للملفات الحساسة مع 13 مختبر عملي.
                 </div>
 
                 <div class="lecture-details">
@@ -579,7 +579,7 @@
                     </div>
                     <div class="detail-item">
                         <i class="fas fa-flask"></i>
-                        <span>6 مختبرات</span>
+                        <span>13 مختبر</span>
                     </div>
                     <div class="detail-item">
                         <i class="fas fa-file-code"></i>
@@ -594,27 +594,31 @@
                 <div class="lecture-topics">
                     <div class="topics-title">
                         <i class="fas fa-tags"></i>
-                        المواضيع المخططة:
+                        المواضيع المغطاة:
                     </div>
                     <div class="topics-list">
                         <span class="topic-tag">File Upload</span>
                         <span class="topic-tag">Web Shell</span>
                         <span class="topic-tag">Filter Bypass</span>
                         <span class="topic-tag">Path Traversal</span>
-                        <span class="topic-tag">LFI</span>
-                        <span class="topic-tag">RFI</span>
+                        <span class="topic-tag">Magic Bytes</span>
+                        <span class="topic-tag">Race Conditions</span>
+                        <span class="topic-tag">Extension Bypass</span>
+                        <span class="topic-tag">PUT Method</span>
                     </div>
                 </div>
 
                 <div class="lecture-actions">
-                    <button class="btn btn-primary" disabled style="opacity: 0.5; cursor: not-allowed;">
-                        <i class="fas fa-lock"></i>
-                        قيد التحضير
-                    </button>
-                    <button class="btn btn-secondary" disabled style="opacity: 0.5; cursor: not-allowed;">
-                        <i class="fas fa-bell"></i>
-                        تنبيه عند الإصدار
-                    </button>
+                    <a href="lecture-file-upload-path-traversal/lecture-clean.html" 
+                       class="btn btn-primary" target="_blank">
+                        <i class="fas fa-play"></i>
+                        بدء المحاضرة
+                    </a>
+                    <a href="https://github.com/abode1234/lecture-server-side-attack" 
+                       class="btn btn-secondary" target="_blank">
+                        <i class="fab fa-github"></i>
+                        المصدر
+                    </a>
                 </div>
             </div>
         </div>

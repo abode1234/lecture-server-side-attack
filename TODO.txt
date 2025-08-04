@@ -8,9 +8,9 @@ TODO List for Web Security Lectures:
    - Complete with 6 labs
    - Duration: 2 hours
 
-🔄 Lecture 3: File Upload + Path Traversal
-   - Planned for February 2025
-   - Will include 6 labs
+✅ Lecture 3: File Upload + Path Traversal
+   - Complete with 13 labs
+   - Duration: 2 hours
 
 🔄 Lecture 4: Authentication Bypass
    - Planned for March 2025

