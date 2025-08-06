@@ -41,4 +41,104 @@ logs/
 # English article (excluded from version control)
 file-upload-path-traversal-security-guide.md
 
+# Documentation and notes (excluded from version control)
 TODO.md
+*.md.backup
+*.md.tmp
+notes/
+drafts/
+
+# Media files (excluded from version control)
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.mkv
+*.mp3
+*.wav
+*.flac
+*.aac
+*.ogg
+*.wma
+
+# Image files (large images excluded)
+*.psd
+*.ai
+*.sketch
+*.fig
+*.xcf
+*.raw
+*.tiff
+*.bmp
+*.ico
+*.cur
+
+# Archive files
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.gz
+*.bz2
+*.xz
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.mdb
+*.accdb
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*~
+*.swp
+*.swo
+
+# Cache and temporary directories
+cache/
+tmp/
+temp/
+.cache/
+.tmp/
+
+# System and editor files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# Personal files and sensitive data
+personal/
+private/
+secrets/
+config/local/
+.env*
+credentials/
+keys/
+
+# Test and development files
+test-files/
+sandbox/
+playground/
+experiments/
