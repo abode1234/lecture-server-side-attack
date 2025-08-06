@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاضرة IDOR + Access Control - أمان تطبيقات الويب</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/themes/prism-okaidia.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: #e8eaed;
+            background: #151b2f;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding: 64px 24px;
+            background: linear-gradient(135deg, #1a2125, #203942);
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgb(33, 48, 70);
+        }
+
+        .header h1 {
+            font-size: 2.75rem;
+            font-weight: 400;
+            color: #ffffff;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+
+        .header .subtitle {
+            font-size: 1.25rem;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 24px;
+        }
+
+        .lecture-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px 24px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .info-item i {
+            color: #ffffff;
+            margin-left: 8px;
+        }
+
+        .nav-menu {
+            background: #1a2332;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+            border: 1px solid #2d3748;
+            box-shadow: 0 1px 6px rgba(26, 35, 50, 0.4);
+        }
+
+        .nav-menu h3 {
+            color: #e8eaed;
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .nav-menu ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+
+        .nav-menu li {
+            background: #0f1419;
+            border: 1px solid #2d3748;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-menu li:hover {
+            background: rgba(66, 165, 245, 0.1);
+            border-color: #42a5f5;
+        }
+
+        .nav-menu a {
+            display: block;
+            padding: 12px 16px;
+            color: #e8eaed;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .nav-menu a:hover {
+            color: #42a5f5;
+        }
+
+        .section {
+            background: #1a2332;
+            margin-bottom: 32px;
+            border-radius: 12px;
+            padding: 32px;
+            border: 1px solid #2d3748;
+            box-shadow: 0 1px 6px rgba(26, 35, 50, 0.4);
+        }
+
+        .section-title {
+            color: #e8eaed;
+            font-size: 2.125rem;
+            font-weight: 500;
+            margin-bottom: 24px;
+            text-align: center;
+            border-bottom: 2px solid #42a5f5;
+            padding-bottom: 16px;
+        }
+
+        .subsection-title {
+            color: #e8eaed;
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin: 32px 0 20px 0;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #2d3748;
+        }
+
+        .highlight-box {
+            background: #1e2a3a;
+            border: 1px solid #42a5f5;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 24px 0;
+            color: #e8eaed;
+        }
+
+        .highlight-box h4 {
+            color: #42a5f5;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+
+        .lab-card {
+            background: #0f1419;
+            border: 1px solid #2d3748;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .lab-card:hover {
+            border-color: #42a5f5;
+            box-shadow: 0 4px 16px rgba(66, 165, 245, 0.2);
+        }
+
+        .lab-title {
+            color: #81c784;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lab-url {
+            background: #131925;
+            border: 1px solid #2d3748;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            word-break: break-all;
+            transition: all 0.2s ease;
+        }
+
+        .lab-url:hover {
+            background: rgba(66, 165, 245, 0.1);
+            border-color: #42a5f5;
+        }
+
+        .lab-url a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            color: #42a5f5;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .lab-url a:hover {
+            color: #90caf9 !important;
+        }
+
+        .step-list {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+
+        .step-list li {
+            counter-increment: step-counter;
+            margin: 12px 0;
+            padding: 12px 16px;
+            background: #1e2a3a;
+            border-right: 3px solid #81c784;
+            border-radius: 8px;
+            position: relative;
+            color: #e8eaed;
+        }
+
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #81c784;
+            color: #151b2f;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .payload-box {
+            background: #131925;
+            border: 1px solid #2d3748;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            color: #42a5f5;
+            overflow-x: auto;
+            font-size: 0.875rem;
+        }
+
+        .payload-box code {
+            color: #81c784;
+        }
+
+        .warning-box {
+            background: #2a1f1f;
+            border: 1px solid #ff9800;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #e8eaed;
+        }
+
+        .warning-box h4 {
+            color: #ff5722;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+
+        .tips-box {
+            background: #1e2a3a;
+            border: 1px solid #42a5f5;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #e8eaed;
+        }
+
+        .tips-box h4 {
+            color: #42a5f5;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+
+        .attack-flow {
+            background: #1e2a3a;
+            border: 1px solid #81c784;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+
+        .attack-flow h4 {
+            color: #81c784;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+
+        .flow-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .flow-step {
+            background: #131925;
+            border: 1px solid #2d3748;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .flow-step:hover {
+            border-color: #81c784;
+        }
+
+        .step-number {
+            background: #81c784;
+            color: #151b2f;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .step-content {
+            flex: 1;
+            color: #e8eaed;
+        }
+
+        .code-example {
+            background: #131925;
+            border: 1px solid #2d3748;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 16px 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .conclusion {
+            background: linear-gradient(135deg, #1a2332, #2d3748);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            margin-top: 48px;
+            border: 1px solid #42a5f5;
+        }
+
+        .conclusion h2 {
+            color: #42a5f5;
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+
+        .conclusion p {
+            color: #e8eaed;
+            font-size: 1.125rem;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .section-title {
+                font-size: 1.75rem;
+            }
+            
+            .nav-menu ul {
+                grid-template-columns: 1fr;
+            }
+            
+            .lecture-info {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-user-lock"></i> IDOR + Access Control Vulnerabilities</h1>
+            <div class="subtitle">ثغرات التحكم بالوصول والمراجع المباشرة للكائنات</div>
+            <div class="lecture-info">
+                <div class="info-item">
+                    <i class="fas fa-clock"></i>
+                    ساعتان
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-flask"></i>
+                    10 مختبرات
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-shield-alt"></i>
+                    Access Control
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-key"></i>
+                    IDOR
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-menu">
+            <h3><i class="fas fa-list"></i> فهرس المحاضرة</h3>
+            <ul>
+                <li><a href="#introduction"><i class="fas fa-play"></i> مقدمة</a></li>
+                <li><a href="#idor-basics"><i class="fas fa-key"></i> أساسيات IDOR</a></li>
+                <li><a href="#idor-types"><i class="fas fa-bug"></i> أنواع IDOR</a></li>
+                <li><a href="#idor-labs"><i class="fas fa-flask"></i> مختبرات IDOR</a></li>
+                <li><a href="#access-control-basics"><i class="fas fa-shield-alt"></i> أساسيات Access Control</a></li>
+                <li><a href="#access-control-types"><i class="fas fa-lock"></i> أنواع Access Control</a></li>
+                <li><a href="#access-control-labs"><i class="fas fa-vials"></i> مختبرات Access Control</a></li>
+                <li><a href="#protection"><i class="fas fa-shield-virus"></i> طرق الحماية</a></li>
+            </ul>
+        </div>
+
+        <div id="introduction" class="section">
+            <h2 class="section-title"><i class="fas fa-play"></i> مقدمة</h2>
+            
+            <p>مرحباً بكم في المحاضرة الرابعة من سلسلة أمان تطبيقات الويب. في هذه المحاضرة سنتعمق في فهم ثغرات <strong>IDOR (Insecure Direct Object References)</strong> وثغرات <strong>Access Control</strong>، وهي من أخطر الثغرات التي تسمح للمهاجمين بالوصول إلى بيانات وموارد لا يحق لهم الوصول إليها.</p>
+            
+            <div class="highlight-box">
+                <h4><i class="fas fa-lightbulb"></i> ما ستتعلمه في هذه المحاضرة</h4>
+                <ul>
+                    <li>فهم عميق لثغرات IDOR وآلية عملها</li>
+                    <li>أنواع ثغرات Access Control المختلفة</li>
+                    <li>تقنيات استغلال هذه الثغرات عملياً</li>
+                    <li>10 مختبرات عملية من PortSwigger Academy</li>
+                    <li>طرق الحماية الفعالة والتطبيق الآمن</li>
+                </ul>
+            </div>
+
+            <div class="warning-box">
+                <h4><i class="fas fa-exclamation-triangle"></i> تحذير مهم</h4>
+                <p>هذه المحاضرة لأغراض تعليمية فقط. لا تستخدم هذه التقنيات على أنظمة لا تملك إذناً قانونياً لاختبارها. الاستخدام غير المشروع لهذه التقنيات قد يعرضك للمساءلة القانونية.</p>
+            </div>
+        </div>
+
+        <div id="idor-basics" class="section">
+            <h2 class="section-title"><i class="fas fa-key"></i> أساسيات ثغرات IDOR</h2>
+
+            <h3 class="subsection-title"><i class="fas fa-cogs"></i> آلية عمل ثغرات IDOR</h3>
+            
+            <p><strong>IDOR (Insecure Direct Object References)</strong> هي ثغرة تحدث عندما يكشف التطبيق مرجعاً مباشراً لكائن داخلي (مثل ملف، قاعدة بيانات، أو مفتاح) دون التحقق من صلاحيات المستخدم للوصول إلى هذا الكائن.</p>
+
+            <div class="attack-flow">
+                <h4><i class="fas fa-route"></i> كيف تعمل هجمات IDOR</h4>
+                <div class="flow-steps">
+                    <div class="flow-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">المستخدم يسجل دخوله للتطبيق</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">التطبيق يعرض موارد بمعرفات مباشرة (IDs)</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">المهاجم يغير المعرف في الطلب</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">التطبيق لا يتحقق من الصلاحيات</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-number">5</div>
+                        <div class="step-content">المهاجم يحصل على بيانات مستخدمين آخرين</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-example">
+                <strong>مثال على طلب IDOR:</strong><br>
+                الطلب الطبيعي:<br>
+                <code>GET /api/user/profile/123 HTTP/1.1</code><br><br>
+                
+                الطلب المعدل (IDOR):<br>
+                <code>GET /api/user/profile/124 HTTP/1.1</code><br>
+                <code>GET /api/user/profile/125 HTTP/1.1</code>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-exclamation-triangle"></i> مخاطر ثغرات IDOR</h3>
+            
+            <div class="warning-box">
+                <h4><i class="fas fa-skull-crossbones"></i> التأثيرات الأمنية لثغرات IDOR</h4>
+                <ul>
+                    <li><strong>تسريب البيانات الشخصية:</strong> الوصول لملفات وبيانات مستخدمين آخرين</li>
+                    <li><strong>انتهاك الخصوصية:</strong> قراءة رسائل ومعلومات خاصة</li>
+                    <li><strong>تعديل البيانات:</strong> تغيير معلومات مستخدمين آخرين</li>
+                    <li><strong>حذف الموارد:</strong> حذف ملفات أو سجلات هامة</li>
+                    <li><strong>رفع الصلاحيات:</strong> الوصول لوظائف إدارية</li>
+                </ul>
+            </div>
+
+            <div class="tips-box">
+                <h4><i class="fas fa-search"></i> علامات وجود ثغرات IDOR</h4>
+                <ul>
+                    <li>وجود معرفات رقمية متتالية في URLs</li>
+                    <li>معرفات في المعاملات أو الـ cookies</li>
+                    <li>عدم وجود تحقق من الصلاحيات</li>
+                    <li>إمكانية تخمين معرفات الموارد</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="idor-types" class="section">
+            <h2 class="section-title"><i class="fas fa-bug"></i> أنواع ثغرات IDOR</h2>
+
+            <h3 class="subsection-title"><i class="fas fa-arrows-alt-h"></i> 1. Horizontal IDOR</h3>
+            
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>Horizontal IDOR</strong> يحدث عندما يمكن للمستخدم الوصول إلى موارد مستخدمين آخرين في نفس مستوى الصلاحيات. هذا النوع شائع جداً في التطبيقات التي تستخدم معرفات متتالية.</p>
+                
+                <p><strong>آلية العمل التقنية:</strong></p>
+                <ul>
+                    <li>التطبيق يستخدم معرفات بسيطة قابلة للتخمين</li>
+                    <li>لا يوجد تحقق من ملكية المورد</li>
+                    <li>الاعتماد على الـ session فقط للتوثيق وليس للتحقق من الصلاحيات</li>
+                </ul>
+            </div>
+
+            <div class="code-example">
+                <strong>سيناريو هجوم متقدم:</strong><br><br>
+                
+                <strong>المرحلة الأولى - الاستطلاع:</strong><br>
+                <code>GET /user/profile/1001 HTTP/1.1</code><br>
+                <code>Cookie: sessionid=abc123</code><br><br>
+                
+                <strong>المرحلة الثانية - التعداد:</strong><br>
+                <code>GET /user/profile/1002 HTTP/1.1</code><br>
+                <code>GET /user/profile/1003 HTTP/1.1</code><br>
+                <code>GET /user/profile/1004 HTTP/1.1</code><br><br>
+                
+                <strong>المرحلة الثالثة - جمع البيانات:</strong><br>
+                <code>GET /user/documents/1002 HTTP/1.1</code><br>
+                <code>GET /user/messages/1002 HTTP/1.1</code>
+            </div>
+
+            <div class="payload-box">
+                <strong>أمثلة Payloads متقدمة:</strong><br>
+                <code>/api/users/1337/profile</code><br>
+                <code>/api/orders/12345/details</code><br>
+                <code>/api/documents/9876/download</code><br>
+                <code>/admin/users/edit?id=5555</code>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-arrows-alt-v"></i> 2. Vertical IDOR</h3>
+            
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>Vertical IDOR</strong> يسمح للمستخدم بالوصول إلى موارد مستخدمين بصلاحيات أعلى أو أقل. هذا أخطر من Horizontal IDOR لأنه قد يؤدي إلى رفع الصلاحيات.</p>
+                
+                <p><strong>تقنيات الاستغلال المتقدمة:</strong></p>
+                <ul>
+                    <li>تجربة معرفات المديرين (عادة أرقام صغيرة مثل 1, 2, 3)</li>
+                    <li>البحث عن endpoints إدارية مخفية</li>
+                    <li>استخدام معرفات خاصة مثل 0, -1, null</li>
+                </ul>
+            </div>
+
+            <div class="code-example">
+                <strong>سيناريو رفع الصلاحيات:</strong><br><br>
+                
+                <strong>الطلب العادي (مستخدم عادي):</strong><br>
+                <code>GET /api/user/settings/1337 HTTP/1.1</code><br>
+                <code>Authorization: Bearer user_token_123</code><br><br>
+                
+                <strong>محاولة الوصول للمدير:</strong><br>
+                <code>GET /api/user/settings/1 HTTP/1.1</code><br>
+                <code>Authorization: Bearer user_token_123</code><br><br>
+                
+                <strong>استغلال Admin Panel:</strong><br>
+                <code>GET /admin/users/1337/permissions HTTP/1.1</code><br>
+                <code>POST /admin/users/1337/promote HTTP/1.1</code>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-eye-slash"></i> 3. Blind IDOR</h3>
+            
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>Blind IDOR</strong> يحدث عندما لا يمكن للمهاجم رؤية النتيجة مباشرة، لكن يمكنه تأكيد نجاح الهجوم من خلال آثار جانبية أو تأخير في الاستجابة.</p>
+                
+                <p><strong>تقنيات الكشف المتقدمة:</strong></p>
+                <ul>
+                    <li>مراقبة أوقات الاستجابة</li>
+                    <li>تحليل أحجام الاستجابات</li>
+                    <li>استخدام Out-of-band techniques</li>
+                    <li>مراقبة التغييرات في التطبيق</li>
+                </ul>
+            </div>
+
+            <div class="code-example">
+                <strong>تقنيات Blind IDOR Detection:</strong><br><br>
+                
+                <strong>Time-based Detection:</strong><br>
+                <code>POST /api/process-document/1337 HTTP/1.1</code><br>
+                <code>Content-Type: application/json</code><br>
+                <code>{"action": "delete"}</code><br><br>
+                
+                <strong>Size-based Detection:</strong><br>
+                <code>GET /api/user/1337/export HTTP/1.1</code><br>
+                <code>Content-Length: 1024 (موجود)</code><br>
+                <code>Content-Length: 0 (غير موجود)</code><br><br>
+                
+                <strong>Error-based Detection:</strong><br>
+                <code>GET /api/secret-document/1337 HTTP/1.1</code><br>
+                <code>Response: 200 OK (موجود)</code><br>
+                <code>Response: 404 Not Found (غير موجود)</code>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-database"></i> 4. Mass Assignment IDOR</h3>
+            
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>Mass Assignment IDOR</strong> يحدث عندما يمكن للمهاجم تعديل خصائص لا يحق له تعديلها من خلال إرسال معاملات إضافية في الطلب.</p>
+                
+                <p><strong>سيناريوهات الاستغلال المتقدمة:</strong></p>
+                <ul>
+                    <li>تعديل صلاحيات المستخدم</li>
+                    <li>تغيير معرف المستخدم المالك</li>
+                    <li>تعديل حالة الطلبات والفواتير</li>
+                    <li>إضافة خصائص إدارية</li>
+                </ul>
+            </div>
+
+            <div class="code-example">
+                <strong>سيناريو Mass Assignment متقدم:</strong><br><br>
+                
+                <strong>الطلب العادي:</strong><br>
+                <code>PUT /api/user/profile HTTP/1.1</code><br>
+                <code>Content-Type: application/json</code><br>
+                <code>{</code><br>
+                <code>  "name": "Ahmed",</code><br>
+                <code>  "email": "ahmed@example.com"</code><br>
+                <code>}</code><br><br>
+                
+                <strong>الطلب المستغل:</strong><br>
+                <code>PUT /api/user/profile HTTP/1.1</code><br>
+                <code>Content-Type: application/json</code><br>
+                <code>{</code><br>
+                <code>  "name": "Ahmed",</code><br>
+                <code>  "email": "ahmed@example.com",</code><br>
+                <code>  "role": "admin",</code><br>
+                <code>  "user_id": 1,</code><br>
+                <code>  "is_premium": true,</code><br>
+                <code>  "balance": 10000</code><br>
+                <code>}</code>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-code"></i> 5. Wrapped IDOR</h3>
+            
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>Wrapped IDOR</strong> يحدث عندما يكون المعرف مخفياً داخل هياكل بيانات معقدة أو مشفراً، لكن يمكن استغلاله بتقنيات متقدمة.</p>
+                
+                <p><strong>تقنيات فك التشفير والاستغلال:</strong></p>
+                <ul>
+                    <li>تحليل JWT tokens والبحث عن معرفات</li>
+                    <li>فك تشفير Base64 encoded IDs</li>
+                    <li>تحليل UUID patterns</li>
+                    <li>استخدام Hash collision attacks</li>
+                </ul>
+            </div>
+
+            <div class="code-example">
+                <strong>أمثلة Wrapped IDOR متقدمة:</strong><br><br>
+                
+                <strong>Base64 Encoded ID:</strong><br>
+                <code>GET /api/document/MTIzNDU= HTTP/1.1</code><br>
+                <code>// MTIzNDU= = base64("12345")</code><br>
+                <code>// جرب: MTIzNDY= = base64("12346")</code><br><br>
+                
+                <strong>JWT Token Manipulation:</strong><br>
+                <code>Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...</code><br>
+                <code>// فك التشفير وتعديل user_id في payload</code><br>
+                <code>// إعادة التوقيع أو استخدام none algorithm</code><br><br>
+                
+                <strong>UUID Manipulation:</strong><br>
+                <code>GET /api/user/550e8400-e29b-41d4-a716-446655440000 HTTP/1.1</code><br>
+                <code>// جرب UUIDs متتالية أو patterns معروفة</code>
+            </div>
+        </div>
+
+        <div id="idor-labs" class="section">
+            <h2 class="section-title"><i class="fas fa-flask"></i> مختبرات IDOR - 5 مختبرات</h2>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 1: Unprotected admin functionality
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/access-control/lab-unprotected-admin-functionality" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> 
+                        https://portswigger.net/web-security/access-control/lab-unprotected-admin-functionality
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> العثور على لوحة الإدارة المخفية والوصول إليها.</p>
+                <ol class="step-list">
+                    <li>افتح المختبر وتصفح الموقع</li>
+                    <li>تحقق من ملف robots.txt: <code>/robots.txt</code></li>
+                    <li>ستجد مسار مخفي: <code>/administrator-panel</code></li>
+                    <li>انتقل إلى المسار واحذف المستخدم carlos</li>
+                    <li>تم حل المختبر بنجاح!</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 2: Unprotected admin functionality with unpredictable URL
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/access-control/lab-unprotected-admin-functionality-with-unpredictable-url" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> 
+                        https://portswigger.net/web-security/access-control/lab-unprotected-admin-functionality-with-unpredictable-url
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> العثور على لوحة الإدارة بـ URL غير متوقع.</p>
+                <ol class="step-list">
+                    <li>افتح المختبر وافحص الكود المصدري للصفحة الرئيسية</li>
+                    <li>ابحث عن JavaScript code أو HTML comments</li>
+                    <li>ستجد رابط مخفي مثل: <code>/admin-abc123</code></li>
+                    <li>انتقل إلى الرابط واحذف المستخدم carlos</li>
+                    <li>تم حل المختبر بنجاح!</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 3: User role controlled by request parameter
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/access-control/lab-user-role-controlled-by-request-parameter" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> 
+                        https://portswigger.net/web-security/access-control/lab-user-role-controlled-by-request-parameter
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> رفع الصلاحيات عبر تعديل معامل في الطلب.</p>
+                <ol class="step-list">
+                    <li>سجل دخول بالحساب: <code>wiener:peter</code></li>
+                    <li>انتقل إلى My Account وافحص الـ cookies</li>
+                    <li>ستجد cookie: <code>Admin=false</code></li>
+                    <li>غير القيمة إلى: <code>Admin=true</code></li>
+                    <li>انتقل إلى <code>/admin</code> واحذف المستخدم carlos</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 4: User role can be modified in user profile
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/access-control/lab-user-role-can-be-modified-in-user-profile" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> 
+                        https://portswigger.net/web-security/access-control/lab-user-role-can-be-modified-in-user-profile
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> تعديل الصلاحيات عبر تحديث الملف الشخصي.</p>
+                <ol class="step-list">
+                    <li>سجل دخول بالحساب: <code>wiener:peter</code></li>
+                    <li>انتقل إلى My Account وحدث البريد الإلكتروني</li>
+                    <li>افحص الطلب في Burp Suite</li>
+                    <li>أضف معامل: <code>"roleid": 2</code> في JSON</li>
+                    <li>أرسل الطلب وانتقل إلى /admin لحذف carlos</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 5: User ID controlled by request parameter
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> 
+                        https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> الوصول لبيانات مستخدم آخر عبر تعديل معرف المستخدم.</p>
+                <ol class="step-list">
+                    <li>سجل دخول بالحساب: <code>wiener:peter</code></li>
+                    <li>انتقل إلى My Account ولاحظ URL: <code>/my-account?id=wiener</code></li>
+                    <li>غير المعامل إلى: <code>id=carlos</code></li>
+                    <li>ستحصل على API key الخاص بـ carlos</li>
+                    <li>أرسل الـ API key لحل المختبر</li>
+                </ol>
+            </div>
+        </div>
+
+        <div id="access-control-basics" class="section">
+            <h2 class="section-title"><i class="fas fa-shield-alt"></i> أساسيات Access Control</h2>
+
+            <h3 class="subsection-title"><i class="fas fa-cogs"></i> آلية عمل Access Control</h3>
+            
+            <p><strong>Access Control</strong> هو نظام أمني يحدد من يمكنه الوصول إلى الموارد وما يمكنه فعله بها. يتكون من ثلاثة مكونات رئيسية:</p>
+
+            <div class="attack-flow">
+                <h4><i class="fas fa-key"></i> مكونات Access Control</h4>
+                <div class="flow-steps">
+                    <div class="flow-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content"><strong>Authentication:</strong> التحقق من هوية المستخدم</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content"><strong>Authorization:</strong> تحديد صلاحيات المستخدم</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content"><strong>Access Control:</strong> فرض القيود والتحقق من الوصول</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-list-alt"></i> أنواع نماذج Access Control</h3>
+            
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> النماذج الرئيسية</h4>
+                <ul>
+                    <li><strong>Discretionary Access Control (DAC):</strong> المالك يحدد الصلاحيات</li>
+                    <li><strong>Mandatory Access Control (MAC):</strong> النظام يحدد الصلاحيات</li>
+                    <li><strong>Role-Based Access Control (RBAC):</strong> الأدوار تحدد الصلاحيات</li>
+                    <li><strong>Attribute-Based Access Control (ABAC):</strong> الخصائص تحدد الصلاحيات</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="access-control-types" class="section">
+            <h2 class="section-title"><i class="fas fa-lock"></i> أنواع ثغرات Access Control</h2>
+
+            <h3 class="subsection-title"><i class="fas fa-user-times"></i> 1. Broken Authentication</h3>
+            
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>Broken Authentication</strong> يحدث عندما تكون آليات التوثيق ضعيفة أو غير مطبقة بشكل صحيح، مما يسمح للمهاجمين بانتحال هوية مستخدمين آخرين.</p>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-ban"></i> 2. Missing Access Control</h3>
+            
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>Missing Access Control</strong> يحدث عندما لا يتم تطبيق فحوصات الصلاحيات على الإطلاق، مما يسمح لأي مستخدم بالوصول إلى أي مورد.</p>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-exclamation-triangle"></i> 3. Privilege Escalation</h3>
+            
+            <div class="highlight-box">
+                <h4><i class="fas fa-info-circle"></i> التحليل التقني المعمق</h4>
+                <p><strong>Privilege Escalation</strong> يحدث عندما يمكن للمستخدم الحصول على صلاحيات أعلى من المفروض أن يحصل عليها.</p>
+            </div>
+        </div>
+
+        <div id="access-control-labs" class="section">
+            <h2 class="section-title"><i class="fas fa-vials"></i> مختبرات Access Control - 5 مختبرات</h2>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 6: User ID controlled by request parameter, with unpredictable user IDs
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter-with-unpredictable-user-ids" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> 
+                        https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter-with-unpredictable-user-ids
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> العثور على معرف مستخدم غير متوقع.</p>
+                <ol class="step-list">
+                    <li>سجل دخول بالحساب: <code>wiener:peter</code></li>
+                    <li>تصفح المدونة وابحث عن منشورات carlos</li>
+                    <li>انقر على اسم carlos للوصول إلى ملفه الشخصي</li>
+                    <li>لاحظ معرفه الفريد في URL</li>
+                    <li>استخدم هذا المعرف للوصول إلى My Account الخاص به</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 7: User ID controlled by request parameter with data leakage in redirect
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter-with-data-leakage-in-redirect" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> 
+                        https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter-with-data-leakage-in-redirect
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> استغلال تسريب البيانات في إعادة التوجيه.</p>
+                <ol class="step-list">
+                    <li>سجل دخول بالحساب: <code>wiener:peter</code></li>
+                    <li>انتقل إلى My Account واستخدم Burp Suite</li>
+                    <li>غير معرف المستخدم إلى carlos</li>
+                    <li>تجاهل إعادة التوجيه وافحص Response الأول</li>
+                    <li>ستجد API key في محتوى الاستجابة</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 8: User ID controlled by request parameter with password disclosure
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter-with-password-disclosure" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> 
+                        https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter-with-password-disclosure
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> الحصول على كلمة مرور المدير.</p>
+                <ol class="step-list">
+                    <li>سجل دخول بالحساب: <code>wiener:peter</code></li>
+                    <li>انتقل إلى My Account وغير المعرف إلى administrator</li>
+                    <li>افحص كود HTML للصفحة</li>
+                    <li>ستجد كلمة مرور المدير في input field</li>
+                    <li>استخدم كلمة المرور لتسجيل الدخول كمدير واحذف carlos</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 9: Insecure direct object references
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/access-control/lab-insecure-direct-object-references" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> 
+                        https://portswigger.net/web-security/access-control/lab-insecure-direct-object-references
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> الوصول إلى سجلات الدردشة لمستخدمين آخرين.</p>
+                <ol class="step-list">
+                    <li>انتقل إلى Live Chat وابدأ محادثة</li>
+                    <li>انقر على "View transcript" لتنزيل سجل المحادثة</li>
+                    <li>لاحظ اسم الملف مثل: <code>2.txt</code></li>
+                    <li>جرب أرقام أخرى: <code>1.txt</code>, <code>3.txt</code>, إلخ</li>
+                    <li>ستجد كلمة مرور carlos في أحد الملفات</li>
+                </ol>
+            </div>
+
+            <div class="lab-card">
+                <div class="lab-title">
+                    <i class="fas fa-play"></i>
+                    Lab 10: Multi-step process with no access control on one step
+                </div>
+                <div class="lab-url">
+                    <a href="https://portswigger.net/web-security/access-control/lab-multi-step-process-with-no-access-control-on-one-step" target="_blank">
+                        <i class="fas fa-external-link-alt"></i> 
+                        https://portswigger.net/web-security/access-control/lab-multi-step-process-with-no-access-control-on-one-step
+                    </a>
+                </div>
+                <p><strong>الهدف:</strong> تجاوز التحقق في عملية متعددة الخطوات.</p>
+                <ol class="step-list">
+                    <li>سجل دخول كمدير: <code>administrator:admin</code></li>
+                    <li>احذف المستخدم carlos ولاحظ العملية المتعددة الخطوات</li>
+                    <li>سجل خروج وسجل دخول كـ: <code>wiener:peter</code></li>
+                    <li>أرسل طلب التأكيد مباشرة دون المرور بالخطوة الأولى</li>
+                    <li>تم تجاوز التحقق وحذف carlos بنجاح</li>
+                </ol>
+            </div>
+        </div>
+
+        <div id="protection" class="section">
+            <h2 class="section-title"><i class="fas fa-shield-virus"></i> طرق الحماية</h2>
+
+            <h3 class="subsection-title"><i class="fas fa-key"></i> حماية IDOR</h3>
+            
+            <div class="tips-box">
+                <h4><i class="fas fa-shield-alt"></i> أفضل الممارسات للحماية من IDOR</h4>
+                <ul>
+                    <li><strong>استخدام معرفات غير متتالية:</strong> UUID بدلاً من أرقام متتالية</li>
+                    <li><strong>التحقق من الصلاحيات:</strong> فحص ملكية المورد لكل طلب</li>
+                    <li><strong>Indirect References:</strong> استخدام مراجع غير مباشرة</li>
+                    <li><strong>Session-based Authorization:</strong> ربط الموارد بالجلسة</li>
+                </ul>
+            </div>
+
+            <div class="code-example">
+                <strong>مثال كود آمن (PHP):</strong><br><br>
+                <code>function getUserProfile($userId) {</code><br>
+                <code>    // التحقق من صلاحية المستخدم</code><br>
+                <code>    $currentUser = getCurrentUser();</code><br>
+                <code>    if ($currentUser['id'] !== $userId && !$currentUser['is_admin']) {</code><br>
+                <code>        throw new UnauthorizedException('Access denied');</code><br>
+                <code>    }</code><br><br>
+                <code>    // استخدام prepared statements</code><br>
+                <code>    $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ? AND owner_id = ?');</code><br>
+                <code>    return $stmt->execute([$userId, $currentUser['id']]);</code><br>
+                <code>}</code>
+            </div>
+
+            <h3 class="subsection-title"><i class="fas fa-shield-alt"></i> حماية Access Control</h3>
+            
+            <div class="tips-box">
+                <h4><i class="fas fa-lock"></i> استراتيجيات الحماية المتقدمة</h4>
+                <ul>
+                    <li><strong>Principle of Least Privilege:</strong> أقل صلاحيات ممكنة</li>
+                    <li><strong>Default Deny:</strong> منع الوصول افتراضياً</li>
+                    <li><strong>Centralized Authorization:</strong> نظام صلاحيات مركزي</li>
+                    <li><strong>Regular Auditing:</strong> مراجعة دورية للصلاحيات</li>
+                </ul>
+            </div>
+
+            <div class="code-example">
+                <strong>مثال Authorization Middleware (Node.js):</strong><br><br>
+                <code>function authorize(requiredRole) {</code><br>
+                <code>    return (req, res, next) => {</code><br>
+                <code>        const user = req.user;</code><br>
+                <code>        if (!user) {</code><br>
+                <code>            return res.status(401).json({error: 'Unauthorized'});</code><br>
+                <code>        }</code><br><br>
+                <code>        if (user.role !== requiredRole) {</code><br>
+                <code>            return res.status(403).json({error: 'Forbidden'});</code><br>
+                <code>        }</code><br><br>
+                <code>        next();</code><br>
+                <code>    };</code><br>
+                <code>}</code><br><br>
+                <code>// الاستخدام:</code><br>
+                <code>app.get('/admin/users', authorize('admin'), getUsersController);</code>
+            </div>
+
+            <div class="warning-box">
+                <h4><i class="fas fa-exclamation-triangle"></i> أخطاء شائعة يجب تجنبها</h4>
+                <ul>
+                    <li>الاعتماد على client-side validation فقط</li>
+                    <li>عدم التحقق من الصلاحيات في كل طلب</li>
+                    <li>استخدام معرفات قابلة للتخمين</li>
+                    <li>إهمال فحص الصلاحيات في APIs</li>
+                    <li>عدم تسجيل محاولات الوصول المشبوهة</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="conclusion">
+            <h2><i class="fas fa-flag-checkered"></i> خلاصة المحاضرة</h2>
+            <p>
+                في هذه المحاضرة تعلمنا عن ثغرات IDOR وAccess Control، وهي من أخطر الثغرات في تطبيقات الويب. 
+                هذه الثغرات تسمح للمهاجمين بالوصول إلى بيانات وموارد لا يحق لهم الوصول إليها، مما قد يؤدي إلى 
+                تسريب بيانات حساسة أو رفع الصلاحيات. من المهم جداً تطبيق آليات التحقق من الصلاحيات بشكل صحيح 
+                واستخدام معرفات آمنة غير قابلة للتخمين.
+            </p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html> 
