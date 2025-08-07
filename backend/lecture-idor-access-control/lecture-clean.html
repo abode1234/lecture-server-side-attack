@@ -535,7 +535,7 @@
                 <li><a href="#introduction"><i class="fas fa-play"></i> مقدمة - ما هو IDOR؟</a></li>
                 <li><a href="#idor-concept"><i class="fas fa-lightbulb"></i> فهم المفهوم بالرسوم</a></li>
                 <li><a href="#idor-basics"><i class="fas fa-key"></i> كيف تعمل ثغرات IDOR</a></li>
-                <li><a href="#idor-types"><i class="fas fa-bug"></i> أنواع IDOR الخمسة</a></li>
+                <li><a href="#idor-types"><i class="fas fa-bug"></i> أنواع IDOR الستة</a></li>
                 <li><a href="#attack-scenarios"><i class="fas fa-crosshairs"></i> سيناريوهات الهجوم</a></li>
                 <li><a href="#idor-labs"><i class="fas fa-flask"></i> 10 مختبرات عملية</a></li>
                 <li><a href="#detection-tools"><i class="fas fa-search"></i> أدوات الاكتشاف</a></li>
@@ -765,7 +765,7 @@ Cookie: session=abc123
         </div>
 
         <div id="idor-types" class="section">
-            <h2 class="section-title"><i class="fas fa-bug"></i> أنواع IDOR الخمسة</h2>
+            <h2 class="section-title"><i class="fas fa-bug"></i> أنواع IDOR الستة</h2>
 
             <div class="idor-type-card">
                 <div class="idor-type-title">
@@ -1042,6 +1042,203 @@ POST /api/data
                     <li><strong>استخدم حسابين:</strong> سجل دخولك بحسابين مختلفين واختبر</li>
                     <li><strong>راقب الاستجابات:</strong> أي اختلاف في الاستجابة قد يكون مؤشر</li>
                 </ul>
+            </div>
+
+            <div class="idor-type-card">
+                <div class="idor-type-title">
+                    <i class="fas fa-fingerprint"></i>
+                    6. UUID IDOR - المعرفات العشوائية
+                </div>
+                <div class="idor-type-description">
+                    كثير من المطورين يعتقدون أن استخدام UUID يمنع IDOR، لكن هذا ليس صحيح دائماً!
+                </div>
+                
+                <div class="code-block" data-lang="مثال UUID">
+المعرف العادي: /user/123
+معرف UUID:     /user/a1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6
+
+المشكلة: حتى لو كان المعرف UUID، يمكن للمهاجم الحصول عليه!
+                </div>
+
+                <div class="warning-box">
+                    <h4><i class="fas fa-exclamation-triangle"></i> خطأ شائع: UUID ≠ أمان</h4>
+                    <p><strong>UUID لا يحل مشكلة IDOR!</strong> إنه فقط يجعل التخمين أصعب، لكن المهاجم يمكنه الحصول على UUIDs بطرق أخرى:</p>
+                    <ul>
+                        <li><strong>👤 إنشاء حسابات متعددة:</strong> المهاجم ينشئ حسابات وهمية ويجمع UUIDs منها</li>
+                        <li><strong>🔍 من URLs أخرى:</strong> قوائم المستخدمين، التعليقات، الرسائل</li>
+                        <li><strong>📡 من API responses:</strong> بيانات JSON تحتوي UUIDs أخرى</li>
+                        <li><strong>🕷️ من Web crawling:</strong> فهرسة جميع الصفحات</li>
+                        <li><strong>📧 من الإيميلات:</strong> روابط تحتوي UUIDs</li>
+                        <li><strong>📱 من التطبيقات:</strong> mobile apps تكشف UUIDs</li>
+                    </ul>
+                </div>
+
+                <div class="attack-flow">
+                    <h4><i class="fas fa-crosshairs"></i> كيف يستغل المهاجم UUID IDOR؟</h4>
+                    <div class="code-block" data-lang="سيناريو الهجوم">
+1. المهاجم يتصفح التطبيق: /profile/a1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6
+
+2. يبحث عن UUIDs أخرى في:
+   - قوائم المستخدمين: /users → يجد UUIDs عامة
+   - صفحة التعليقات: يرى UUIDs مؤلفي التعليقات  
+   - API calls: {"user_id": "f7e8d9c0-b1a2-3456-789a-bcdef0123456"}
+
+3. يجمع قائمة من UUIDs ويختبرها:
+   - /profile/f7e8d9c0-b1a2-3456-789a-bcdef0123456
+   - /profile/12345678-90ab-cdef-1234-567890abcdef
+   - /profile/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+
+4. النتيجة: يصل لملفات شخصية لمستخدمين آخرين!
+                    </div>
+                </div>
+
+                <div class="attack-flow">
+                    <h4><i class="fas fa-user-plus"></i> استراتيجية الحسابات المتعددة</h4>
+                    <p><strong>الطريقة الأكثر فعالية:</strong> المهاجم ينشئ حسابات متعددة لجمع UUIDs</p>
+                    <div class="code-block" data-lang="خطة الهجوم">
+المرحلة 1: إنشاء حسابات وهمية
+- ينشئ 10-20 حساب بإيميلات مؤقتة
+- يستخدم أسماء وهمية مختلفة
+- يملأ البيانات الشخصية بمعلومات عشوائية
+
+المرحلة 2: جمع UUIDs
+- يسجل دخوله لكل حساب
+- يجمع UUID الخاص بكل حساب
+- يتفاعل مع المستخدمين الآخرين (رسائل، تعليقات)
+- يحفظ جميع UUIDs التي يراها
+
+المرحلة 3: الاختبار المنهجي
+- يختبر كل UUID مجمع على endpoints مختلفة
+- /profile/[UUID] → بيانات شخصية
+- /documents/[UUID] → ملفات خاصة
+- /orders/[UUID] → طلبات شراء
+- /messages/[UUID] → رسائل خاصة
+
+المرحلة 4: الاستغلال الواسع
+- إذا وجد ثغرة، يوسع البحث
+- يستخدم أدوات أتمتة
+- يجمع آلاف UUIDs
+- يصل لبيانات آلاف المستخدمين
+                    </div>
+                </div>
+
+                <div class="code-block" data-lang="أمثلة حقيقية">
+❌ مثال 1: استخدام الحسابات المتعددة
+المهاجم ينشئ 5 حسابات:
+- test1@tempmail.com → UUID: aa11bb22-cc33-dd44-ee55-ff6677889900
+- test2@tempmail.com → UUID: bb22cc33-dd44-ee55-ff66-778899001122  
+- test3@tempmail.com → UUID: cc33dd44-ee55-ff66-7788-99001122aa33
+- test4@tempmail.com → UUID: dd44ee55-ff66-7788-9900-1122aa33bb44
+- test5@tempmail.com → UUID: ee55ff66-7788-9900-1122-aa33bb44cc55
+
+ثم يختبر UUIDs أخرى بنفس النمط:
+GET /api/profile/ff66aa77-8899-0011-2233-bb44cc55dd66
+GET /api/profile/1122aa33-bb44-cc55-dd66-ee77ff889900
+→ يجد ملفات شخصية لمستخدمين حقيقيين!
+
+❌ مثال 2: تطبيق يعرض قائمة مستخدمين:
+GET /api/users/public
+Response: [
+  {"id": "a1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6", "name": "أحمد"},
+  {"id": "f7e8d9c0-b1a2-3456-789a-bcdef0123456", "name": "سارة"},
+  {"id": "12345678-90ab-cdef-1234-567890abcdef", "name": "محمد"}
+]
+
+المهاجم يأخذ هذه UUIDs ويختبرها:
+GET /api/users/a1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6/private
+GET /api/users/f7e8d9c0-b1a2-3456-789a-bcdef0123456/private
+→ يحصل على بيانات خاصة لجميع المستخدمين!
+
+❌ مثال 3: روابط مشاركة الملفات:
+https://app.com/share/document/abc123e4-f567-890a-bcde-f1234567890a
+المهاجم يجد هذا الرابط في:
+- إيميل مرسل بالخطأ
+- تسريب في logs
+- social media post
+- google search results
+                </div>
+
+                <div class="tips-box">
+                    <h4><i class="fas fa-shield-alt"></i> الحماية الصحيحة من UUID IDOR</h4>
+                    <ul>
+                        <li><strong>🔒 التحقق من الصلاحيات:</strong> حتى مع UUID، تحقق من أن المستخدم يملك البيانات</li>
+                        <li><strong>🚫 لا تكشف UUIDs:</strong> لا تعرضها في APIs عامة</li>
+                        <li><strong>👥 راقب الحسابات المتعددة:</strong> اكتشف الحسابات الوهمية والمشبوهة</li>
+                        <li><strong>🚨 Rate Limiting:</strong> حدد عدد الطلبات لكل مستخدم/IP</li>
+                        <li><strong>⏰ UUIDs مؤقتة:</strong> استخدم tokens تنتهي صلاحيتها</li>
+                        <li><strong>🔐 تشفير إضافي:</strong> اشفر UUIDs بمفتاح سري</li>
+                        <li><strong>📝 سجل الوصول:</strong> راقب من يصل لأي UUID وتنبه للأنماط المشبوهة</li>
+                        <li><strong>🔍 تحليل السلوك:</strong> اكتشف المستخدمين الذين يصلون لـ UUIDs كثيرة</li>
+                    </ul>
+                </div>
+
+                <div class="code-block" data-lang="الحل الصحيح">
+✅ كود آمن حتى مع UUID:
+function getDocument($uuid, $current_user_id) {
+    // لا تعتمد على UUID فقط!
+    $query = "SELECT * FROM documents 
+              WHERE uuid = ? AND owner_id = ?";
+    
+    return $db->prepare($query)->execute([$uuid, $current_user_id]);
+}
+
+✅ استخدام signed URLs:
+function generateSecureDocumentURL($uuid, $user_id) {
+    $timestamp = time() + 3600; // ينتهي خلال ساعة
+    $signature = hash_hmac('sha256', $uuid.$user_id.$timestamp, SECRET_KEY);
+    
+    return "/document/$uuid?user=$user_id&expires=$timestamp&sig=$signature";
+}
+
+✅ إخفاء UUIDs تماماً:
+// بدلاً من: /document/abc123e4-f567-890a-bcde-f1234567890a
+// استخدم: /my-documents/5 (ترقيم داخلي للمستخدم)
+
+✅ اكتشاف الحسابات المتعددة والسلوك المشبوه:
+function detectSuspiciousActivity($user_id, $accessed_uuid) {
+    // تتبع عدد UUIDs المختلفة التي يصل إليها المستخدم
+    $unique_uuids = getAccessedUUIDs($user_id, '24 hours');
+    
+    if (count($unique_uuids) > 50) {
+        logSecurityAlert("Suspicious UUID access pattern", $user_id);
+        return false; // حظر الوصول
+    }
+    
+    // تحقق من الحسابات المنشأة من نفس IP
+    $accounts_from_ip = getAccountsFromIP(getUserIP($user_id));
+    if (count($accounts_from_ip) > 5) {
+        flagForReview($user_id, "Multiple accounts from same IP");
+    }
+    
+    // تحقق من أنماط الوصول المشبوهة
+    if (isSequentialUUIDAccess($unique_uuids)) {
+        blockUser($user_id, "Sequential UUID enumeration detected");
+        return false;
+    }
+    
+    return true;
+}
+
+✅ Rate Limiting لمنع الاستغلال الواسع:
+function rateLimitUUIDAccess($user_id) {
+    $key = "uuid_access:" . $user_id;
+    $current_count = redis_get($key) ?? 0;
+    
+    if ($current_count > 100) { // 100 UUID access per hour
+        throw new TooManyRequestsException("Rate limit exceeded");
+    }
+    
+    redis_incr($key);
+    redis_expire($key, 3600); // reset after 1 hour
+}
+                </div>
+
+                <div class="highlight-box">
+                    <h4><i class="fas fa-brain"></i> الدرس المهم</h4>
+                    <p><strong>UUID ليس حلاً سحرياً!</strong> 🎭</p>
+                    <p>الأمان الحقيقي يأتي من التحقق من الصلاحيات، وليس من تعقيد المعرفات. حتى لو استخدمت أطول وأعقد UUID في العالم، إذا لم تتحقق من أن المستخدم يحق له الوصول للبيانات، فالثغرة موجودة.</p>
+                    <p><strong>القاعدة الذهبية:</strong> "لا تثق، تحقق دائماً" - Never trust, always verify</p>
+                </div>
             </div>
         </div>
 
@@ -1492,7 +1689,7 @@ https://app.com/my-documents  // يعرض فقط مستندات المستخدم
                 <h4><i class="fas fa-star"></i> ما تعلمناه اليوم</h4>
                 <ul>
                     <li>🎯 <strong>IDOR هي ثغرة خطيرة</strong> تسمح بالوصول لبيانات مستخدمين آخرين</li>
-                    <li>🔍 <strong>5 أنواع مختلفة:</strong> Horizontal, Vertical, Blind, Mass Assignment, Wrapped</li>
+                    <li>🔍 <strong>6 أنواع مختلفة:</strong> Horizontal, Vertical, Blind, Mass Assignment, Wrapped, UUID</li>
                     <li>⚔️ <strong>سيناريوهات متعددة:</strong> البنوك، المتاجر، أنظمة الملفات</li>
                     <li>🧪 <strong>10 مختبرات عملية</strong> لتطبيق المفاهيم</li>
                     <li>🛡️ <strong>طرق حماية شاملة</strong> للمطورين</li>
