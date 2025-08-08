@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاضرة Broken Authentication + OAuth</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/themes/prism-okaidia.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #e8eaed; background: #151b2f; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 48px; padding: 64px 24px; background: linear-gradient(135deg, #1a2125, #203942); border-radius: 12px; box-shadow: 0 4px 24px rgb(33, 48, 70); }
+        .header h1 { font-size: 2.5rem; font-weight: 400; color: #ffffff; margin-bottom: 16px; letter-spacing: -0.5px; }
+        .header .subtitle { font-size: 1.1rem; font-weight: 300; color: rgba(255, 255, 255, 0.9); margin-bottom: 24px; }
+        .lecture-info { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-top: 20px; }
+        .info-item { background: rgba(255, 255, 255, 0.2); padding: 12px 24px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.3); color: #ffffff; font-weight: 500; }
+        .info-item i { color: #ffffff; margin-left: 8px; }
+        .nav-menu { background: #1a2332; border-radius: 12px; padding: 24px; margin-bottom: 32px; border: 1px solid #2d3748; box-shadow: 0 1px 6px rgba(26, 35, 50, 0.4); }
+        .nav-menu h3 { color: #e8eaed; font-size: 1.5rem; font-weight: 500; margin-bottom: 20px; text-align: center; }
+        .nav-menu ul { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
+        .nav-menu a { display: flex; align-items: center; padding: 12px 16px; color: #e8eaed; text-decoration: none; border-radius: 8px; transition: all 0.2s ease; border: 1px solid transparent; }
+        .nav-menu a:hover { background: #2d3748; border-color: #3b475d; }
+        section { background: #0f1724; border: 1px solid #2b3447; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 6px rgba(33, 48, 70, 0.3); }
+        h2 { color: #ffffff; font-size: 1.6rem; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+        h3 { color: #a5b4fc; font-size: 1.2rem; margin: 14px 0; }
+        p { color: #c7d2fe; }
+        .list { margin: 10px 0 0 0; padding-right: 18px; color: #c7d2fe; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+        .card { background: #0c1220; border: 1px solid #263148; border-radius: 10px; padding: 14px; }
+        .code-block { background: #0b1222; border: 1px solid #1e293b; border-radius: 10px; padding: 14px; color: #e5e7eb; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; overflow-x: auto; }
+        .tip { background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); color: #d1fae5; border-radius: 8px; padding: 10px 12px; }
+        .warn { background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); color: #fde68a; border-radius: 8px; padding: 10px 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-user-lock"></i> Broken Authentication + OAuth 2.0</h1>
+            <div class="subtitle">مصادقة ضعيفة، إدارة جلسات غير آمنة، وأخطاء تكامل OAuth</div>
+            <div class="lecture-info">
+                <div class="info-item"><i class="fas fa-clock"></i> ساعتان</div>
+                <div class="info-item"><i class="fas fa-flask"></i> 10 مختبرات</div>
+                <div class="info-item"><i class="fas fa-signal"></i> متوسط إلى متقدم</div>
+                <div class="info-item"><i class="fas fa-shield-alt"></i> حماية شاملة</div>
+            </div>
+        </div>
+
+        <div class="nav-menu">
+            <h3>محتويات المحاضرة</h3>
+            <ul>
+                <li><a href="#intro"><i class="fas fa-info-circle"></i> مقدمة</a></li>
+                <li><a href="#auth-basics"><i class="fas fa-key"></i> أساسيات المصادقة وإدارة الجلسات</a></li>
+                <li><a href="#broken-auth-types"><i class="fas fa-lock-open"></i> أنواع Broken Authentication</a></li>
+                <li><a href="#oauth-basics"><i class="fab fa-osi"></i> أساسيات OAuth 2.0</a></li>
+                <li><a href="#oauth-attacks"><i class="fas fa-bug"></i> هجمات OAuth الشائعة</a></li>
+                <li><a href="#labs"><i class="fas fa-flask"></i> مختبرات عملية (10)</a></li>
+                <li><a href="#defense"><i class="fas fa-shield-halved"></i> طرق الحماية</a></li>
+                <li><a href="#summary"><i class="fas fa-list-check"></i> الخلاصة</a></li>
+            </ul>
+        </div>
+
+        <section id="intro">
+            <h2><i class="fas fa-info-circle"></i> مقدمة</h2>
+            <p>تهدف هذه المحاضرة إلى كشف أخطاء المصادقة الأكثر شيوعاً مثل كلمات المرور الضعيفة، إدارة الجلسات غير الآمنة، وتجاوز المصادقة، بالإضافة إلى أخطاء تكامل OAuth 2.0 مثل سوء إعداد redirect_uri، إساءة استخدام authorization code، وثغرات PKCE.</p>
+        </section>
+
+        <section id="auth-basics">
+            <h2><i class="fas fa-key"></i> أساسيات المصادقة وإدارة الجلسات</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>المصادقة مقابل التفويض</h3>
+                    <ul class="list">
+                        <li>Authentication: من أنت؟</li>
+                        <li>Authorization: ماذا يسمح لك أن تفعل؟</li>
+                        <li>OAuth هو إطار للتفويض وليس للمصادقة.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>الجلسات وملفات تعريف الارتباط</h3>
+                    <ul class="list">
+                        <li>HttpOnly, Secure, SameSite</li>
+                        <li>Session Fixation, Session Hijacking</li>
+                        <li>CSRF Tokens مع حماية SameSite</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="broken-auth-types">
+            <h2><i class="fas fa-lock-open"></i> أنواع Broken Authentication</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>تخمين/إعادة استخدام كلمات المرور</h3>
+                    <ul class="list">
+                        <li>Credential Stuffing, Brute Force, Password Spraying</li>
+                        <li>2FA Bypass بسوء التنفيذ</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>مشاكل إدارة الجلسة</h3>
+                    <ul class="list">
+                        <li>Session Fixation, Predictable Session IDs</li>
+                        <li>عدم تدوير الجلسة بعد تسجيل الدخول</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>مشاكل استرداد كلمة المرور</h3>
+                    <ul class="list">
+                        <li>Tokens غير منتهية أو قابلة للتخمين</li>
+                        <li>عدم التحقق من الملكية قبل التغيير</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>ثغرات JWT</h3>
+                    <ul class="list">
+                        <li>None Algorithm, Key Confusion</li>
+                        <li>تخزين مفاتيح سرية على العميل</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="oauth-basics">
+            <h2><i class="fab fa-osi"></i> أساسيات OAuth 2.0</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>الأدوار والتدفقات</h3>
+                    <ul class="list">
+                        <li>Resource Owner, Client, Authorization Server, Resource Server</li>
+                        <li>Authorization Code (+PKCE), Client Credentials, Refresh Token</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>نقاط النهاية</h3>
+                    <ul class="list">
+                        <li>/authorize, /token, /userinfo, /revocation</li>
+                        <li>Scopes, Consent, redirect_uri</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="oauth-attacks">
+            <h2><i class="fas fa-bug"></i> هجمات OAuth الشائعة</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>تلاعب redirect_uri</h3>
+                    <ul class="list">
+                        <li>Open Redirect → سرقة Authorization Code</li>
+                        <li>عدم التطابق الدقيق Exact match</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>تسريب الرموز</h3>
+                    <ul class="list">
+                        <li>Token Leak عبر Referer/Logs</li>
+                        <li>إرسال Tokens للعميل بدون TLS</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>هجمات PKCE</h3>
+                    <ul class="list">
+                        <li>Code Reuse، ضعف code_verifier</li>
+                        <li>إعادة استخدام Authorization Code</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>ثغرات ربط الجلسات</h3>
+                    <ul class="list">
+                        <li>Account Linking بدون تحقق ملكية</li>
+                        <li>Mix-Up Attack بين مزودي OAuth</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="labs">
+            <h2><i class="fas fa-flask"></i> مختبرات عملية (10)</h2>
+            <div class="grid">
+                <div class="card"><h3>1) Brute Force + Rate Limiting</h3><p>توليد قوائم كلمات مرور واختبار الحماية.</p></div>
+                <div class="card"><h3>2) Session Fixation</h3><p>استغلال جلسة مثبتة قبل تسجيل الدخول.</p></div>
+                <div class="card"><h3>3) Weak Reset Token</h3><p>التنبؤ برموز إعادة التعيين.</p></div>
+                <div class="card"><h3>4) JWT None/HS256 Confusion</h3><p>تبديل الخوارزميات لتجاوز التحقق.</p></div>
+                <div class="card"><h3>5) OAuth Code Interception</h3><p>سرقة Authorization Code عبر redirect_uri.</p></div>
+                <div class="card"><h3>6) PKCE Downgrade</h3><p>استغلال ضعف code_verifier.</p></div>
+                <div class="card"><h3>7) Scope Escalation</h3><p>طلب صلاحيات غير لازمة وتجاوز التحكم.</p></div>
+                <div class="card"><h3>8) Account Linking Abuse</h3><p>ربط حساب بدون تحقق ملكية البريد.</p></div>
+                <div class="card"><h3>9) Refresh Token Misuse</h3><p>استخدام refresh tokens غير المنتهية.</p></div>
+                <div class="card"><h3>10) 2FA Bypass Logic</h3><p>تجاوز 2FA لضعف التحقق بعد كلمة المرور.</p></div>
+            </div>
+        </section>
+
+        <section id="defense">
+            <h2><i class="fas fa-shield-halved"></i> طرق الحماية</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>مصادقة وجلسات</h3>
+                    <ul class="list">
+                        <li>فرض MFA، قفل الحساب مؤقتاً، Hash قوي (Argon2/Bcrypt)</li>
+                        <li>دوران الجلسة بعد تسجيل الدخول، HttpOnly + SameSite=strict</li>
+                        <li>قوائم سماح IP للمشغلين الحساسين</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>OAuth آمن</h3>
+                    <ul class="list">
+                        <li>PKCE إلزامي لكل التطبيقات العامة</li>
+                        <li>تطابق صارم لـ redirect_uri بدون wildcards</li>
+                        <li>تقليل الصلاحيات (Least Privilege) ومراجعة scopes</li>
+                        <li>تدوير tokens، تقصير عمر access token، إبطال refresh token</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="summary">
+            <h2><i class="fas fa-list-check"></i> الخلاصة</h2>
+            <p>Broken Authentication وOAuth أخطاء تصميم وتطبيق أكثر من كونها ثغرات منفردة. الحماية الفعالة تحتاج حوكمة الهوية، تنفيذ دقيق لـOAuth 2.0 + PKCE، وإدارة جلسات صارمة.</p>
+        </section>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/prism.min.js"></script>
+</body>
+</html> 
