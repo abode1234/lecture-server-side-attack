@@ -52,6 +52,9 @@
                 <li><a href="#intro"><i class="fas fa-info-circle"></i> مقدمة</a></li>
                 <li><a href="#auth-basics"><i class="fas fa-key"></i> أساسيات المصادقة وإدارة الجلسات</a></li>
                 <li><a href="#broken-auth-types"><i class="fas fa-lock-open"></i> أنواع Broken Authentication</a></li>
+                <li><a href="#jwt-basics"><i class="fas fa-shield-alt"></i> مقدمة JWT: التوقيع vs التشفير</a></li>
+                <li><a href="#jwt-attacks"><i class="fas fa-bomb"></i> هجمات JWT (JWS)</a></li>
+                <li><a href="#jwe-attacks"><i class="fas fa-lock"></i> هجمات JWE (التشفير)</a></li>
                 <li><a href="#oauth-basics"><i class="fab fa-osi"></i> أساسيات OAuth 2.0</a></li>
                 <li><a href="#oauth-attacks"><i class="fas fa-bug"></i> هجمات OAuth الشائعة</a></li>
                 <li><a href="#labs"><i class="fas fa-flask"></i> مختبرات عملية (10)</a></li>
@@ -116,6 +119,116 @@
                     <ul class="list">
                         <li>None Algorithm, Key Confusion</li>
                         <li>تخزين مفاتيح سرية على العميل</li>
+                        <li>JWE Misuse (تشفير بدون مصادقة)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="jwt-basics">
+            <h2><i class="fas fa-shield-alt"></i> مقدمة JWT: التوقيع (JWS) مقابل التشفير (JWE)</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>ما هو JWT؟</h3>
+                    <ul class="list">
+                        <li>JSON Web Token: ثلاث مقاطع Base64Url: header.payload.signature</li>
+                        <li>JWS: توقيع لضمان سلامة البيانات (HS256, RS256, ES256)</li>
+                        <li>JWE: تشفير لحماية المحتوى (RSA-OAEP + A256GCM، ECDH-ES)</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>خوارزميات JWS (التوقيع)</h3>
+                    <ul class="list">
+                        <li>HMAC (HS256/384/512): مفتاح سري مشترك</li>
+                        <li>RSA (RS256/384/512): مفتاح خاص للتوقيع وعام للتحقق</li>
+                        <li>ECDSA (ES256/384/512): توقيع منحني إهليلجي</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>خوارزميات JWE (التشفير)</h3>
+                    <ul class="list">
+                        <li>Key Management: RSA-OAEP, RSA-OAEP-256, ECDH-ES</li>
+                        <li>Content Encryption: A128GCM, A256GCM, A128CBC-HS256</li>
+                        <li>الغرض: سرية + سلامة المحتوى المشفر</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="code-block">
+header = {"alg":"RS256","typ":"JWT"}
+payload = {"sub":"123","iat":1710000000,"exp":1710003600}
+// JWS = base64url(header) + "." + base64url(payload) + "." + signature
+            </div>
+        </section>
+
+        <section id="jwt-attacks">
+            <h2><i class="fas fa-bomb"></i> هجمات JWT (JWS)</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>None Algorithm</h3>
+                    <ul class="list">
+                        <li>العيب: قبول alg="none" بدون توقيع</li>
+                        <li>الاستغلال: إزالة التوقيع إذا كان الخادم يسمح</li>
+                        <li>الحماية: تعطيل none والتحقق الصارم من الخوارزميات المسموحة</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Key Confusion (HS256 ↔ RS256)</h3>
+                    <ul class="list">
+                        <li>العيب: استخدام المفتاح العام كـ secret لـ HS256</li>
+                        <li>الاستغلال: توقيع HS256 بمفتاح عام تم تسريبه من /.well-known/jwks.json</li>
+                        <li>الحماية: ربط الخوارزمية بالمفتاح، رفض تبديل alg</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>KID Injection</h3>
+                    <ul class="list">
+                        <li>العيب: استخدام kid لقراءة ملف/مسار محلي</li>
+                        <li>الاستغلال: kid="../../../../dev/null" أو "| cmd" عند وجود shell</li>
+                        <li>الحماية: whitelist للكِيز، عدم تمرير kid لمسارات/أوامر</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Weak Secrets</h3>
+                    <ul class="list">
+                        <li>العيب: مفاتيح HS256 ضعيفة أو افتراضية</li>
+                        <li>الاستغلال: كسر HMAC بقواميس (jwtcrack, hashcat)</li>
+                        <li>الحماية: مفاتيح قوية وعشوائية، تدوير دوري</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="code-block">
+// استغلال Key Confusion مثال توضيحي
+header = {"alg":"HS256","typ":"JWT"}
+secret = download("/.well-known/jwks.json").public_key
+signature = HMAC_SHA256(base64url(header)+"."+base64url(payload), secret)
+            </div>
+        </section>
+
+        <section id="jwe-attacks">
+            <h2><i class="fas fa-lock"></i> هجمات JWE (التشفير)</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>RSA1_5 Padding Oracles</h3>
+                    <ul class="list">
+                        <li>العيب: استخدام RSA1_5 القديم دون OAEP</li>
+                        <li>الاستغلال: فك شفرة تدريجياً عبر ردود الخطأ</li>
+                        <li>الحماية: استخدام RSA-OAEP-256 أو ECDH-ES + GCM</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>AES-CBC + HMAC Misuse</h3>
+                    <ul class="list">
+                        <li>العيب: تحقق سلامة غير صحيح → CBC bit flipping</li>
+                        <li>الاستغلال: تعديل المحتوى المشفر</li>
+                        <li>الحماية: AEAD مثل A256GCM (مصادَق)</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>KDF/Key Agreement أخطاء</h3>
+                    <ul class="list">
+                        <li>العيب: اشتقاق مفاتيح ضعيف في ECDH-ES</li>
+                        <li>الاستغلال: إعادة استخدام nonces/IVs</li>
+                        <li>الحماية: مكتبات موثوقة، إدارة مفاتيح صحيحة</li>
                     </ul>
                 </div>
             </div>
@@ -203,12 +316,14 @@
                     </ul>
                 </div>
                 <div class="card">
-                    <h3>OAuth آمن</h3>
+                    <h3>OAuth وآليات الرموز (JWT/JWE) آمنة</h3>
                     <ul class="list">
                         <li>PKCE إلزامي لكل التطبيقات العامة</li>
                         <li>تطابق صارم لـ redirect_uri بدون wildcards</li>
                         <li>تقليل الصلاحيات (Least Privilege) ومراجعة scopes</li>
                         <li>تدوير tokens، تقصير عمر access token، إبطال refresh token</li>
+                        <li>JWS فقط للتحقق من السلامة؛ JWE عند الحاجة للسرية (يفضل AEAD مثل A256GCM)</li>
+                        <li>رفض alg="none"، منع Key Confusion، إدارة مفاتيح آمنة وتدويرها</li>
                     </ul>
                 </div>
             </div>
