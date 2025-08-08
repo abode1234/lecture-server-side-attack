@@ -29,7 +29,20 @@
         .list { margin: 10px 0 0 0; padding-right: 18px; color: #c7d2fe; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin: 20px 0; }
         .card { background: #0c1220; border: 1px solid #263148; border-radius: 10px; padding: 18px; }
-        .code-block { background: #0b1222; border: 1px solid #1e293b; border-radius: 10px; padding: 16px; color: #e5e7eb; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace; overflow-x: auto; margin: 16px 0; font-size: 0.9rem; line-height: 1.5; }
+        .code-block { 
+            background: #0d1117; 
+            border: 1px solid #30363d; 
+            border-radius: 6px; 
+            padding: 16px; 
+            color: #f0f6fc; 
+            font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', 'Menlo', monospace; 
+            overflow-x: auto; 
+            margin: 16px 0; 
+            font-size: 14px; 
+            line-height: 1.45;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            white-space: pre-wrap;
+        }
         .tip { background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); color: #d1fae5; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
         .warn { background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); color: #fde68a; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
         .danger { background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); color: #fecaca; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
@@ -1488,55 +1501,1367 @@ print(f"Admin Token: {admin_token}")
         </section>
 
         <section id="oauth-basics">
-            <h2><i class="fab fa-osi"></i> أساسيات OAuth 2.0</h2>
+            <h2><i class="fab fa-osi"></i> أساسيات OAuth 2.0 - شرح مفصل للمبتدئين</h2>
+            
+            <p>مرحباً بكم في عالم OAuth 2.0! 🌍 تخيل أنك تريد أن تسمح لتطبيق آخر بالوصول لصورك في Google Photos بدون إعطائه كلمة مرور Google الخاصة بك. هذا بالضبط ما يحل OAuth 2.0!</p>
+
+            <div class="tip">
+                <h4><i class="fas fa-lightbulb"></i> ما هو OAuth 2.0؟</h4>
+                <p><strong>OAuth 2.0</strong> هو إطار عمل للتفويض (Authorization Framework) وليس للمصادقة. يسمح للتطبيقات بالحصول على وصول محدود لحساب المستخدم دون الحاجة لكلمة المرور.</p>
+                <ul class="list">
+                    <li>🔑 <strong>ليس للمصادقة:</strong> لا يخبرك من هو المستخدم</li>
+                    <li>🔐 <strong>للتفويض:</strong> يخبرك ما يمكن للتطبيق فعله</li>
+                    <li>🛡️ <strong>آمن:</strong> لا يكشف كلمة مرور المستخدم</li>
+                    <li>⏰ <strong>محدود الوقت:</strong> Access tokens تنتهي صلاحيتها</li>
+                </ul>
+            </div>
+
+            <h3><i class="fas fa-users"></i> الأدوار الأربعة في OAuth 2.0</h3>
+            
+            <div class="mermaid">
+graph TD
+    A[👤 Resource Owner<br/>صاحب البيانات<br/>المستخدم] --> B[📱 Client<br/>التطبيق الذي يريد الوصول<br/>مثل: تطبيق تعديل الصور]
+    
+    C[🔐 Authorization Server<br/>خادم التفويض<br/>مثل: Google OAuth] --> D[📊 Resource Server<br/>خادم البيانات<br/>مثل: Google Photos API]
+    
+    A -.->|يملك البيانات| D
+    B -.->|يريد الوصول| D
+    C -.->|يحمي| D
+    
+    style A fill:#81c784
+    style B fill:#42a5f5
+    style C fill:#ff9800
+    style D fill:#e91e63
+            </div>
+
             <div class="grid">
                 <div class="card">
-                    <h3>الأدوار والتدفقات</h3>
+                    <h4>👤 Resource Owner (صاحب البيانات)</h4>
+                    <p><strong>من هو:</strong> المستخدم النهائي الذي يملك البيانات</p>
                     <ul class="list">
-                        <li>Resource Owner, Client, Authorization Server, Resource Server</li>
-                        <li>Authorization Code (+PKCE), Client Credentials, Refresh Token</li>
+                        <li><strong>المثال:</strong> أنت كمستخدم Google</li>
+                        <li><strong>البيانات:</strong> صورك، إيميلاتك، جهات اتصالك</li>
+                        <li><strong>السلطة:</strong> يقرر من يصل لبياناته</li>
+                        <li><strong>الفعل:</strong> يوافق أو يرفض طلبات الوصول</li>
                     </ul>
                 </div>
+                
                 <div class="card">
-                    <h3>نقاط النهاية</h3>
+                    <h4>📱 Client (التطبيق/العميل)</h4>
+                    <p><strong>ما هو:</strong> التطبيق الذي يريد الوصول لبيانات المستخدم</p>
                     <ul class="list">
-                        <li>/authorize, /token, /userinfo, /revocation</li>
-                        <li>Scopes, Consent, redirect_uri</li>
+                        <li><strong>المثال:</strong> تطبيق Canva، Spotify، Instagram</li>
+                        <li><strong>الهدف:</strong> الوصول لبيانات المستخدم لتقديم خدمة</li>
+                        <li><strong>أنواع:</strong> Public (mobile apps) أو Confidential (web apps)</li>
+                        <li><strong>المعرف:</strong> له client_id وأحياناً client_secret</li>
                     </ul>
+                </div>
+                
+                <div class="card">
+                    <h4>🔐 Authorization Server (خادم التفويض)</h4>
+                    <p><strong>ما هو:</strong> الخادم الذي يتحقق من هوية المستخدم ويصدر tokens</p>
+                    <ul class="list">
+                        <li><strong>المثال:</strong> accounts.google.com، login.microsoftonline.com</li>
+                        <li><strong>الوظائف:</strong> تسجيل دخول، إصدار tokens، التحقق من الصلاحيات</li>
+                        <li><strong>النهايات:</strong> /authorize، /token، /userinfo</li>
+                        <li><strong>الأمان:</strong> يحمي عملية التفويض</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h4>📊 Resource Server (خادم البيانات)</h4>
+                    <p><strong>ما هو:</strong> الخادم الذي يحتوي على بيانات المستخدم المحمية</p>
+                    <ul class="list">
+                        <li><strong>المثال:</strong> Gmail API، Facebook Graph API، GitHub API</li>
+                        <li><strong>الوظيفة:</strong> يقدم البيانات للتطبيقات المصرح لها</li>
+                        <li><strong>الحماية:</strong> يتحقق من صحة Access Token</li>
+                        <li><strong>الاستجابة:</strong> يرد بالبيانات أو خطأ 401/403</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3><i class="fas fa-route"></i> تدفقات OAuth 2.0 (Grant Types)</h3>
+            
+            <p>هناك عدة طرق للحصول على Access Token، كل طريقة مناسبة لنوع معين من التطبيقات:</p>
+
+            <div class="attack-demo">
+                <h4>🔄 1. Authorization Code Flow - الأكثر أماناً</h4>
+                <p><strong>الاستخدام:</strong> Web applications مع backend server</p>
+                <p><strong>المميزة:</strong> الأكثر أماناً لأن client_secret محمي في الخادم</p>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant U as 👤 المستخدم
+    participant C as 📱 Client App
+    participant AS as 🔐 Auth Server
+    participant RS as 📊 Resource Server
+    
+    U->>C: 1. يريد تسجيل دخول بـ Google
+    C->>U: 2. redirect لـ Google OAuth
+    Note over C,U: https://accounts.google.com/oauth/authorize?<br/>client_id=123&redirect_uri=app.com/callback<br/>&response_type=code&scope=profile
+    
+    U->>AS: 3. يسجل دخول ويوافق على الصلاحيات
+    AS->>U: 4. redirect مع authorization code
+    Note over AS,U: https://app.com/callback?code=ABC123
+    
+    U->>C: 5. يصل للـ callback مع code
+    C->>AS: 6. يبادل code بـ access_token
+    Note over C,AS: POST /token<br/>code=ABC123&client_id=123<br/>&client_secret=secret&grant_type=authorization_code
+    
+    AS->>C: 7. يرد بـ access_token
+    Note over AS,C: {"access_token": "xyz789", "token_type": "Bearer"}
+    
+    C->>RS: 8. يطلب بيانات المستخدم
+    Note over C,RS: GET /userinfo<br/>Authorization: Bearer xyz789
+    
+    RS->>C: 9. يرد ببيانات المستخدم
+    C->>U: 10. يعرض البيانات للمستخدم
+                </div>
+                
+                <div class="code-block">
+# خطوات Authorization Code Flow:
+
+1. التوجيه للتفويض:
+GET https://accounts.google.com/oauth/authorize?
+  client_id=123456789&
+  redirect_uri=https://myapp.com/callback&
+  response_type=code&
+  scope=profile email&
+  state=random_string_for_security
+
+2. المستخدم يوافق ويتم التوجيه:
+GET https://myapp.com/callback?
+  code=4/0AX4XfWjcXXXXXXXXXXXXX&
+  state=random_string_for_security
+
+3. مبادلة Code بـ Access Token:
+POST https://oauth2.googleapis.com/token
+Content-Type: application/x-www-form-urlencoded
+
+client_id=123456789&
+client_secret=your_secret&
+code=4/0AX4XfWjcXXXXXXXXXXXXX&
+grant_type=authorization_code&
+redirect_uri=https://myapp.com/callback
+
+4. الاستجابة:
+{
+  "access_token": "ya29.a0ARrdaM9...",
+  "expires_in": 3600,
+  "refresh_token": "1//04xxx...",
+  "scope": "profile email",
+  "token_type": "Bearer"
+}
+
+5. استخدام Access Token:
+GET https://www.googleapis.com/oauth2/v2/userinfo
+Authorization: Bearer ya29.a0ARrdaM9...
+                </div>
+            </div>
+
+            <div class="attack-demo">
+                <h4>🔐 2. Authorization Code Flow + PKCE</h4>
+                <p><strong>PKCE:</strong> Proof Key for Code Exchange</p>
+                <p><strong>الاستخدام:</strong> Mobile apps وSPA (Single Page Applications)</p>
+                <p><strong>المشكلة التي يحل:</strong> حماية authorization code من الاعتراض</p>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant M as 📱 Mobile App
+    participant AS as 🔐 Auth Server
+    
+    M->>M: 1. إنشاء code_verifier عشوائي
+    Note over M: code_verifier = base64url(random(32))
+    
+    M->>M: 2. حساب code_challenge
+    Note over M: code_challenge = base64url(SHA256(code_verifier))
+    
+    M->>AS: 3. طلب authorization مع PKCE
+    Note over M,AS: /authorize?client_id=123&<br/>code_challenge=xyz&<br/>code_challenge_method=S256
+    
+    AS->>M: 4. إرجاع authorization code
+    
+    M->>AS: 5. مبادلة code + code_verifier
+    Note over M,AS: POST /token<br/>code=ABC&code_verifier=original_value
+    
+    AS->>AS: 6. التحقق من PKCE
+    Note over AS: SHA256(code_verifier) == code_challenge?
+    
+    AS->>M: 7. إصدار access_token إذا صحيح
+                </div>
+                
+                <div class="code-block">
+# PKCE Implementation:
+
+1. إنشاء code_verifier (43-128 حرف):
+const code_verifier = base64url(crypto.randomBytes(32));
+// مثال: "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+
+2. حساب code_challenge:
+const code_challenge = base64url(crypto.createHash('sha256').update(code_verifier).digest());
+// مثال: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+
+3. Authorization Request:
+GET /authorize?
+  client_id=123&
+  redirect_uri=com.myapp://callback&
+  response_type=code&
+  code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&
+  code_challenge_method=S256
+
+4. Token Exchange:
+POST /token
+{
+  "grant_type": "authorization_code",
+  "client_id": "123",
+  "code": "received_code",
+  "redirect_uri": "com.myapp://callback",
+  "code_verifier": "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+}
+
+# لماذا PKCE آمن؟
+- المهاجم يمكنه اعتراض authorization code
+- لكن لا يمكنه معرفة code_verifier الأصلي
+- بدون code_verifier، لا يمكن الحصول على access_token
+                </div>
+            </div>
+
+            <div class="attack-demo">
+                <h4>⚡ 3. Implicit Flow - مهجور وخطير</h4>
+                <p><strong>الاستخدام:</strong> كان يُستخدم لـ JavaScript apps</p>
+                <p><strong>المشكلة:</strong> access_token يظهر في URL ويمكن اعتراضه بسهولة</p>
+                
+                <div class="danger">
+                    <h4>⚠️ لماذا Implicit Flow خطير؟</h4>
+                    <ul class="list">
+                        <li><strong>Token في URL:</strong> access_token يظهر في fragment (#)</li>
+                        <li><strong>Browser History:</strong> يحفظ في تاريخ المتصفح</li>
+                        <li><strong>Referrer Leakage:</strong> قد يتسرب للمواقع الأخرى</li>
+                        <li><strong>No Refresh Token:</strong> لا يوجد refresh token</li>
+                    </ul>
+                </div>
+                
+                <div class="code-block">
+# Implicit Flow (لا تستخدمه!):
+
+1. Authorization Request:
+GET /authorize?
+  client_id=123&
+  redirect_uri=https://app.com/callback&
+  response_type=token&  ← مباشرة token وليس code
+  scope=profile
+
+2. الاستجابة الخطيرة:
+https://app.com/callback#
+  access_token=ya29.a0ARrdaM9...&  ← Token مكشوف!
+  token_type=Bearer&
+  expires_in=3600
+
+# المشاكل:
+❌ Token في URL bar
+❌ Token في browser history  
+❌ Token في server logs
+❌ Token قد يتسرب للـ referrer
+❌ لا يوجد client authentication
+
+# البديل الآمن:
+✅ استخدم Authorization Code + PKCE
+                </div>
+            </div>
+
+            <div class="attack-demo">
+                <h4>🔧 4. Client Credentials Flow</h4>
+                <p><strong>الاستخدام:</strong> Server-to-server communication</p>
+                <p><strong>المميزة:</strong> لا يوجد مستخدم، التطبيق يصل لبياناته الخاصة</p>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant C as 🖥️ Client Server
+    participant AS as 🔐 Auth Server
+    participant RS as 📊 Resource Server
+    
+    C->>AS: 1. طلب access_token
+    Note over C,AS: POST /token<br/>grant_type=client_credentials<br/>client_id=123&client_secret=secret
+    
+    AS->>AS: 2. التحقق من client credentials
+    AS->>C: 3. إصدار access_token
+    Note over AS,C: {"access_token": "xyz789", "token_type": "Bearer"}
+    
+    C->>RS: 4. استخدام token للوصول للـ API
+    Note over C,RS: GET /api/data<br/>Authorization: Bearer xyz789
+    
+    RS->>C: 5. إرجاع البيانات
+                </div>
+                
+                <div class="code-block">
+# Client Credentials Flow:
+
+POST /token HTTP/1.1
+Host: oauth.provider.com
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials&
+client_id=your_client_id&
+client_secret=your_client_secret&
+scope=api:read api:write
+
+# Response:
+{
+  "access_token": "2YotnFZFEjr1zCsicMWpAA",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "scope": "api:read api:write"
+}
+
+# الاستخدام:
+curl -H "Authorization: Bearer 2YotnFZFEjr1zCsicMWpAA" \
+     https://api.provider.com/data
+
+# متى تستخدمه:
+✅ Microservices communication
+✅ Scheduled jobs/cron tasks  
+✅ Backend API integration
+✅ Machine-to-machine authentication
+
+# متى لا تستخدمه:
+❌ عندما تحتاج بيانات مستخدم محدد
+❌ Frontend applications
+❌ Mobile applications
+                </div>
+            </div>
+
+            <h3><i class="fas fa-cogs"></i> مفاهيم مهمة في OAuth 2.0</h3>
+            
+            <div class="grid">
+                <div class="card">
+                    <h4>🔍 Scopes (النطاقات)</h4>
+                    <p>تحدد ما يمكن للتطبيق الوصول إليه</p>
+                    <div class="code-block">
+# أمثلة Scopes:
+profile          → الاسم والصورة الشخصية
+email           → عنوان البريد الإلكتروني  
+openid          → للـ OpenID Connect
+read:user       → قراءة معلومات المستخدم
+write:repo      → كتابة في المستودعات (GitHub)
+photos.readonly → قراءة الصور فقط (Google Photos)
+
+# في الطلب:
+scope=profile email photos.readonly
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>🔄 Refresh Tokens</h4>
+                    <p>للحصول على access tokens جديدة</p>
+                    <div class="code-block">
+# لماذا Refresh Tokens؟
+- Access tokens قصيرة المدى (15 دقيقة - ساعة)
+- Refresh tokens طويلة المدى (أسابيع - شهور)
+- إذا تسرب access token، ضرره محدود
+
+# استخدام Refresh Token:
+POST /token
+{
+  "grant_type": "refresh_token",
+  "refresh_token": "your_refresh_token",
+  "client_id": "your_client_id",
+  "client_secret": "your_secret"
+}
+
+# الاستجابة:
+{
+  "access_token": "new_access_token",
+  "refresh_token": "new_refresh_token",
+  "expires_in": 3600
+}
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>🌐 redirect_uri</h4>
+                    <p>إلى أين يتم توجيه المستخدم بعد التفويض</p>
+                    <div class="code-block">
+# أمثلة redirect_uri:
+
+Web App:
+https://myapp.com/oauth/callback
+
+Mobile App:
+com.myapp://oauth/callback
+
+Localhost (للتطوير):
+http://localhost:8080/callback
+
+# قواعد مهمة:
+✅ يجب تسجيلها مسبقاً مع OAuth provider
+✅ يجب أن تكون HTTPS (عدا localhost)
+✅ يجب التطابق التام (exact match)
+❌ لا تستخدم wildcards أو regex
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>🔐 State Parameter</h4>
+                    <p>لمنع CSRF attacks</p>
+                    <div class="code-block">
+# كيف يعمل State:
+
+1. إنشاء state عشوائي:
+const state = crypto.randomBytes(16).toString('hex');
+// حفظه في session أو localStorage
+
+2. إرساله مع طلب التفويض:
+/authorize?client_id=123&state=abc123xyz...
+
+3. التحقق عند العودة:
+if (received_state !== stored_state) {
+  throw new Error('CSRF attack detected!');
+}
+
+# لماذا مهم؟
+- يمنع CSRF attacks
+- يضمن أن الاستجابة لطلبك أنت
+- يحمي من session hijacking
+                    </div>
                 </div>
             </div>
         </section>
 
         <section id="oauth-attacks">
-            <h2><i class="fas fa-bug"></i> هجمات OAuth الشائعة</h2>
-            <div class="grid">
-                <div class="card">
-                    <h3>تلاعب redirect_uri</h3>
-                    <ul class="list">
-                        <li>Open Redirect → سرقة Authorization Code</li>
-                        <li>عدم التطابق الدقيق Exact match</li>
-                    </ul>
+            <h2><i class="fas fa-bug"></i> هجمات OAuth الشائعة - دليل شامل للمبتدئين</h2>
+            
+            <p>OAuth 2.0 رغم قوته، إلا أنه معرض لعدة هجمات خطيرة إذا لم يُطبق بشكل صحيح. سنستكشف أهم الهجمات مع أمثلة عملية وكيفية استغلالها! 🎯</p>
+
+            <div class="danger">
+                <h4><i class="fas fa-exclamation-triangle"></i> تحذير مهم</h4>
+                <p>معظم هجمات OAuth تحدث بسبب <strong>سوء التطبيق</strong> وليس ضعف في البروتوكول نفسه. الشيطان في التفاصيل!</p>
+            </div>
+
+            <div class="attack-demo">
+                <h3><i class="fas fa-link"></i> 1. هجمات redirect_uri - الأكثر شيوعاً</h3>
+                <p>هذا النوع من الهجمات يستغل ضعف التحقق من redirect_uri لسرقة authorization codes أو access tokens.</p>
+
+                <h4>🚨 1.1 Open Redirect Attack</h4>
+                <p><strong>المشكلة:</strong> الخادم لا يتحقق بدقة من redirect_uri المرسل</p>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant A as 🥷 المهاجم
+    participant V as 👤 الضحية  
+    participant AS as 🔐 Auth Server
+    participant M as 🌐 موقع المهاجم
+    
+    A->>V: 1. إرسال رابط مشبوه
+    Note over A,V: https://victim-app.com/oauth/login?<br/>redirect_uri=https://attacker.com/steal
+    
+    V->>AS: 2. تسجيل دخول وموافقة
+    AS->>M: 3. إعادة توجيه مع authorization code
+    Note over AS,M: https://attacker.com/steal?code=ABC123
+    
+    M->>A: 4. المهاجم يحصل على code
+    A->>AS: 5. يبادل code بـ access_token
+    A->>A: 6. يسيطر على حساب الضحية! 🔥
                 </div>
-                <div class="card">
-                    <h3>تسريب الرموز</h3>
-                    <ul class="list">
-                        <li>Token Leak عبر Referer/Logs</li>
-                        <li>إرسال Tokens للعميل بدون TLS</li>
-                    </ul>
+
+                <div class="code-block">
+{
+  "attack_type": "Open Redirect Attack",
+  "steps": [
+    {
+      "step": 1,
+      "title": "الطلب العادي (آمن)",
+      "request": {
+        "method": "GET",
+        "url": "/oauth/authorize",
+        "parameters": {
+          "client_id": "123",
+          "redirect_uri": "https://victim-app.com/callback",
+          "response_type": "code",
+          "scope": "profile"
+        },
+        "status": "✅ آمن"
+      }
+    },
+    {
+      "step": 2,
+      "title": "الطلب المشبوه (خطير)",
+      "request": {
+        "method": "GET",
+        "url": "/oauth/authorize",
+        "parameters": {
+          "client_id": "123",
+          "redirect_uri": "https://attacker.com/steal",
+          "response_type": "code",
+          "scope": "profile"
+        },
+        "status": "❌ خطير - المهاجم يغير redirect_uri!"
+      }
+    },
+    {
+      "step": 3,
+      "title": "إعادة التوجيه للمهاجم",
+      "redirect_url": "https://attacker.com/steal?code=4/0AX4XfWjXXXXXXXXX",
+      "result": "authorization code يذهب للمهاجم"
+    },
+    {
+      "step": 4,
+      "title": "المهاجم يبادل الكود",
+      "request": {
+        "method": "POST",
+        "url": "https://oauth2.googleapis.com/token",
+        "headers": {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        "body": {
+          "client_id": "123",
+          "client_secret": "secret",
+          "code": "4/0AX4XfWjXXXXXXXXX",
+          "grant_type": "authorization_code",
+          "redirect_uri": "https://attacker.com/steal"
+        }
+      },
+      "response": {
+        "access_token": "ya29.a0ARrdaM9...",
+        "token_type": "Bearer",
+        "expires_in": 3600
+      },
+      "result": "💀 المهاجم حصل على access_token!"
+    }
+  ]
+}
                 </div>
-                <div class="card">
-                    <h3>هجمات PKCE</h3>
-                    <ul class="list">
-                        <li>Code Reuse، ضعف code_verifier</li>
-                        <li>إعادة استخدام Authorization Code</li>
-                    </ul>
+
+                <h4>🔗 1.2 Subdomain Takeover Attack</h4>
+                <p><strong>السيناريو:</strong> redirect_uri يسمح بـ subdomains، والمهاجم يسيطر على subdomain مهجور</p>
+                
+                <div class="code-block">
+{
+  "attack_type": "Subdomain Takeover Attack",
+  "vulnerability": {
+    "description": "التطبيق يسمح بـ wildcard subdomains",
+    "allowed_pattern": "https://*.victim-app.com/callback"
+  },
+  "steps": [
+    {
+      "step": 1,
+      "title": "اكتشاف subdomain مهجور",
+      "target_subdomain": "old-api.victim-app.com",
+      "status": "غير مستخدم/مهجور"
+    },
+    {
+      "step": 2,
+      "title": "السيطرة على الـ subdomain",
+      "methods": [
+        "DNS takeover (إذا كان يشير لخدمة ملغاة)",
+        "GitHub Pages takeover",
+        "AWS S3 bucket takeover",
+        "Heroku app takeover"
+      ]
+    },
+    {
+      "step": 3,
+      "title": "إنشاء صفحة callback مزيفة",
+      "malicious_url": "https://old-api.victim-app.com/callback",
+      "purpose": "استقبال authorization codes"
+    },
+    {
+      "step": 4,
+      "title": "إرسال رابط مشبوه للضحية",
+      "phishing_url": {
+        "base": "https://auth.provider.com/oauth/authorize",
+        "parameters": {
+          "client_id": "123",
+          "redirect_uri": "https://old-api.victim-app.com/callback",
+          "response_type": "code",
+          "scope": "profile email"
+        }
+      }
+    },
+    {
+      "step": 5,
+      "title": "النتيجة",
+      "result": "🎯 authorization code يذهب للمهاجم!",
+      "impact": "السيطرة الكاملة على حساب الضحية"
+    }
+  ],
+  "prevention": [
+    "استخدم exact match للـ redirect_uri",
+    "لا تستخدم wildcards",
+    "راقب subdomains المهجورة",
+    "استخدم subdomain monitoring tools"
+  ]
+}
                 </div>
-                <div class="card">
-                    <h3>ثغرات ربط الجلسات</h3>
-                    <ul class="list">
-                        <li>Account Linking بدون تحقق ملكية</li>
-                        <li>Mix-Up Attack بين مزودي OAuth</li>
-                    </ul>
+
+                <h4>🎭 1.3 Path Traversal في redirect_uri</h4>
+                <div class="code-block">
+{
+  "attack_type": "Path Traversal في redirect_uri",
+  "techniques": [
+    {
+      "method": "Directory Traversal",
+      "payload": "https://victim-app.com/callback/../../../attacker.com/steal",
+      "result": "https://attacker.com/steal",
+      "description": "استخدام ../ للخروج من المسار المسموح"
+    },
+    {
+      "method": "URL Encoding",
+      "payload": "https://victim-app.com/callback%2F..%2F..%2Fattacker.com",
+      "encoded_chars": {
+        "%2F": "/",
+        "%2E": "."
+      },
+      "description": "تشفير الأحرف لتجاوز الفلاتر"
+    },
+    {
+      "method": "Unicode Encoding",
+      "payload": "https://victim-app.com/callback/\\u002e\\u002e/attacker.com",
+      "unicode_chars": {
+        "\\u002e": ".",
+        "\\u002f": "/"
+      },
+      "description": "استخدام Unicode لإخفاء الـ payload"
+    },
+    {
+      "method": "Double Encoding",
+      "payload": "https://victim-app.com/callback%252F%252E%252E%252Fattacker.com",
+      "description": "تشفير مزدوج لتجاوز فلاتر متقدمة"
+    }
+  ],
+  "prevention": [
+    "تطبيق exact string matching",
+    "منع أي أحرف خاصة في redirect_uri",
+    "استخدام whitelist صارمة",
+    "تجنب URL parsing/normalization"
+  ]
+}
+                </div>
+            </div>
+
+            <div class="attack-demo">
+                <h3><i class="fas fa-eye-slash"></i> 2. هجمات تسريب Token</h3>
+
+                <h4>📊 2.1 Referer Header Leakage</h4>
+                <p><strong>المشكلة:</strong> access_token يتسرب عبر HTTP Referer header</p>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant U as 👤 المستخدم
+    participant A as 🌐 التطبيق
+    participant E as 🌍 موقع خارجي
+    participant M as 🥷 المهاجم
+    
+    U->>A: 1. OAuth login ناجح
+    A->>U: 2. redirect مع token في URL
+    Note over A,U: https://app.com/dashboard#access_token=xyz789
+    
+    U->>U: 3. ينقر على رابط خارجي في الصفحة
+    U->>E: 4. الانتقال للموقع الخارجي
+    Note over U,E: Referer: https://app.com/dashboard#access_token=xyz789
+    
+    E->>M: 5. الموقع الخارجي يرسل Referer للمهاجم
+    M->>M: 6. المهاجم يستخرج token من Referer! 💀
+                </div>
+
+                <div class="code-block">
+{
+  "attack_type": "Referer Header Leakage",
+  "scenario": {
+    "flow_type": "Implicit Flow",
+    "vulnerability": "access_token في URL fragment"
+  },
+  "steps": [
+    {
+      "step": 1,
+      "title": "تسجيل دخول OAuth ناجح",
+      "url_with_token": "https://app.com/dashboard#access_token=ya29.a0ARrdaM9...",
+      "issue": "Token مرئي في URL"
+    },
+    {
+      "step": 2,
+      "title": "وجود رابط خارجي في الصفحة",
+      "html": "<a href=\"https://external-site.com/news\">اقرأ الأخبار</a>",
+      "risk": "عدم استخدام rel=\"noreferrer\""
+    },
+    {
+      "step": 3,
+      "title": "النقر على الرابط الخارجي",
+      "http_request": {
+        "method": "GET",
+        "url": "https://external-site.com/news",
+        "headers": {
+          "Referer": "https://app.com/dashboard#access_token=ya29.a0ARrdaM9..."
+        }
+      },
+      "leaked_data": "access_token كامل"
+    },
+    {
+      "step": 4,
+      "title": "الموقع الخارجي يسجل Referer",
+      "server_log": "[INFO] Referer: https://app.com/dashboard#access_token=ya29.a0ARrdaM9...",
+      "result": "🔥 Token مكشوف في server logs!"
+    }
+  ],
+  "solutions": [
+    {
+      "method": "rel=\"noreferrer\"",
+      "implementation": "<a href=\"https://external-site.com/news\" rel=\"noreferrer\">اقرأ الأخبار</a>",
+      "effect": "منع إرسال Referer header"
+    },
+    {
+      "method": "استخدام Authorization Code Flow",
+      "benefit": "Token لا يظهر في URL",
+      "recommended": true
+    },
+    {
+      "method": "Referrer Policy",
+      "implementation": "<meta name=\"referrer\" content=\"no-referrer\">",
+      "scope": "site-wide protection"
+    }
+  ]
+}
+                </div>
+
+                <h4>📝 2.2 Server Logs Exposure</h4>
+                <div class="code-block">
+{
+  "attack_type": "Server Logs Exposure",
+  "root_cause": "وضع tokens في URL parameters",
+  "attack_flow": [
+    {
+      "step": 1,
+      "title": "Implicit Flow ينتج token في URL",
+      "url": "https://app.com/callback#access_token=xyz789&token_type=Bearer",
+      "issue": "Token في URL fragment"
+    },
+    {
+      "step": 2,
+      "title": "JavaScript redirect خاطئ",
+      "code": "window.location = \"https://app.com/dashboard?token=\" + access_token;",
+      "problem": "نقل token من fragment إلى query parameter"
+    },
+    {
+      "step": 3,
+      "title": "Token يظهر في server logs",
+      "log_entry": "[INFO] GET /dashboard?token=xyz789 HTTP/1.1",
+      "exposure": "Token مكشوف في access logs"
+    },
+    {
+      "step": 4,
+      "title": "تسريب واسع النطاق",
+      "risks": [
+        "أي admin يصل للـ logs يحصل على tokens",
+        "Log aggregation systems تحفظ tokens",
+        "Backup systems تحتوي على tokens",
+        "Log analysis tools تعرض tokens"
+      ],
+      "result": "😱 تسريب جماعي للـ access tokens!"
+    }
+  ],
+  "solutions": {
+    "immediate": [
+      {
+        "method": "تجنب GET parameters للـ tokens",
+        "implementation": "استخدم POST requests أو headers",
+        "priority": "عالي"
+      },
+      {
+        "method": "استخدام Authorization Code Flow",
+        "benefit": "Token لا يظهر في URL أبداً",
+        "recommended": true
+      }
+    ],
+    "best_practices": [
+      {
+        "practice": "sessionStorage بدل localStorage",
+        "reason": "ينتهي مع إغلاق المتصفح"
+      },
+      {
+        "practice": "httpOnly cookies للـ refresh tokens",
+        "reason": "غير قابل للوصول من JavaScript"
+      },
+      {
+        "practice": "Log sanitization",
+        "implementation": "فلترة tokens من logs تلقائياً"
+      }
+    ]
+  }
+}
+                </div>
+            </div>
+
+            <div class="attack-demo">
+                <h3><i class="fas fa-shield-alt"></i> 3. هجمات PKCE وإعادة الاستخدام</h3>
+
+                <h4>🔄 3.1 Authorization Code Reuse</h4>
+                <p><strong>المشكلة:</strong> authorization code يمكن استخدامه أكثر من مرة</p>
+                
+                <div class="code-block">
+{
+  "attack_type": "Authorization Code Reuse Attack",
+  "vulnerability": "إمكانية استخدام authorization code أكثر من مرة",
+  "attack_timeline": [
+    {
+      "step": 1,
+      "actor": "🥷 المهاجم",
+      "action": "اعتراض authorization code",
+      "intercepted_url": "https://app.com/callback?code=4/0AX4XfWjXXXXXX",
+      "method": "Network interception أو Man-in-the-middle",
+      "timing": "قبل وصول code للتطبيق الأصلي"
+    },
+    {
+      "step": 2,
+      "actor": "🥷 المهاجم",
+      "action": "استخدام code المسروق",
+      "request": {
+        "method": "POST",
+        "url": "https://oauth2.googleapis.com/token",
+        "headers": {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        "body": {
+          "client_id": "123",
+          "client_secret": "secret",
+          "code": "4/0AX4XfWjXXXXXX",
+          "grant_type": "authorization_code"
+        }
+      },
+      "curl_example": [
+        "curl -X POST https://oauth2.googleapis.com/token \\",
+        "  -H 'Content-Type: application/x-www-form-urlencoded' \\",
+        "  -d 'client_id=123' \\",
+        "  -d 'client_secret=secret' \\",
+        "  -d 'code=4/0AX4XfWjXXXXXX' \\",
+        "  -d 'grant_type=authorization_code'"
+      ]
+    },
+    {
+      "step": 3,
+      "actor": "🔐 OAuth Server",
+      "action": "إصدار access_token للمهاجم",
+      "response": {
+        "access_token": "ya29.a0ARrdaM9...",
+        "token_type": "Bearer",
+        "expires_in": 3600,
+        "scope": "profile email"
+      },
+      "result": "✅ المهاجم حصل على access_token صالح!"
+    },
+    {
+      "step": 4,
+      "actor": "📱 التطبيق الأصلي",
+      "action": "محاولة استخدام نفس code",
+      "request_status": "❌ فشل",
+      "error_response": {
+        "error": "invalid_grant",
+        "error_description": "Authorization code has already been used"
+      },
+      "user_experience": "خطأ في تسجيل الدخول"
+    },
+    {
+      "step": 5,
+      "actor": "👤 المستخدم",
+      "action": "إعادة المحاولة",
+      "result": "إنشاء authorization code جديد",
+      "vulnerability": "🔄 المهاجم يمكنه اعتراض code جديد مرة أخرى"
+    }
+  ],
+  "impact": {
+    "severity": "عالي",
+    "consequences": [
+      "سيطرة المهاجم على حساب المستخدم",
+      "وصول غير مصرح به للبيانات الحساسة",
+      "إمكانية تنفيذ عمليات باسم المستخدم",
+      "تجربة مستخدم سيئة (أخطاء متكررة)"
+    ]
+  },
+  "prevention_measures": {
+    "server_side": [
+      {
+        "measure": "One-time use enforcement",
+        "description": "authorization code يُستخدم مرة واحدة فقط",
+        "implementation": "حذف code فوراً بعد الاستخدام الأول"
+      },
+      {
+        "measure": "Short expiration time",
+        "description": "انتهاء صلاحية سريع",
+        "recommended_duration": "5-10 دقائق",
+        "benefit": "تقليل نافذة الهجوم"
+      },
+      {
+        "measure": "Client binding",
+        "description": "ربط code بـ client_id محدد",
+        "validation": "التحقق من client_id عند استخدام code"
+      },
+      {
+        "measure": "Rate limiting",
+        "description": "تحديد عدد المحاولات",
+        "implementation": "منع المحاولات المتكررة من نفس IP"
+      }
+    ],
+    "detection": [
+      {
+        "method": "Monitoring duplicate usage",
+        "alert": "تنبيه عند محاولة استخدام code مرتين"
+      },
+      {
+        "method": "Anomaly detection",
+        "indicators": [
+          "محاولات سريعة متتالية",
+          "استخدام codes من IPs مختلفة",
+          "patterns غير طبيعية في التوقيت"
+        ]
+      }
+    ]
+  },
+  "secure_implementation": {
+    "code_storage": {
+      "database_design": "جدول منفصل للـ authorization codes",
+      "fields": [
+        "code_hash (hashed value)",
+        "client_id",
+        "user_id", 
+        "expires_at",
+        "used_at (null initially)",
+        "created_at"
+      ]
+    },
+    "validation_logic": [
+      "if (code.used_at !== null) throw 'Code already used'",
+      "if (code.expires_at < now()) throw 'Code expired'", 
+      "if (code.client_id !== request.client_id) throw 'Invalid client'",
+      "// Mark as used immediately",
+      "code.used_at = now()",
+      "code.save()"
+    ]
+  }
+}
+                </div>
+
+                <h4>🔐 3.2 Weak PKCE Implementation</h4>
+                <div class="code-block">
+{
+  "attack_type": "Weak PKCE Implementation",
+  "vulnerability_categories": [
+    {
+      "issue": "Weak code_verifier",
+      "description": "استخدام قيم ضعيفة أو متوقعة للـ code_verifier",
+      "examples": {
+        "bad_practice": {
+          "code": "code_verifier = \"12345\"",
+          "risk": "❌ سهل التخمين - يمكن brute force",
+          "entropy": "منخفض جداً"
+        },
+        "good_practice": {
+          "code": "code_verifier = crypto.randomBytes(32).toString('base64url')",
+          "benefit": "✅ قوي - عشوائي مع entropy عالي",
+          "entropy": "256 bits"
+        }
+      }
+    },
+    {
+      "issue": "Insecure challenge method",
+      "description": "استخدام plain text بدلاً من hashing",
+      "comparison": {
+        "insecure": {
+          "method": "plain",
+          "code": "code_challenge_method=plain",
+          "vulnerability": "❌ code_verifier مكشوف في الطلب",
+          "attack_vector": "يمكن اعتراض code_verifier من network traffic"
+        },
+        "secure": {
+          "method": "S256",
+          "code": "code_challenge_method=S256",
+          "protection": "✅ آمن - يستخدم SHA256 hashing",
+          "benefit": "code_verifier محمي حتى لو تم اعتراض الطلب"
+        }
+      }
+    },
+    {
+      "issue": "Missing server-side verification",
+      "description": "عدم التحقق من code_verifier في الخادم",
+      "secure_implementation": {
+        "validation_steps": [
+          "استقبال code_verifier من العميل",
+          "حساب SHA256 hash للـ code_verifier",
+          "مقارنة النتيجة مع stored code_challenge",
+          "رفض الطلب إذا لم تتطابق"
+        ],
+        "code_example": [
+          "// Server-side verification",
+          "const receivedHash = crypto.createHash('sha256')",
+          "  .update(received_code_verifier)",
+          "  .digest('base64url');",
+          "",
+          "if (receivedHash !== stored_code_challenge) {",
+          "  throw new Error('Invalid PKCE verification');",
+          "}"
+        ]
+      }
+    },
+    {
+      "issue": "Code verifier reuse",
+      "description": "إعادة استخدام نفس code_verifier",
+      "problems": [
+        "replay attacks ممكنة",
+        "تقليل الأمان العام",
+        "انتهاك PKCE specification"
+      ],
+      "solution": {
+        "principle": "إنشاء code_verifier جديد لكل OAuth flow",
+        "implementation": [
+          "// Generate new verifier for each request",
+          "const code_verifier = crypto.randomBytes(32).toString('base64url');",
+          "const code_challenge = crypto.createHash('sha256')",
+          "  .update(code_verifier)",
+          "  .digest('base64url');"
+        ]
+      }
+    }
+  ],
+  "attack_scenarios": [
+    {
+      "scenario": "Weak verifier brute force",
+      "steps": [
+        "المهاجم يعترض authorization request",
+        "يستخرج code_challenge",
+        "يجرب قيم code_verifier شائعة",
+        "ينجح في العثور على المطابق",
+        "يستخدمه لسرقة authorization code"
+      ]
+    },
+    {
+      "scenario": "Plain method interception",
+      "steps": [
+        "المهاجم يعترض PKCE request مع plain method",
+        "يحصل على code_verifier مباشرة",
+        "يستخدمه لاحقاً مع authorization code المسروق"
+      ]
+    }
+  ],
+  "prevention": {
+    "client_side": [
+      "استخدم crypto-secure random generator",
+      "code_verifier بطول 43-128 حرف",
+      "استخدم S256 method دائماً",
+      "لا تخزن code_verifier في مكان غير آمن"
+    ],
+    "server_side": [
+      "تحقق من code_challenge_method",
+      "ارفض plain method في production",
+      "تحقق من code_verifier hash بدقة",
+      "سجل محاولات PKCE الفاشلة"
+    ]
+  }
+}
+                </div>
+            </div>
+
+            <div class="attack-demo">
+                <h3><i class="fas fa-random"></i> 4. State Parameter Attacks</h3>
+
+                <h4>🎯 4.1 CSRF Attack بدون State</h4>
+                <p><strong>السيناريو:</strong> المهاجم يربط حسابه بحساب الضحية</p>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant A as 🥷 المهاجم
+    participant V as 👤 الضحية
+    participant AS as 🔐 Auth Server
+    participant T as 🌐 Target App
+    
+    A->>AS: 1. يبدأ OAuth flow لحسابه
+    AS->>A: 2. يحصل على authorization code
+    Note over AS,A: https://target-app.com/callback?code=ATTACKER_CODE
+    
+    A->>V: 3. يرسل الرابط للضحية (بدون state)
+    Note over A,V: https://target-app.com/callback?code=ATTACKER_CODE
+    
+    V->>T: 4. الضحية تنقر على الرابط
+    T->>AS: 5. يبادل code بـ access_token
+    T->>T: 6. يربط حساب المهاجم بجلسة الضحية!
+    
+    A->>T: 7. المهاجم يصل لحساب الضحية! 🔥
+                </div>
+
+                <div class="code-block">
+{
+  "attack_type": "OAuth CSRF Attack",
+  "vulnerability": "عدم وجود state parameter",
+  "objective": "ربط حساب المهاجم بجلسة الضحية",
+  "attack_scenario": [
+    {
+      "step": 1,
+      "actor": "المهاجم",
+      "action": "بدء OAuth flow",
+      "request": {
+        "url": "https://accounts.google.com/oauth/authorize",
+        "parameters": {
+          "client_id": "123",
+          "redirect_uri": "https://victim-app.com/callback",
+          "response_type": "code",
+          "scope": "profile"
+        },
+        "missing": "state parameter ⚠️"
+      }
+    },
+    {
+      "step": 2,
+      "actor": "المهاجم",
+      "action": "الحصول على authorization code",
+      "callback_url": "https://victim-app.com/callback?code=ATTACKER_CODE",
+      "note": "المهاجم لا يستكمل العملية"
+    },
+    {
+      "step": 3,
+      "actor": "المهاجم",
+      "action": "إرسال رابط للضحية",
+      "social_engineering": {
+        "message": "انقر هنا للحصول على عرض خاص!",
+        "malicious_url": "https://victim-app.com/callback?code=ATTACKER_CODE",
+        "delivery_method": ["email", "SMS", "social media"]
+      }
+    },
+    {
+      "step": 4,
+      "actor": "الضحية",
+      "action": "النقر على الرابط",
+      "result": "التطبيق يربط حساب Google للمهاجم بجلسة الضحية"
+    },
+    {
+      "step": 5,
+      "actor": "المهاجم",
+      "action": "تسجيل دخول بحساب Google",
+      "result": "💀 الوصول لحساب الضحية!",
+      "impact": "Account takeover كامل"
+    }
+  ],
+  "prevention": {
+    "state_parameter": {
+      "implementation": {
+        "generate": "const state = crypto.randomBytes(16).toString('hex');",
+        "store": "sessionStorage.setItem('oauth_state', state);",
+        "verify": "if (received_state !== stored_state) { throw new Error('CSRF attack detected!'); }"
+      },
+      "properties": [
+        "عشوائي وفريد لكل طلب",
+        "مرتبط بجلسة المستخدم",
+        "يتم التحقق منه عند العودة"
+      ]
+    },
+    "additional_measures": [
+      "ربط OAuth flow بـ user session",
+      "تسجيل ومراقبة OAuth activities",
+      "تحديد مهلة زمنية للـ authorization codes"
+    ]
+  }
+}
+                </div>
+            </div>
+
+            <div class="attack-demo">
+                <h3><i class="fas fa-link"></i> 5. Account Linking Attacks</h3>
+
+                <h4>🔗 5.1 Account Takeover via OAuth Linking</h4>
+                <p><strong>المشكلة:</strong> ربط حسابات OAuth بدون التحقق من ملكية البريد الإلكتروني</p>
+                
+                <div class="code-block">
+# سيناريو Account Linking Attack:
+
+1. المهاجم ينشئ حساب على victim-app.com:
+   Email: victim@example.com (بدون تحقق)
+
+2. الضحية الحقيقية تسجل دخول بـ Google OAuth:
+   Google Account: victim@example.com
+
+3. التطبيق يربط حساب Google بحساب المهاجم (نفس البريد)!
+4. المهاجم يسجل دخول بـ Google ويصل لحساب الضحية الحقيقي
+
+# المشكلة:
+- التطبيق لا يتحقق من ملكية البريد الإلكتروني
+- الربط يتم بناءً على email address فقط
+
+# الحل:
+1. تحقق من ملكية البريد قبل الربط:
+if (!user.email_verified) {
+    throw new Error('Email must be verified before linking');
+}
+
+2. أرسل تأكيد للبريد الأصلي:
+"هل تريد ربط حساب Google بحسابك؟"
+
+3. استخدم unique identifier بدل email:
+user.oauth_id = google_user.sub  // بدل google_user.email
+                </div>
+
+                <h4>🎭 5.2 OAuth Provider Mix-Up Attack</h4>
+                <div class="mermaid">
+sequenceDiagram
+    participant U as 👤 المستخدم
+    participant A as 🌐 التطبيق
+    participant G as 🔵 Google
+    participant F as 🔴 Facebook
+    participant M as 🥷 المهاجم
+    
+    U->>A: 1. ينقر "Login with Google"
+    A->>G: 2. redirect لـ Google OAuth
+    M->>U: 3. يعترض ويغير لـ Facebook
+    U->>F: 4. يسجل دخول بـ Facebook
+    F->>A: 5. authorization code من Facebook
+    A->>G: 6. يحاول استخدام Facebook code مع Google! 💥
+    A->>A: 7. خطأ أو سلوك غير متوقع
+                </div>
+
+                <div class="code-block">
+# OAuth Mix-Up Attack:
+
+1. المستخدم ينقر "Login with Google"
+2. التطبيق يوجه لـ:
+https://accounts.google.com/oauth/authorize?client_id=google_id...
+
+3. المهاجم يعترض ويغير الرابط لـ:
+https://www.facebook.com/dialog/oauth?client_id=facebook_id...
+
+4. المستخدم يسجل دخول بـ Facebook (يظن أنه Google)
+5. Facebook يرسل authorization code للتطبيق
+6. التطبيق يحاول استخدام Facebook code مع Google API!
+
+# المشاكل المحتملة:
+- تسريب معلومات حساسة
+- ربط حسابات خاطئة  
+- استغلال اختلافات في validation
+
+# الحل:
+1. تحقق من iss (issuer) في response:
+if (token.iss !== 'https://accounts.google.com') {
+    throw new Error('Invalid token issuer');
+}
+
+2. استخدم different redirect_uri لكل provider:
+Google: https://app.com/oauth/google/callback
+Facebook: https://app.com/oauth/facebook/callback
+
+3. تحقق من state parameter يحتوي على provider info:
+state = base64(JSON.stringify({provider: 'google', random: '...'}))
+                </div>
+            </div>
+
+            <div class="attack-demo">
+                <h3><i class="fas fa-clock"></i> 6. Token Lifecycle Attacks</h3>
+
+                <h4>⏰ 6.1 Long-lived Access Tokens</h4>
+                <div class="code-block">
+# مشكلة Access Tokens طويلة المدى:
+
+1. بعض التطبيقات تصدر access tokens تدوم أشهر:
+{
+  "access_token": "xyz789",
+  "expires_in": 31536000  // سنة كاملة! 😱
+}
+
+2. إذا تسرب token، المهاجم يملك وصول لمدة طويلة
+3. المستخدم لا يستطيع إلغاء الوصول بسهولة
+
+# الحل:
+✅ Access tokens قصيرة المدى (15-60 دقيقة)
+✅ استخدم refresh tokens للتجديد
+✅ وفر آلية token revocation
+✅ راقب استخدام tokens غير الطبيعي
+
+# مثال آمن:
+{
+  "access_token": "short_lived_token",
+  "expires_in": 900,  // 15 دقيقة
+  "refresh_token": "long_lived_refresh_token"
+}
+                </div>
+
+                <h4>🔄 6.2 Refresh Token Abuse</h4>
+                <div class="code-block">
+# هجمات Refresh Token:
+
+1. Refresh token theft:
+- تخزين غير آمن في localStorage
+- تسريب عبر XSS
+- اعتراض network traffic
+
+2. Refresh token reuse:
+- استخدام نفس refresh token أكثر من مرة
+- عدم إلغاء refresh tokens القديمة
+
+3. Refresh token hijacking:
+- المهاجم يحصل على refresh token
+- ينشئ access tokens جديدة باستمرار
+
+# الحل:
+✅ تخزين refresh tokens بشكل آمن (httpOnly cookies)
+✅ Refresh token rotation (إصدار refresh token جديد مع كل استخدام)
+✅ ربط refresh token بـ device/IP
+✅ مراقبة استخدام refresh tokens المشبوه
+
+# مثال Refresh Token Rotation:
+POST /token
+{
+  "grant_type": "refresh_token",
+  "refresh_token": "old_refresh_token"
+}
+
+Response:
+{
+  "access_token": "new_access_token",
+  "refresh_token": "new_refresh_token",  // جديد!
+  "expires_in": 900
+}
+// old_refresh_token يصبح invalid فوراً
+                </div>
+            </div>
+
+            <div class="tip">
+                <h3><i class="fas fa-shield-alt"></i> أفضل الممارسات للحماية من هجمات OAuth</h3>
+                <div class="grid">
+                    <div class="card">
+                        <h4>🔗 redirect_uri Security</h4>
+                        <ul class="list">
+                            <li>✅ Exact match للـ redirect_uri</li>
+                            <li>✅ Whitelist مسجلة مسبقاً</li>
+                            <li>✅ HTTPS only (عدا localhost للتطوير)</li>
+                            <li>❌ لا تستخدم wildcards أو regex</li>
+                            <li>❌ لا تسمح بـ data: أو javascript: URIs</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>🎯 State & PKCE</h4>
+                        <ul class="list">
+                            <li>✅ استخدم state parameter دائماً</li>
+                            <li>✅ PKCE للـ mobile وSPA apps</li>
+                            <li>✅ Strong randomness للـ state وcode_verifier</li>
+                            <li>✅ ربط state بـ user session</li>
+                            <li>❌ لا تستخدم predictable values</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>🔐 Token Management</h4>
+                        <ul class="list">
+                            <li>✅ Access tokens قصيرة المدى</li>
+                            <li>✅ Refresh token rotation</li>
+                            <li>✅ Token revocation endpoint</li>
+                            <li>✅ Monitor suspicious token usage</li>
+                            <li>❌ لا تضع tokens في URLs</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>🛡️ General Security</h4>
+                        <ul class="list">
+                            <li>✅ تحقق من email verification</li>
+                            <li>✅ Validate iss (issuer) في tokens</li>
+                            <li>✅ Use different endpoints per provider</li>
+                            <li>✅ Rate limiting على OAuth endpoints</li>
+                            <li>✅ Log وmonitor OAuth activities</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </section>
