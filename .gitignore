@@ -47,6 +47,7 @@ TODO.md
 *.md.tmp
 notes/
 drafts/
+DOM-based-Vulnerabilities-Explained.md
 
 # Media files (excluded from version control)
 *.mp4
