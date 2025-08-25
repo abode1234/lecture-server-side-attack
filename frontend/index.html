@@ -13,9 +13,9 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 50%, #2d2d2d 100%);
-            color: #e0e0e0;
+            font-family: 'Google Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ffffff;
+            color: #1a1a1a;
             line-height: 1.6;
             min-height: 100vh;
         }
@@ -27,64 +27,84 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #7b1fa2 0%, #9c27b0 100%);
-            padding: 40px 0;
+            background: linear-gradient(135deg, #027DFD 0%, #1E88E5 50%, #42A5F5 100%);
+            padding: 60px 0;
             text-align: center;
-            margin-bottom: 40px;
-            border-radius: 20px;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            margin-bottom: 50px;
+            border-radius: 0;
+            box-shadow: 0 4px 20px rgba(2, 125, 253, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            pointer-events: none;
         }
 
         .header h1 {
             color: #ffffff;
-            font-size: 3em;
+            font-size: 3.5em;
             margin-bottom: 15px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
         }
 
         .header p {
-            color: #e1bee7;
-            font-size: 1.3em;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.4em;
             margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
         }
 
         .header .subtitle {
-            color: #ce93d8;
+            color: rgba(255, 255, 255, 0.8);
             font-size: 1.1em;
             font-weight: 300;
+            position: relative;
+            z-index: 1;
         }
 
         .back-button {
             position: absolute;
             top: 20px;
             right: 20px;
-            background: rgba(156, 39, 176, 0.8);
-            color: #ffffff;
+            background: rgba(255, 255, 255, 0.95);
+            color: #027DFD;
             padding: 12px 20px;
             text-decoration: none;
             border-radius: 25px;
             font-size: 1em;
             font-weight: 500;
             transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .back-button:hover {
-            background: rgba(156, 39, 176, 1);
+            background: rgba(255, 255, 255, 1);
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(156, 39, 176, 0.4);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         }
 
         .stats-bar {
-            background: rgba(30, 30, 30, 0.9);
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            border-radius: 15px;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
             margin-bottom: 30px;
             display: flex;
             justify-content: space-around;
             text-align: center;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e8eaed;
         }
 
         .stat-item {
@@ -93,25 +113,24 @@
 
         .stat-number {
             font-size: 2.5em;
-            font-weight: bold;
-            color: #ba68c8;
+            font-weight: 500;
+            color: #027DFD;
             display: block;
         }
 
         .stat-label {
-            color: #b0b0b0;
+            color: #5f6368;
             font-size: 0.9em;
             margin-top: 5px;
         }
 
         .coming-soon-section {
-            background: rgba(30, 30, 30, 0.9);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
+            background: #ffffff;
+            border-radius: 16px;
             padding: 60px;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border: 1px solid #e8eaed;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             position: relative;
             overflow: hidden;
         }
@@ -123,12 +142,12 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, #ba68c8, #ab47bc);
+            background: linear-gradient(90deg, #027DFD, #1E88E5);
         }
 
         .coming-soon-icon {
             font-size: 4em;
-            color: #ba68c8;
+            color: #027DFD;
             margin-bottom: 30px;
             animation: pulse 2s infinite;
         }
@@ -140,14 +159,14 @@
         }
 
         .coming-soon-title {
-            color: #ffffff;
+            color: #1a1a1a;
             font-size: 2.5em;
             margin-bottom: 20px;
-            font-weight: 600;
+            font-weight: 400;
         }
 
         .coming-soon-description {
-            color: #b0b0b0;
+            color: #5f6368;
             font-size: 1.2em;
             line-height: 1.8;
             margin-bottom: 40px;
@@ -164,41 +183,42 @@
         }
 
         .topic-card {
-            background: rgba(186, 104, 200, 0.1);
-            border: 1px solid rgba(186, 104, 200, 0.3);
-            border-radius: 15px;
+            background: #f8f9fa;
+            border: 1px solid #e8eaed;
+            border-radius: 12px;
             padding: 25px;
             text-align: center;
             transition: all 0.3s ease;
         }
 
         .topic-card:hover {
-            background: rgba(186, 104, 200, 0.2);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(186, 104, 200, 0.2);
+            background: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            border-color: #027DFD;
         }
 
         .topic-icon {
             font-size: 2.5em;
-            color: #ba68c8;
+            color: #027DFD;
             margin-bottom: 15px;
         }
 
         .topic-title {
-            color: #ffffff;
+            color: #1a1a1a;
             font-size: 1.2em;
-            font-weight: 600;
+            font-weight: 500;
             margin-bottom: 10px;
         }
 
         .topic-description {
-            color: #ce93d8;
+            color: #5f6368;
             font-size: 0.9em;
             line-height: 1.5;
         }
 
         .progress-indicator {
-            background: rgba(186, 104, 200, 0.2);
+            background: #f1f3f4;
             height: 8px;
             border-radius: 4px;
             margin: 40px 0;
@@ -207,8 +227,8 @@
 
         .progress-bar {
             height: 100%;
-            background: linear-gradient(90deg, #ba68c8, #ab47bc);
-            width: 15%;
+            background: linear-gradient(90deg, #027DFD, #1E88E5);
+            width: 75%;
             border-radius: 4px;
             animation: progress-pulse 3s infinite;
         }
