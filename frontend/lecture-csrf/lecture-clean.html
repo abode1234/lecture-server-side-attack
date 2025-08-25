@@ -3,417 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cross-site Request Forgery (CSRF) - محاضرة شاملة</title>
+    <title>محاضرة Cross-Site Request Forgery (CSRF)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/themes/prism-okaidia.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #e8eaed; background: #151b2f; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 48px; padding: 64px 24px; background: linear-gradient(135deg, #1a2125, #203942); border-radius: 12px; box-shadow: 0 4px 24px rgb(33, 48, 70); }
+        .header h1 { font-size: 2.5rem; font-weight: 400; color: #e8eaed; margin-bottom: 16px; letter-spacing: -0.5px; }
+        .header .subtitle { font-size: 1.1rem; font-weight: 300; color: rgba(255, 255, 255, 0.9); margin-bottom: 24px; }
+        .lecture-info { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-top: 20px; }
+        .info-item { background: rgba(165, 180, 252, 0.2); padding: 12px 24px; border-radius: 24px; border: 1px solid rgba(165, 180, 252, 0.3); color: #a5b4fc; font-weight: 500; }
+        .info-item i { color: #a5b4fc; margin-left: 8px; }
+        .nav-menu { background: #1a2332; border-radius: 12px; padding: 24px; margin-bottom: 32px; border: 1px solid #2d3748; box-shadow: 0 1px 6px rgba(26, 35, 50, 0.4); }
+        .nav-menu h3 { color: #e8eaed; font-size: 1.5rem; font-weight: 500; margin-bottom: 20px; text-align: center; }
+        .nav-menu ul { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
+        .nav-menu a { display: flex; align-items: center; padding: 12px 16px; color: #e8eaed; text-decoration: none; border-radius: 8px; transition: all 0.2s ease; border: 1px solid transparent; }
+        .nav-menu a:hover { background: #2d3748; border-color: #3b475d; }
+        section { background: #0f1724; border: 1px solid #2b3447; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 6px rgba(33, 48, 70, 0.3); }
+        h2 { color: #e8eaed; font-size: 1.6rem; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+        h3 { color: #a5b4fc; font-size: 1.2rem; margin: 14px 0; }
+        h4 { color: #c7d2fe; font-size: 1.1rem; margin: 12px 0 8px 0; font-weight: 500; }
+        p { color: #c7d2fe; margin-bottom: 12px; line-height: 1.7; }
+        .list { margin: 10px 0 0 0; padding-right: 18px; color: #c7d2fe; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin: 20px 0; }
+        .card { background: #0c1220; border: 1px solid #263148; border-radius: 10px; padding: 18px; }
+        .code-block { 
+            background: #0d1117; 
+            border: 1px solid #30363d; 
+            border-radius: 6px; 
+            padding: 16px; 
+            color: #f0f6fc; 
+            font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', 'Menlo', monospace; 
+            overflow-x: auto; 
+            margin: 16px 0; 
+            font-size: 14px; 
+            line-height: 1.45;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            white-space: pre-wrap;
         }
-
-        body {
-            font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            line-height: 1.6;
-            color: #e8eaed;
-            background: #151b2f;
-            min-height: 100vh;
+        .tip { background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); color: #d1fae5; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+        .warn { background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); color: #fde68a; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+        .danger { background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); color: #fecaca; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+        .attack-demo { background: #1a1a2e; border: 1px solid #16213e; border-radius: 10px; padding: 20px; margin: 16px 0; }
+        .attack-demo h4 { color: #ff6b6b; margin-bottom: 12px; }
+        .lab-card { background: linear-gradient(135deg, #1e3a8a, #1e40af); border: 1px solid #3b82f6; border-radius: 12px; padding: 20px; margin: 12px 0; }
+        .lab-card h4 { color: #e8eaed; margin-bottom: 8px; }
+        .lab-card p { color: #dbeafe; font-size: 0.95rem; }
+        .lab-link { display: inline-block; background: #3b82f6; color: #e8eaed; padding: 8px 16px; border-radius: 6px; text-decoration: none; margin-top: 10px; font-size: 0.9rem; }
+        .lab-link:hover { background: #2563eb; }
+        .comparison-table { width: 100%; border-collapse: collapse; margin: 20px 0; background: #0c1220; border-radius: 8px; overflow: hidden; }
+        .comparison-table th, .comparison-table td { padding: 12px; text-align: right; border-bottom: 1px solid #263148; }
+        .comparison-table th { background: #1e3a8a; color: #e8eaed; font-weight: 500; }
+        .comparison-table tr:hover { background: #1a2332; }
+        .mermaid { 
+            background: #1a2332 !important; 
+            border: 1px solid #2d3748; 
+            border-radius: 8px; 
+            padding: 16px; 
+            margin: 16px 0; 
+            color: #e8eaed !important;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+        .mermaid svg { background: #1a2332 !important; }
+        .mermaid .node rect, .mermaid .node circle, .mermaid .node ellipse, .mermaid .node polygon {
+            fill: #1a2332 !important; stroke: #2d3748 !important; color: #e8eaed !important;
         }
-
-        .header {
-            text-align: center;
-            margin-bottom: 48px;
-            padding: 64px 24px;
-            background: linear-gradient(135deg, #1a2125, #203942);
-            border-radius: 12px;
-            box-shadow: 0 4px 24px rgb(33, 48, 70);
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 400;
-            color: #e8eaed;
-            margin-bottom: 16px;
-            letter-spacing: -0.5px;
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            font-weight: 300;
-            color: rgba(232, 234, 237, 0.9);
-            margin-bottom: 24px;
-        }
-
-        .content {
-            background: #0f1724;
-            border: 1px solid #2b3447;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 1px 6px rgba(33, 48, 70, 0.3);
-        }
-
-        .section {
-            margin-bottom: 40px;
-            padding: 20px;
-            border-left: 4px solid #a5b4fc;
-            background: #1a2332;
-            border-radius: 12px;
-        }
-
-        .section h2 {
-            color: #a5b4fc;
-            margin-bottom: 15px;
-            font-size: 1.8rem;
-            font-weight: 400;
-        }
-
-        .section h3 {
-            color: #495057;
-            margin: 20px 0 10px 0;
-            font-size: 1.4rem;
-        }
-
-        .attack-type {
-            background: #0c1220;
-            border: 2px solid #263148;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 15px 0;
-            transition: all 0.3s ease;
-        }
-
-        .attack-type:hover {
-            border-color: #a5b4fc;
-            box-shadow: 0 4px 16px rgba(165, 180, 252, 0.12);
-            transform: translateY(-2px);
-        }
-
-        .attack-type h4 {
-            color: #dc3545;
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-            font-weight: 500;
-        }
-
-        .code-block {
-            background: #2d3748;
-            color: #e2e8f0;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 15px 0;
-            overflow-x: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-        }
-
-        .code-block.vulnerable {
-            border-left: 4px solid #dc3545;
-        }
-
-        .code-block.secure {
-            border-left: 4px solid #28a745;
-        }
-
-        .lab-card {
-            background: linear-gradient(135deg, #1e3a8a, #1e40af);
-            border: 1px solid #3b82f6;
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin: 15px 0;
-            transition: all 0.3s ease;
-        }
-
-        .lab-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .lab-card h4 {
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-        }
-
-        .lab-card a {
-            color: #ffd700;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .lab-card a:hover {
-            text-decoration: underline;
-        }
-
-        .comparison-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .comparison-table th,
-        .comparison-table td {
-            padding: 12px;
-            text-align: right;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .comparison-table th {
-            background: #667eea;
-            color: white;
-            font-weight: bold;
-        }
-
-        .comparison-table tr:nth-child(even) {
-            background: #f8f9fa;
-        }
-
-        .comparison-table tr:hover {
-            background: #e9ecef;
-        }
-
-        .warning {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-        }
-
-        .info {
-            background: #d1ecf1;
-            border: 1px solid #bee5eb;
-            color: #0c5460;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-        }
-
-        .success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-        }
-
-        .mermaid {
-            text-align: center;
-            margin: 20px 0;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin: 20px 0;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #1e3a8a, #1e40af);
-            border: 1px solid #3b82f6;
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .stat-card h3 {
-            font-size: 2rem;
-            margin-bottom: 5px;
-        }
-
-        .stat-card p {
-            opacity: 0.9;
-        }
-
-        .back-button {
-            display: inline-block;
-            background: linear-gradient(135deg, #1e3a8a, #1e40af);
-            color: white;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            border: 1px solid #3b82f6;
-        }
-
-        .back-button:hover {
-            transform: translateY(-1px);
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .content {
-                padding: 20px;
-            }
-            
-            .code-block {
-                font-size: 0.8rem;
-                padding: 15px;
-            }
-        }
+        .mermaid .edgeLabel { background-color: #1a2332 !important; color: #e8eaed !important; }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="../../index.html" class="back-button">← العودة للصفحة الرئيسية</a>
-        
         <div class="header">
-            <h1>🔒 Cross-site Request Forgery (CSRF)</h1>
-            <p>محاضرة شاملة عن ثغرات CSRF وأنواعها وطرق الحماية</p>
+            <h1><i class="fas fa-shield-alt"></i> Cross-Site Request Forgery (CSRF)</h1>
+            <div class="subtitle">استغلال ثغرات التزوير عبر المواقع</div>
+            <div class="lecture-info">
+                <div class="info-item"><i class="fas fa-clock"></i> 2 ساعة</div>
+                <div class="info-item"><i class="fas fa-flask"></i> 8 مختبرات</div>
+                <div class="info-item"><i class="fas fa-signal"></i> متوسط إلى متقدم</div>
+                <div class="info-item"><i class="fas fa-shield-alt"></i> حماية شاملة</div>
+            </div>
         </div>
 
-        <div class="content">
-            <!-- إحصائيات سريعة -->
-            <div class="stats">
-                <div class="stat-card">
-                    <h3>5</h3>
-                    <p>أنواع CSRF</p>
-                </div>
-                <div class="stat-card">
-                    <h3>8</h3>
-                    <p>مختبر عملي</p>
-                </div>
-                <div class="stat-card">
-                    <h3>2</h3>
-                    <p>ساعة تدريبية</p>
-                </div>
-                <div class="stat-card">
-                    <h3>15+</h3>
-                    <p>مثال عملي</p>
-                </div>
+        <div class="nav-menu">
+            <h3>محتويات المحاضرة</h3>
+            <ul>
+                <li><a href="#intro"><i class="fas fa-info-circle"></i> مقدمة</a></li>
+                <li><a href="#csrf-overview"><i class="fas fa-shield-alt"></i> نظرة عامة على CSRF</a></li>
+                <li><a href="#csrf-types"><i class="fas fa-bug"></i> أنواع CSRF</a></li>
+                <li><a href="#comparison"><i class="fas fa-balance-scale"></i> مقارنة شاملة</a></li>
+                <li><a href="#detection"><i class="fas fa-search"></i> طرق الاكتشاف</a></li>
+                <li><a href="#exploitation"><i class="fas fa-crosshairs"></i> طرق الاستغلال</a></li>
+                <li><a href="#labs"><i class="fas fa-flask"></i> مختبرات عملية</a></li>
+                <li><a href="#defense"><i class="fas fa-shield-halved"></i> طرق الحماية</a></li>
+                <li><a href="#summary"><i class="fas fa-list-check"></i> الخلاصة</a></li>
+            </ul>
+        </div>
+
+        <section id="intro">
+            <h2><i class="fas fa-info-circle"></i> مقدمة - ما هو CSRF؟</h2>
+            
+            <p>مرحباً بكم في محاضرة Cross-Site Request Forgery (CSRF)! 🎯</p>
+            
+            <p>ثغرة <strong>CSRF</strong> هي هجوم يحدث عندما يقوم موقع ويب ضار بإجبار متصفح المستخدم على تنفيذ طلب غير مرغوب فيه إلى موقع آخر يكون المستخدم مصادقاً عليه بالفعل. هذا الهجوم خطير لأنه يمكن أن يؤدي إلى تغيير كلمات المرور، تحويل الأموال، أو تنفيذ أي إجراء آخر نيابة عن المستخدم.</p>
+
+            <div class="tip">
+                <h4><i class="fas fa-lightbulb"></i> ما ستتعلمه في هذه المحاضرة</h4>
+                <ul class="list">
+                    <li>🎯 فهم آلية عمل هجمات CSRF</li>
+                    <li>🕵️ 5 أنواع مختلفة من هجمات CSRF</li>
+                    <li>⚖️ مقارنة شاملة بين جميع الأنواع</li>
+                    <li>🔍 طرق اكتشاف واستغلال كل نوع</li>
+                    <li>🧪 8 مختبرات عملية متدرجة الصعوبة</li>
+                    <li>🛡️ استراتيجيات الحماية والدفاع</li>
+                    <li>🔧 أدوات الاختبار المتقدمة</li>
+                </ul>
             </div>
 
-            <!-- مقدمة -->
-            <div class="section">
-                <h2>🎯 ما هي CSRF؟</h2>
-                <p>
-                    <strong>Cross-site Request Forgery (CSRF)</strong> هي ثغرة أمنية تسمح للمهاجم بإجبار المستخدمين على تنفيذ إجراءات غير مرغوب فيها على موقع ويب يكونون مسجلين فيه بالفعل. 
-                    هذه الهجمات تعتمد على حقيقة أن المتصفح يرسل تلقائياً الكوكيز مع كل طلب إلى الموقع.
-                </p>
-                
-                <div class="info">
-                    <strong>💡 مثال بسيط:</strong> إذا كنت مسجل الدخول في موقع البنك، يمكن للمهاجم إنشاء صفحة خبيثة تجعلك تحول أموالك إلى حسابه دون علمك!
+            <div class="danger">
+                <h4><i class="fas fa-exclamation-triangle"></i> لماذا هجمات CSRF خطيرة؟</h4>
+                <ul class="list">
+                    <li><strong>تنفيذ إجراءات غير مرغوبة:</strong> تغيير كلمات المرور، تحويل الأموال، حذف البيانات</li>
+                    <li><strong>صعوبة الاكتشاف:</strong> قد لا يلاحظ المستخدم أن هجوماً قد حدث</li>
+                    <li><strong>انتشار واسع:</strong> تؤثر على جميع التطبيقات التي لا تستخدم حماية CSRF</li>
+                    <li><strong>تأثير مباشر:</strong> تؤثر على حسابات المستخدمين المصادقين</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="csrf-overview">
+            <h2><i class="fas fa-shield-alt"></i> نظرة عامة على CSRF</h2>
+            
+            <p>هجوم CSRF يعتمد على حقيقة أن المتصفح يرسل تلقائياً ملفات تعريف الارتباط (cookies) مع كل طلب إلى نفس النطاق. إذا كان المستخدم مصادقاً على موقع معين، فإن أي طلب من موقع آخر سيحمل معه بيانات المصادقة.</p>
+
+            <div class="mermaid">
+sequenceDiagram
+    participant A as 🥷 المهاجم
+    participant V as 👤 الضحية
+    participant B as 🌐 متصفح الضحية
+    participant T as 🎯 الموقع المستهدف
+    
+    A->>A: 1. ينشئ صفحة ويب ضارة
+    Note over A: تحتوي على نموذج أو رابط خبيث
+    A->>V: 2. يرسل الرابط للضحية
+    V->>B: 3. الضحية يزور الرابط
+    B->>T: 4. المتصفح يرسل طلب مع cookies المصادقة
+    T->>T: 5. يعالج الطلب كأنه من المستخدم 💥
+    T-->>B: 6. يستجيب للطلب
+    B-->>V: 7. الضحية لا يلاحظ ما حدث
                 </div>
 
-                <div class="mermaid">
-                    <h3>📊 آلية عمل CSRF</h3>
-                    <p><strong>1.</strong> المستخدم مسجل في موقع آمن (مثل البنك)</p>
-                    <p><strong>2.</strong> المهاجم يرسل رابط خبيث للمستخدم</p>
-                    <p><strong>3.</strong> المستخدم يفتح الرابط (بينما لا يزال مسجل في البنك)</p>
-                    <p><strong>4.</strong> المتصفح يرسل طلب تلقائي مع الكوكيز</p>
-                    <p><strong>5.</strong> الموقع يعالج الطلب كأنه من المستخدم نفسه!</p>
-                </div>
+            <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال: هجوم CSRF بسيط</span>
+<pre><code>&lt;!-- صفحة ويب ضارة --&gt;
+&lt;html&gt;
+&lt;body&gt;
+    &lt;form action="https://bank.com/transfer" method="POST"&gt;
+        &lt;input type="hidden" name="amount" value="1000"&gt;
+        &lt;input type="hidden" name="to" value="attacker_account"&gt;
+        &lt;input type="submit" value="احصل على جائزة!"&gt;
+    &lt;/form&gt;
+    &lt;script&gt;document.forms[0].submit();&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
             </div>
 
-            <!-- أنواع CSRF -->
-            <div class="section">
-                <h2>🔍 أنواع CSRF</h2>
-                
-                <!-- 1. GET-based CSRF -->
-                <div class="attack-type">
-                    <h4>1. GET-based CSRF</h4>
-                    <p>تحدث عندما يتم تنفيذ هجوم CSRF عبر طلب GET. هذه الطريقة بسيطة ولكنها محدودة.</p>
-                    
-                    <h5>📝 مثال على الكود الضعيف:</h5>
-                    <div class="code-block vulnerable">
-&lt;!-- ❌ كود ضعيف --&gt;
-&lt;a href="https://bank.com/transfer?to=attacker&amount=1000"&gt;
-    عرض صورة جميلة
-&lt;/a&gt;
+            <div class="warn">
+                <h4>⚠️ متطلبات نجاح هجوم CSRF</h4>
+                <p>لكي ينجح هجوم CSRF، يجب توفر الشروط التالية:</p>
+                <ul class="list">
+                    <li><strong>المصادقة:</strong> يجب أن يكون المستخدم مصادقاً على الموقع المستهدف</li>
+                    <li><strong>عدم وجود حماية:</strong> الموقع لا يستخدم CSRF tokens أو حماية أخرى</li>
+                    <li><strong>إجراء قابل للتنفيذ:</strong> وجود وظيفة يمكن استغلالها</li>
+                    <li><strong>تنبؤ بالطلب:</strong> معرفة شكل الطلب المطلوب</li>
+                </ul>
+            </div>
+        </section>
 
-&lt;!-- أو عبر img tag --&gt;
-&lt;img src="https://bank.com/transfer?to=attacker&amount=1000" 
-     style="display:none;"&gt;
+        <section id="csrf-types">
+            <h2><i class="fas fa-bug"></i> أنواع هجمات CSRF</h2>
+            
+            <div class="grid">
+                <div class="card">
+                    <h3>🎯 1. GET-based CSRF</h3>
+                    <p><strong>التعريف:</strong> هجوم CSRF يستخدم طلبات GET.</p>
+                    <p><strong>المصدر:</strong> روابط، صور، iframes</p>
+                    <p><strong>التأثير:</strong> تنفيذ إجراءات بسيطة</p>
+                    <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال</span>
+<pre><code>&lt;!-- هجوم GET-based CSRF --&gt;
+&lt;img src="https://bank.com/transfer?amount=1000&to=attacker" 
+     style="display:none"&gt;
+
+&lt;!-- أو باستخدام iframe --&gt;
+&lt;iframe src="https://bank.com/delete-account"&gt;&lt;/iframe&gt;</code></pre>
                     </div>
-
-                    <h5>🎯 كيف يعمل الهجوم:</h5>
-                    <ul>
-                        <li>المهاجم ينشئ رابط أو صورة خفية</li>
-                        <li>المستخدم يفتح الصفحة الخبيثة</li>
-                        <li>المتصفح يرسل طلب GET تلقائياً</li>
-                        <li>الموقع يعالج الطلب مع الكوكيز</li>
-                    </ul>
-
-                    <h5>⚠️ القيود:</h5>
-                    <ul>
-                        <li>لا يمكن إرسال بيانات معقدة</li>
-                        <li>الطلبات تظهر في سجل المتصفح</li>
-                        <li>سهلة الاكتشاف</li>
-                    </ul>
                 </div>
 
-                <!-- 2. POST-based CSRF -->
-                <div class="attack-type">
-                    <h4>2. POST-based CSRF</h4>
-                    <p>تحدث عندما يتم تنفيذ هجوم CSRF عبر طلب POST. هذه الطريقة أكثر تعقيداً ولكنها أقوى.</p>
-                    
-                    <h5>📝 مثال على الكود الضعيف:</h5>
-                    <div class="code-block vulnerable">
-&lt;!-- ❌ كود ضعيف --&gt;
-&lt;form id="csrf-form" action="https://bank.com/transfer" method="POST"&gt;
-    &lt;input type="hidden" name="to" value="attacker"&gt;
+                <div class="card">
+                    <h3>📝 2. POST-based CSRF</h3>
+                    <p><strong>التعريف:</strong> هجوم CSRF يستخدم طلبات POST.</p>
+                    <p><strong>المصدر:</strong> نماذج HTML، JavaScript</p>
+                    <p><strong>التأثير:</strong> تنفيذ إجراءات معقدة</p>
+                    <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال</span>
+<pre><code>&lt;!-- هجوم POST-based CSRF --&gt;
+&lt;form action="https://bank.com/transfer" method="POST"&gt;
     &lt;input type="hidden" name="amount" value="1000"&gt;
+    &lt;input type="hidden" name="to" value="attacker"&gt;
+    &lt;input type="hidden" name="description" value="هدية"&gt;
 &lt;/form&gt;
-
-&lt;script&gt;
-// تنفيذ النموذج تلقائياً
-document.getElementById('csrf-form').submit();
-&lt;/script&gt;
+&lt;script&gt;document.forms[0].submit();&lt;/script&gt;</code></pre>
                     </div>
-
-                    <h5>🎯 كيف يعمل الهجوم:</h5>
-                    <ul>
-                        <li>المهاجم ينشئ نموذج مخفي</li>
-                        <li>يستخدم JavaScript لتنفيذ النموذج</li>
-                        <li>المتصفح يرسل طلب POST مع الكوكيز</li>
-                        <li>الموقع يعالج الطلب كأنه من المستخدم</li>
-                    </ul>
-
-                    <h5>💪 المميزات:</h5>
-                    <ul>
-                        <li>يمكن إرسال بيانات معقدة</li>
-                        <li>الطلبات لا تظهر في سجل المتصفح</li>
-                        <li>أصعب في الاكتشاف</li>
-                    </ul>
                 </div>
 
-                <!-- 3. JSON-based CSRF -->
-                <div class="attack-type">
-                    <h4>3. JSON-based CSRF</h4>
-                    <p>تحدث عندما يتم تنفيذ هجوم CSRF عبر طلب JSON. هذه الطريقة حديثة وتستهدف APIs.</p>
-                    
-                    <h5>📝 مثال على الكود الضعيف:</h5>
-                    <div class="code-block vulnerable">
-&lt;!-- ❌ كود ضعيف --&gt;
+                <div class="card">
+                    <h3>📊 3. JSON-based CSRF</h3>
+                    <p><strong>التعريف:</strong> هجوم CSRF يستخدم طلبات JSON.</p>
+                    <p><strong>المصدر:</strong> APIs، AJAX requests</p>
+                    <p><strong>التأثير:</strong> استغلال APIs</p>
+                    <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال</span>
+<pre><code>&lt;!-- هجوم JSON-based CSRF --&gt;
 &lt;script&gt;
 fetch('https://api.bank.com/transfer', {
     method: 'POST',
@@ -421,527 +232,447 @@ fetch('https://api.bank.com/transfer', {
         'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-        to: 'attacker',
-        amount: 1000
+        amount: 1000,
+        to: 'attacker'
     })
 });
-&lt;/script&gt;
+&lt;/script&gt;</code></pre>
                     </div>
-
-                    <h5>🎯 كيف يعمل الهجوم:</h5>
-                    <ul>
-                        <li>المهاجم ينشئ طلب fetch أو XMLHttpRequest</li>
-                        <li>يرسل بيانات JSON مع الطلب</li>
-                        <li>المتصفح يرسل الكوكيز تلقائياً</li>
-                        <li>API يعالج الطلب</li>
-                    </ul>
-
-                    <h5>⚠️ القيود:</h5>
-                    <ul>
-                        <li>قد تحتاج CORS headers</li>
-                        <li>بعض المتصفحات تمنعها</li>
-                        <li>قد تحتاج preflight requests</li>
-                    </ul>
                 </div>
 
-                <!-- 4. Multi-step CSRF -->
-                <div class="attack-type">
-                    <h4>4. Multi-step CSRF</h4>
-                    <p>تحدث عندما يتطلب الإجراء عدة خطوات متتالية. المهاجم ينفذ جميع الخطوات تلقائياً.</p>
-                    
-                    <h5>📝 مثال على الكود الضعيف:</h5>
-                    <div class="code-block vulnerable">
-&lt;!-- ❌ كود ضعيف --&gt;
+                <div class="card">
+                    <h3>🔄 4. Multi-step CSRF</h3>
+                    <p><strong>التعريف:</strong> هجوم CSRF يتطلب خطوات متعددة.</p>
+                    <p><strong>المصدر:</strong> عمليات معقدة</p>
+                    <p><strong>التأثير:</strong> تنفيذ عمليات متقدمة</p>
+                    <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال</span>
+<pre><code>&lt;!-- هجوم Multi-step CSRF --&gt;
 &lt;script&gt;
-// الخطوة 1: تغيير كلمة المرور
+// الخطوة الأولى: تغيير كلمة المرور
 fetch('/change-password', {
     method: 'POST',
-    body: 'newPassword=hacked123'
+    body: 'new_password=attacker123'
 });
 
-// الخطوة 2: إضافة مستخدم جديد
-setTimeout(() =&gt; {
-    fetch('/add-user', {
+// الخطوة الثانية: تحويل الأموال
+setTimeout(() => {
+    fetch('/transfer', {
         method: 'POST',
-        body: 'username=attacker&role=admin'
+        body: 'amount=1000&to=attacker'
     });
 }, 1000);
-
-// الخطوة 3: حذف المستخدم الأصلي
-setTimeout(() =&gt; {
-    fetch('/delete-user', {
-        method: 'POST',
-        body: 'username=admin'
-    });
-}, 2000);
-&lt;/script&gt;
+&lt;/script&gt;</code></pre>
                     </div>
-
-                    <h5>🎯 كيف يعمل الهجوم:</h5>
-                    <ul>
-                        <li>المهاجم ينفذ عدة طلبات متتالية</li>
-                        <li>يستخدم setTimeout للتوقيت</li>
-                        <li>كل طلب يعتمد على الطلب السابق</li>
-                        <li>النتيجة: سيطرة كاملة على النظام</li>
-                    </ul>
-
-                    <h5>💪 المميزات:</h5>
-                    <ul>
-                        <li>يمكن تنفيذ عمليات معقدة</li>
-                        <li>أصعب في الاكتشاف</li>
-                        <li>يمكن تجاوز بعض الحماية</li>
-                    </ul>
                 </div>
 
-                <!-- 5. Blind CSRF -->
-                <div class="attack-type">
-                    <h4>5. Blind CSRF</h4>
-                    <p>تحدث عندما لا يمكن للمهاجم رؤية نتيجة الطلب، ولكن الطلب يتم تنفيذه بنجاح.</p>
-                    
-                    <h5>📝 مثال على الكود الضعيف:</h5>
-                    <div class="code-block vulnerable">
-&lt;!-- ❌ كود ضعيف --&gt;
+                <div class="card">
+                    <h3>👁️ 5. Blind CSRF</h3>
+                    <p><strong>التعريف:</strong> هجوم CSRF بدون استجابة مرئية.</p>
+                    <p><strong>المصدر:</strong> طلبات خلفية</p>
+                    <p><strong>التأثير:</strong> تنفيذ إجراءات خفية</p>
+                    <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال</span>
+<pre><code>&lt;!-- هجوم Blind CSRF --&gt;
 &lt;script&gt;
-// طلب لا يعيد استجابة مرئية
-fetch('/admin/delete-all-users', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-        confirm: true
-    })
-}).then(response =&gt; {
-    // لا يمكن رؤية النتيجة
-    console.log('Request sent');
-});
-&lt;/script&gt;
+// إرسال طلب بدون انتظار استجابة
+var xhr = new XMLHttpRequest();
+xhr.open('POST', 'https://bank.com/transfer', true);
+xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+xhr.send('amount=1000&to=attacker');
+&lt;/script&gt;</code></pre>
                     </div>
+                </div>
+            </div>
+        </section>
 
-                    <h5>🎯 كيف يعمل الهجوم:</h5>
-                    <ul>
-                        <li>المهاجم يرسل طلب دون رؤية النتيجة</li>
-                        <li>الطلب يتم تنفيذه في الخلفية</li>
-                        <li>النتيجة تحدث على الخادم</li>
-                        <li>المهاجم لا يعرف إذا نجح الطلب</li>
+        <section id="comparison">
+            <h2><i class="fas fa-balance-scale"></i> مقارنة شاملة بين أنواع CSRF</h2>
+            
+            <p>هذا الجدول يساعدك على فهم الفروق الرئيسية بين أنواع هجمات CSRF وكيفية تمييزها:</p>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>نوع الهجوم</th>
+                        <th>التعقيد</th>
+                        <th>الاكتشاف</th>
+                        <th>البيانات</th>
+                        <th>الاستخدام</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>GET-based</strong></td>
+                        <td>منخفض</td>
+                        <td>سهل</td>
+                        <td>محدودة</td>
+                        <td>بسيطة</td>
+                    </tr>
+                    <tr>
+                        <td><strong>POST-based</strong></td>
+                        <td>متوسط</td>
+                        <td>متوسط</td>
+                        <td>غير محدودة</td>
+                        <td>شائعة</td>
+                    </tr>
+                    <tr>
+                        <td><strong>JSON-based</strong></td>
+                        <td>متوسط</td>
+                        <td>صعب</td>
+                        <td>معقدة</td>
+                        <td>APIs</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Multi-step</strong></td>
+                        <td>عالي</td>
+                        <td>صعب جداً</td>
+                        <td>متعددة</td>
+                        <td>متقدمة</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Blind</strong></td>
+                        <td>متوسط</td>
+                        <td>صعب</td>
+                        <td>محدودة</td>
+                        <td>تخريبية</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="tip">
+                <h4>💡 كيفية التمييز بين أنواع الهجمات</h4>
+                <ul class="list">
+                    <li><strong>GET-based:</strong> ابحث عن روابط أو صور تنفذ إجراءات</li>
+                    <li><strong>POST-based:</strong> ابحث عن نماذج HTML مخفية</li>
+                    <li><strong>JSON-based:</strong> ابحث عن طلبات fetch أو XMLHttpRequest</li>
+                    <li><strong>Multi-step:</strong> ابحث عن تسلسل من الطلبات</li>
+                    <li><strong>Blind:</strong> ابحث عن طلبات بدون معالجة الاستجابة</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="detection">
+            <h2><i class="fas fa-search"></i> طرق اكتشاف ثغرات CSRF</h2>
+            
+            <div class="grid">
+                <div class="card">
+                    <h3>🔍 1. الفحص اليدوي</h3>
+                    <ul class="list">
+                        <li>فحص النماذج والروابط</li>
+                        <li>البحث عن عدم وجود CSRF tokens</li>
+                        <li>اختبار إجراءات حساسة</li>
+                        <li>مراقبة الطلبات والردود</li>
                     </ul>
+                </div>
 
-                    <h5>⚠️ التحديات:</h5>
-                    <ul>
-                        <li>صعوبة التأكد من نجاح الهجوم</li>
-                        <li>قد تحتاج طلبات إضافية للتحقق</li>
-                        <li>أصعب في التطوير والاختبار</li>
+                <div class="card">
+                    <h3>🛠️ 2. أدوات الاختبار</h3>
+                    <ul class="list">
+                        <li><strong>Burp Suite:</strong> تحليل الطلبات والردود</li>
+                        <li><strong>OWASP ZAP:</strong> فحص تلقائي للثغرات</li>
+                        <li><strong>Browser DevTools:</strong> فحص الطلبات</li>
+                        <li><strong>CSRF PoC Generator:</strong> إنشاء أدلة على المفهوم</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>📊 3. مؤشرات الثغرات</h3>
+                    <ul class="list">
+                        <li>عدم وجود CSRF tokens</li>
+                        <li>عدم التحقق من Referer header</li>
+                        <li>عدم استخدام SameSite cookies</li>
+                        <li>إجراءات حساسة بدون تأكيد</li>
                     </ul>
                 </div>
             </div>
 
-            <!-- مقارنة بين الأنواع -->
-            <div class="section">
-                <h2>📊 مقارنة بين أنواع CSRF</h2>
-                
-                <table class="comparison-table">
-                    <thead>
-                        <tr>
-                            <th>النوع</th>
-                            <th>التعقيد</th>
-                            <th>الاكتشاف</th>
-                            <th>البيانات</th>
-                            <th>الاستخدام</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>GET-based</strong></td>
-                            <td>منخفض</td>
-                            <td>سهل</td>
-                            <td>محدودة</td>
-                            <td>بسيطة</td>
-                        </tr>
-                        <tr>
-                            <td><strong>POST-based</strong></td>
-                            <td>متوسط</td>
-                            <td>متوسط</td>
-                            <td>غير محدودة</td>
-                            <td>شائعة</td>
-                        </tr>
-                        <tr>
-                            <td><strong>JSON-based</strong></td>
-                            <td>متوسط</td>
-                            <td>صعب</td>
-                            <td>معقدة</td>
-                            <td>APIs</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Multi-step</strong></td>
-                            <td>عالي</td>
-                            <td>صعب جداً</td>
-                            <td>متعددة</td>
-                            <td>متقدمة</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Blind</strong></td>
-                            <td>متوسط</td>
-                            <td>صعب</td>
-                            <td>محدودة</td>
-                            <td>تخريبية</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال: فحص CSRF</span>
+<pre><code>// اختبار
+// GET-based CSRF
+&lt;img src="https://target.com/action?param=value" style="display:none"&gt;
 
-            <!-- طرق الاكتشاف -->
-            <div class="section">
-                <h2>🔍 طرق اكتشاف CSRF</h2>
-                
-                <h3>1. الفحص اليدوي</h3>
-                <div class="code-block">
-&lt;!-- اختبار GET-based CSRF --&gt;
-&lt;img src="https://target.com/action?param=value" style="display:none;"&gt;
-
-&lt;!-- اختبار POST-based CSRF --&gt;
+// POST-based CSRF
 &lt;form action="https://target.com/action" method="POST"&gt;
     &lt;input type="hidden" name="param" value="value"&gt;
 &lt;/form&gt;
-&lt;script&gt;document.forms[0].submit();&lt;/script&gt;
-                </div>
-
-                <h3>2. استخدام Burp Suite</h3>
-                <ul>
-                    <li>استخدام CSRF PoC Generator</li>
-                    <li>تحليل الطلبات والردود</li>
-                    <li>اختبار نقاط الضعف</li>
-                    <li>إنشاء payloads مخصصة</li>
-                </ul>
-
-                <h3>3. أدوات تلقائية</h3>
-                <ul>
-                    <li>OWASP ZAP</li>
-                    <li>Burp Suite Professional</li>
-                    <li>CSRF Scanner</li>
-                    <li>Custom Scripts</li>
-                </ul>
-
-                <div class="warning">
-                    <strong>⚠️ تحذير:</strong> تأكد من اختبار هذه الطرق في بيئة آمنة ومصرح بها فقط!
-                </div>
+&lt;script&gt;document.forms[0].submit();&lt;/script&gt;</code></pre>
             </div>
+        </section>
 
-            <!-- طرق الاستغلال -->
-            <div class="section">
-                <h2>⚔️ طرق استغلال CSRF</h2>
-                
-                <h3>1. إنشاء صفحة خبيثة</h3>
-                <div class="code-block">
-&lt;!-- صفحة CSRF خبيثة --&gt;
-&lt;html&gt;
-&lt;head&gt;
-    &lt;title&gt;عرض صورة جميلة&lt;/title&gt;
-&lt;/head&gt;
-&lt;body&gt;
-    &lt;h1&gt;انظر لهذه الصورة الجميلة!&lt;/h1&gt;
+        <section id="exploitation">
+            <h2><i class="fas fa-crosshairs"></i> طرق استغلال ثغرات CSRF</h2>
+            
+            <div class="attack-demo">
+                <h4>🎯 استغلال GET-based CSRF</h4>
+                <div class="mermaid">
+sequenceDiagram
+    participant A as 🥷 المهاجم
+    participant V as 👤 الضحية
+    participant B as 🌐 متصفح الضحية
+    participant T as 🎯 الموقع المستهدف
     
-    &lt;!-- CSRF Payload مخفي --&gt;
-    &lt;form id="csrf" action="https://bank.com/transfer" method="POST"&gt;
-        &lt;input type="hidden" name="to" value="attacker"&gt;
-        &lt;input type="hidden" name="amount" value="1000"&gt;
-    &lt;/form&gt;
+    A->>A: 1. ينشئ صفحة ويب ضارة
+    Note over A: تحتوي على رابط أو صورة خبيثة
+    A->>V: 2. يرسل الرابط للضحية
+    V->>B: 3. الضحية يزور الرابط
+    B->>T: 4. المتصفح يرسل طلب GET مع cookies
+    T->>T: 5. يعالج الطلب كأنه من المستخدم 💥
+    T-->>B: 6. يستجيب للطلب
+                </div>
+            </div>
+
+            <div class="attack-demo">
+                <h4>📝 استغلال POST-based CSRF</h4>
+                <div class="mermaid">
+sequenceDiagram
+    participant A as 🥷 المهاجم
+    participant V as 👤 الضحية
+    participant B as 🌐 متصفح الضحية
+    participant T as 🎯 الموقع المستهدف
     
-    &lt;script&gt;
-        // تنفيذ النموذج تلقائياً
-        setTimeout(() =&gt; {
-            document.getElementById('csrf').submit();
-        }, 2000);
-    &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-                </div>
-
-                <h3>2. استخدام Social Engineering</h3>
-                <ul>
-                    <li>إرسال روابط خبيثة عبر البريد الإلكتروني</li>
-                    <li>إنشاء صفحات مزيفة جذابة</li>
-                    <li>استخدام رسائل عاجلة ومخيفة</li>
-                    <li>استغلال الثقة والفضول</li>
-                </ul>
-
-                <h3>3. استغلال الثغرات الأخرى</h3>
-                <ul>
-                    <li>XSS + CSRF</li>
-                    <li>Open Redirect + CSRF</li>
-                    <li>Clickjacking + CSRF</li>
-                    <li>Session Fixation + CSRF</li>
-                </ul>
-            </div>
-
-            <!-- المختبرات العملية -->
-            <div class="section">
-                <h2>🧪 المختبرات العملية</h2>
-                <p>مجموعة من المختبرات العملية من PortSwigger Web Security Academy لاختبار أنواع CSRF المختلفة:</p>
-
-                <div class="lab-card">
-                    <h4>🔬 Lab 1: CSRF vulnerability with no defenses</h4>
-                    <p>مختبر أساسي لاختبار CSRF بدون أي حماية</p>
-                    <a href="https://portswigger.net/web-security/csrf/lab-no-defenses" target="_blank">
-                        ابدأ المختبر →
-                    </a>
-                </div>
-
-                <div class="lab-card">
-                    <h4>🔬 Lab 2: CSRF where token validation depends on request method</h4>
-                    <p>اختبار CSRF مع حماية ضعيفة تعتمد على نوع الطلب</p>
-                    <a href="https://portswigger.net/web-security/csrf/lab-token-validation-depends-on-request-method" target="_blank">
-                        ابدأ المختبر →
-                    </a>
-                </div>
-
-                <div class="lab-card">
-                    <h4>🔬 Lab 3: CSRF where token validation depends on token being present</h4>
-                    <p>اختبار CSRF مع حماية تعتمد على وجود التوكن</p>
-                    <a href="https://portswigger.net/web-security/csrf/lab-token-validation-depends-on-token-being-present" target="_blank">
-                        ابدأ المختبر →
-                    </a>
-                </div>
-
-                <div class="lab-card">
-                    <h4>🔬 Lab 4: CSRF where Referer validation depends on header being present</h4>
-                    <p>اختبار CSRF مع حماية تعتمد على Referer header</p>
-                    <a href="https://portswigger.net/web-security/csrf/lab-referer-validation-depends-on-header-being-present" target="_blank">
-                        ابدأ المختبر →
-                    </a>
-                </div>
-
-                <div class="lab-card">
-                    <h4>🔬 Lab 5: CSRF with broken Referer validation</h4>
-                    <p>اختبار CSRF مع حماية Referer ضعيفة</p>
-                    <a href="https://portswigger.net/web-security/csrf/lab-broken-referer-validation" target="_blank">
-                        ابدأ المختبر →
-                    </a>
-                </div>
-
-                <div class="lab-card">
-                    <h4>🔬 Lab 6: CSRF where token is not tied to user session</h4>
-                    <p>اختبار CSRF مع توكن غير مرتبط بجلسة المستخدم</p>
-                    <a href="https://portswigger.net/web-security/csrf/lab-token-not-tied-to-user-session" target="_blank">
-                        ابدأ المختبر →
-                    </a>
-                </div>
-
-                <div class="lab-card">
-                    <h4>🔬 Lab 7: CSRF where token is duplicated in cookie</h4>
-                    <p>اختبار CSRF مع توكن مكرر في الكوكيز</p>
-                    <a href="https://portswigger.net/web-security/csrf/lab-token-duplicated-in-cookie" target="_blank">
-                        ابدأ المختبر →
-                    </a>
-                </div>
-
-                <div class="lab-card">
-                    <h4>🔬 Lab 8: SameSite Lax bypass via method override</h4>
-                    <p>اختبار تجاوز حماية SameSite Lax عبر تغيير طريقة الطلب</p>
-                    <a href="https://portswigger.net/web-security/csrf/lab-samesite-lax-bypass-via-method-override" target="_blank">
-                        ابدأ المختبر →
-                    </a>
-                </div>
-
-                <div class="info">
-                    <strong>💡 ملاحظة:</strong> هذه المختبرات تتطلب حساب في PortSwigger Web Security Academy. 
-                    يمكنك التسجيل مجاناً على <a href="https://portswigger.net/web-security" target="_blank">موقعهم</a>.
+    A->>A: 1. ينشئ صفحة ويب ضارة
+    Note over A: تحتوي على نموذج HTML مخفي
+    A->>V: 2. يرسل الرابط للضحية
+    V->>B: 3. الضحية يزور الرابط
+    B->>B: 4. JavaScript يرسل النموذج تلقائياً
+    B->>T: 5. المتصفح يرسل طلب POST مع cookies
+    T->>T: 6. يعالج الطلب كأنه من المستخدم 💥
                 </div>
             </div>
 
-            <!-- طرق الحماية -->
-            <div class="section">
-                <h2>🛡️ طرق الحماية من CSRF</h2>
-                
-                <h3>1. CSRF Tokens</h3>
-                <div class="code-block secure">
-&lt;!-- ✅ كود آمن مع CSRF Token --&gt;
+            <div class="warn">
+                <h4>⚠️ نصائح مهمة للاستغلال</h4>
+                <ul class="list">
+                    <li><strong>افهم الطلب:</strong> ما هي المعاملات المطلوبة؟</li>
+                    <li><strong>اختبر تدريجياً:</strong> ابدأ باختبارات بسيطة ثم تطور</li>
+                    <li><strong>استخدم Burp Suite:</strong> لتحليل الطلبات والردود</li>
+                    <li><strong>اختبر في بيئة آمنة:</strong> لا تختبر على مواقع حقيقية</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="labs">
+            <h2><i class="fas fa-flask"></i> مختبرات عملية (8) - PortSwigger Academy</h2>
+            <p>مختبرات متدرجة الصعوبة لكل نوع من أنواع هجمات CSRF:</p>
+
+            <h3>🎯 مختبرات GET-based CSRF</h3>
+            <div class="lab-card">
+                <h4>🧪 Lab 1: CSRF vulnerability with no defenses</h4>
+                <p><strong>الهدف:</strong> استغلال CSRF بسيط بدون حماية</p>
+                <p><strong>التقنية:</strong> إنشاء نموذج HTML خبيث</p>
+                <a href="https://portswigger.net/web-security/csrf/lab-no-defenses" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <h3>📝 مختبرات POST-based CSRF</h3>
+            <div class="lab-card">
+                <h4>🧪 Lab 2: CSRF where token validation depends on request method</h4>
+                <p><strong>الهدف:</strong> استغلال CSRF مع حماية ضعيفة</p>
+                <p><strong>التقنية:</strong> تغيير طريقة الطلب</p>
+                <a href="https://portswigger.net/web-security/csrf/lab-token-validation-depends-on-request-method" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <h3>📊 مختبرات JSON-based CSRF</h3>
+            <div class="lab-card">
+                <h4>🧪 Lab 3: CSRF where token validation depends on token being present</h4>
+                <p><strong>الهدف:</strong> استغلال CSRF مع حماية JSON</p>
+                <p><strong>التقنية:</strong> تخطي التحقق من الـ token</p>
+                <a href="https://portswigger.net/web-security/csrf/lab-token-validation-depends-on-token-being-present" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <h3>🔄 مختبرات Multi-step CSRF</h3>
+            <div class="lab-card">
+                <h4>🧪 Lab 4: CSRF where token is not tied to user session</h4>
+                <p><strong>الهدف:</strong> استغلال CSRF متعدد الخطوات</p>
+                <p><strong>التقنية:</strong> استخدام token من جلسة أخرى</p>
+                <a href="https://portswigger.net/web-security/csrf/lab-token-not-tied-to-user-session" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <h3>👁️ مختبرات Blind CSRF</h3>
+            <div class="lab-card">
+                <h4>🧪 Lab 5: CSRF where token is duplicated in cookie</h4>
+                <p><strong>الهدف:</strong> استغلال CSRF أعمى</p>
+                <p><strong>التقنية:</strong> استخدام token من الـ cookie</p>
+                <a href="https://portswigger.net/web-security/csrf/lab-token-duplicated-in-cookie" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <h3>🛡️ مختبرات الحماية المتقدمة</h3>
+            <div class="lab-card">
+                <h4>🧪 Lab 6: CSRF where Referer validation depends on header being present</h4>
+                <p><strong>الهدف:</strong> تخطي حماية Referer</p>
+                <p><strong>التقنية:</strong> إزالة أو تزوير Referer header</p>
+                <a href="https://portswigger.net/web-security/csrf/lab-referer-validation-depends-on-header-being-present" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 7: CSRF with broken Referer validation</h4>
+                <p><strong>الهدف:</strong> استغلال حماية Referer ضعيفة</p>
+                <p><strong>التقنية:</strong> تزوير Referer header</p>
+                <a href="https://portswigger.net/web-security/csrf/lab-broken-referer-validation" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="lab-card">
+                <h4>🧪 Lab 8: CSRF where token validation depends on parsing method</h4>
+                <p><strong>الهدف:</strong> استغلال طريقة تحليل الـ token</p>
+                <p><strong>التقنية:</strong> تخطي طريقة التحقق من الـ token</p>
+                <a href="https://portswigger.net/web-security/csrf/lab-token-validation-depends-on-parsing-method" class="lab-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> فتح المختبر
+                </a>
+            </div>
+
+            <div class="tip">
+                <h4>💡 نصائح لحل المختبرات</h4>
+                <ul class="list">
+                    <li><strong>افهم نوع الهجوم:</strong> كل مختبر يركز على نوع محدد من CSRF</li>
+                    <li><strong>استخدم Burp Suite:</strong> لتحليل الطلبات والردود</li>
+                    <li><strong>فحص الحماية:</strong> ابحث عن CSRF tokens، Referer validation</li>
+                    <li><strong>استخدم Browser DevTools:</strong> لمراقبة الطلبات</li>
+                    <li><strong>اختبر تدريجياً:</strong> ابدأ باختبارات بسيطة ثم تطور</li>
+                    <li><strong>افهم السياق:</strong> ما هي الإجراءات الحساسة؟</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="defense">
+            <h2><i class="fas fa-shield-halved"></i> طرق الحماية من هجمات CSRF</h2>
+            
+            <div class="grid">
+                <div class="card">
+                    <h3>🔑 1. CSRF Tokens</h3>
+                    <ul class="list">
+                        <li>إضافة token فريد لكل طلب</li>
+                        <li>التحقق من صحة الـ token</li>
+                        <li>ربط الـ token بالجلسة</li>
+                        <li>تحديث الـ token بعد كل طلب</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>🍪 2. SameSite Cookies</h3>
+                    <ul class="list">
+                        <li>استخدام SameSite=Strict</li>
+                        <li>منع إرسال cookies عبر المواقع</li>
+                        <li>تطبيق سياسات صارمة</li>
+                        <li>مراقبة سلوك الـ cookies</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>🔍 3. Referer Validation</h3>
+                    <ul class="list">
+                        <li>التحقق من Referer header</li>
+                        <li>مقارنة النطاق</li>
+                        <li>رفض الطلبات المشبوهة</li>
+                        <li>تطبيق قائمة بيضاء للنطاقات</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h3>🛡️ 4. Double Submit Cookie</h3>
+                    <ul class="list">
+                        <li>إرسال token في الـ cookie والـ form</li>
+                        <li>مقارنة القيمتين</li>
+                        <li>رفض الطلبات غير المتطابقة</li>
+                        <li>تطبيق تشفير قوي</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="code-block">
+<span class="code-header"><i class="fas fa-code"></i> مثال: حماية من CSRF</span>
+<pre><code>// ❌ كود ضعيف
 &lt;form action="/transfer" method="POST"&gt;
-    &lt;input type="hidden" name="csrf_token" value="random_token_here"&gt;
+    &lt;input type="text" name="amount"&gt;
     &lt;input type="text" name="to"&gt;
-    &lt;input type="number" name="amount"&gt;
-    &lt;button type="submit"&gt;تحويل&lt;/button&gt;
+    &lt;input type="submit" value="تحويل"&gt;
 &lt;/form&gt;
 
-&lt;!-- على الخادم --&gt;
-if (request.csrf_token !== session.csrf_token) {
-    return error('Invalid CSRF token');
-}
-                </div>
-
-                <h3>2. SameSite Cookies</h3>
-                <div class="code-block secure">
-&lt;!-- ✅ كود آمن مع SameSite --&gt;
-Set-Cookie: sessionId=abc123; SameSite=Strict; Secure; HttpOnly
-
-&lt;!-- أو SameSite=Lax للروابط الخارجية --&gt;
-Set-Cookie: sessionId=abc123; SameSite=Lax; Secure; HttpOnly
-                </div>
-
-                <h3>3. Double Submit Cookie</h3>
-                <div class="code-block secure">
-&lt;!-- ✅ كود آمن مع Double Submit --&gt;
-&lt;script&gt;
-// إنشاء توكن عشوائي
-const token = Math.random().toString(36).substr(2, 9);
-document.cookie = `csrf_token=${token}; SameSite=Strict`;
-
-// إضافة التوكن للنموذج
-document.getElementById('csrf_token').value = token;
-&lt;/script&gt;
-                </div>
-
-                <h3>4. Custom Headers</h3>
-                <div class="code-block secure">
-&lt;!-- ✅ كود آمن مع Custom Header --&gt;
-fetch('/api/transfer', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': 'token_here',
-        'X-Requested-With': 'XMLHttpRequest'
-    },
-    body: JSON.stringify(data)
-});
-                </div>
-
-                <h3>5. Referer Validation</h3>
-                <div class="code-block secure">
-&lt;!-- ✅ كود آمن مع Referer Check --&gt;
-function validateReferer(request) {
-    const referer = request.headers.referer;
-    const allowedDomains = ['example.com', 'www.example.com'];
-    
-    if (!referer) {
-        return false;
-    }
-    
-    const url = new URL(referer);
-    return allowedDomains.includes(url.hostname);
-}
-                </div>
-
-                <div class="success">
-                    <strong>✅ أفضل الممارسات:</strong>
-                    <ul>
-                        <li>استخدم CSRF tokens لكل النماذج</li>
-                        <li>طبق SameSite=Strict للكوكيز الحساسة</li>
-                        <li>تحقق من Referer header</li>
-                        <li>استخدم Custom headers للطلبات المهمة</li>
-                        <li>طبق مبدأ "الصلاحيات الدنيا"</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- أمثلة عملية -->
-            <div class="section">
-                <h2>💻 أمثلة عملية</h2>
-                
-                <h3>مثال 1: حماية نموذج تسجيل الدخول</h3>
-                <div class="code-block secure">
-&lt;!-- ✅ نموذج آمن --&gt;
-&lt;form action="/login" method="POST"&gt;
-    &lt;input type="hidden" name="csrf_token" value="&lt;?php echo $_SESSION['csrf_token']; ?&gt;"&gt;
-    &lt;input type="email" name="email" required&gt;
-    &lt;input type="password" name="password" required&gt;
-    &lt;button type="submit"&gt;تسجيل الدخول&lt;/button&gt;
+// ✅ كود آمن
+&lt;form action="/transfer" method="POST"&gt;
+    &lt;input type="text" name="amount"&gt;
+    &lt;input type="text" name="to"&gt;
+    &lt;input type="hidden" name="csrf_token" value="&lt;?php echo generateCSRFToken(); ?&gt;"&gt;
+    &lt;input type="submit" value="تحويل"&gt;
 &lt;/form&gt;
 
-&lt;!-- PHP Validation --&gt;
-&lt;?php
-if ($_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-    die('CSRF attack detected!');
-}
-?&gt;
-                </div>
-
-                <h3>مثال 2: حماية API endpoint</h3>
-                <div class="code-block secure">
-&lt;!-- ✅ API آمن --&gt;
-// Middleware للتحقق من CSRF
-app.use('/api', (req, res, next) =&gt; {
-    const token = req.headers['x-csrf-token'];
-    const sessionToken = req.session.csrf_token;
-    
-    if (token !== sessionToken) {
-        return res.status(403).json({ error: 'Invalid CSRF token' });
-    }
-    
-    next();
-});
-
-// Endpoint محمي
-app.post('/api/transfer', (req, res) =&gt; {
-    // معالجة الطلب بأمان
-    res.json({ success: true });
-});
-                </div>
-
-                <h3>مثال 3: حماية AJAX requests</h3>
-                <div class="code-block secure">
-&lt;!-- ✅ AJAX آمن --&gt;
-&lt;script&gt;
-// إضافة CSRF token لجميع الطلبات
-$.ajaxSetup({
-    beforeSend: function(xhr) {
-        xhr.setRequestHeader('X-CSRF-Token', getCSRFToken());
-    }
-});
-
-function getCSRFToken() {
-    return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-}
-
-// طلب آمن
-$.post('/api/update-profile', {
-    name: 'New Name',
-    email: 'new@email.com'
-});
-&lt;/script&gt;
-                </div>
+// التحقق من الـ token
+if (!validateCSRFToken($_POST['csrf_token'])) {
+    die('CSRF token invalid');
+}</code></pre>
             </div>
+        </section>
 
-            <!-- الخلاصة -->
-            <div class="section">
-                <h2>📝 الخلاصة</h2>
-                
-                <div class="warning">
-                    <strong>🎯 النقاط الرئيسية:</strong>
-                    <ul>
-                        <li>CSRF هي ثغرة خطيرة تسمح بتنفيذ إجراءات غير مرغوب فيها</li>
-                        <li>هناك 5 أنواع رئيسية من CSRF</li>
-                        <li>الحماية الأساسية هي CSRF tokens</li>
-                        <li>SameSite cookies تحمي من معظم الهجمات</li>
-                        <li>التحقق من Referer header يضيف طبقة حماية إضافية</li>
-                    </ul>
-                </div>
+        <section id="summary">
+            <h2><i class="fas fa-list-check"></i> الخلاصة</h2>
+            
+            <p>هجمات CSRF هي ثغرات خطيرة تسمح للمهاجمين بتنفيذ إجراءات نيابة عن المستخدمين المصادقين. فهم أنواعها المختلفة وكيفية اكتشافها واستغلالها ضروري للحماية الفعالة. تطبيق ممارسات الحماية الصحيحة مثل CSRF tokens وSameSite cookies يساعد في منع هذه الهجمات.</p>
 
-                <div class="success">
-                    <strong>✅ خطوات الحماية:</strong>
-                    <ol>
-                        <li>استخدم CSRF tokens في جميع النماذج</li>
-                        <li>طبق SameSite=Strict للكوكيز الحساسة</li>
-                        <li>تحقق من Referer header</li>
-                        <li>استخدم Custom headers للطلبات المهمة</li>
-                        <li>اختبر تطبيقك بانتظام</li>
-                        <li>ابق على اطلاع بأحدث التهديدات</li>
-                    </ol>
-                </div>
-
-                <div class="info">
-                    <strong>🔗 روابط مفيدة:</strong>
-                    <ul>
-                        <li><a href="https://owasp.org/www-community/attacks/csrf" target="_blank">OWASP CSRF Guide</a></li>
-                        <li><a href="https://portswigger.net/web-security/csrf" target="_blank">PortSwigger CSRF</a></li>
-                        <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#SameSite_cookies" target="_blank">MDN SameSite Cookies</a></li>
-                    </ul>
-                </div>
+            <div class="tip">
+                <h4>🎯 النقاط الرئيسية</h4>
+                <ul class="list">
+                    <li>هجمات CSRF تستغل ثقة الموقع بالمتصفح</li>
+                    <li>هناك 5 أنواع رئيسية من هجمات CSRF</li>
+                    <li>الاكتشاف يتطلب فحص دقيق للحماية</li>
+                    <li>الحماية تتطلب تطبيق CSRF tokens وSameSite cookies</li>
+                    <li>الاختبار المنتظم ضروري للحماية الفعالة</li>
+                </ul>
             </div>
-        </div>
+        </section>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script>
-        mermaid.initialize({ startOnLoad: true });
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            themeVariables: {
+                primaryColor: '#42a5f5',
+                primaryTextColor: '#e8eaed',
+                primaryBorderColor: '#2d3748',
+                lineColor: '#81c784',
+                secondaryColor: '#1a2332',
+                tertiaryColor: '#0f1724',
+                background: '#1a2332',
+                mainBkg: '#1a2332',
+                secondBkg: '#0f1724',
+                tertiaryBkg: '#2d3748',
+                nodeBorder: '#2d3748',
+                clusterBkg: '#0f1724',
+                clusterBorder: '#2d3748',
+                defaultLinkColor: '#81c784',
+                titleColor: '#e8eaed',
+                edgeLabelBackground: '#1a2332',
+                nodeTextColor: '#e8eaed',
+                textColor: '#e8eaed',
+                actorTextColor: '#e8eaed',
+                labelTextColor: '#e8eaed',
+                loopTextColor: '#e8eaed',
+                activationTextColor: '#e8eaed',
+                sectionBkgColor: '#1a2332',
+                altSectionBkgColor: '#0f1724',
+                gridColor: '#2d3748',
+                c0: '#42a5f5',
+                c1: '#81c784',
+                c2: '#ff9800',
+                c3: '#e91e63'
+            }
+        });
     </script>
 </body>
 </html> 
